@@ -9,10 +9,24 @@ const inp = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gra
 const inpFocus = { borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,0.10)' }
 const inpBlur = { borderColor: '#e5e7eb', boxShadow: '' }
 
+const SVC_LABELS: Record<string, { icon: string; label: string }> = {
+  walking: { icon: '🦮', label: 'Šetanje' },
+  boarding: { icon: '🏠', label: 'Čuvanje' },
+  both: { icon: '🐾', label: 'Sve usluge' },
+}
+const DAYS = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
+
+type DaySchedule = { active: boolean; from: string; to: string }
+
+const defaultAvailability = (): Record<string, DaySchedule> =>
+  Object.fromEntries(Array.from({ length: 7 }, (_, i) => [String(i), { active: true, from: '08:00', to: '20:00' }]))
+
 export default function ProfilPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [saved, setSaved] = useState(false)
+  const [editingBasic, setEditingBasic] = useState(false)
+  const [editingWalker, setEditingWalker] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: getMyProfile })
@@ -21,9 +35,6 @@ export default function ProfilPage() {
     first_name: '', last_name: '', phone: '', address: '',
     lat: null as number | null, lng: null as number | null,
   })
-  type DaySchedule = { active: boolean; from: string; to: string }
-  const defaultAvailability = (): Record<string, DaySchedule> =>
-    Object.fromEntries(Array.from({ length: 7 }, (_, i) => [String(i), { active: true, from: '08:00', to: '20:00' }]))
 
   const [walkerForm, setWalkerForm] = useState({
     hourly_rate: '' as string | number,
@@ -49,16 +60,21 @@ export default function ProfilPage() {
     }
   }, [profile])
 
-  const flash = () => { setSaved(true); setTimeout(() => setSaved(false), 2500) }
+  const flash = (closeBasic?: boolean, closeWalker?: boolean) => {
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+    if (closeBasic) setEditingBasic(false)
+    if (closeWalker) setEditingWalker(false)
+  }
+
   const updateM = useMutation({
     mutationFn: updateMyProfile,
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['profile'] }); flash() },
-    onError: (e: unknown) => {
-      const err = e as { response?: { data?: unknown } }
-      console.error('Error saving profile:', err?.response?.data)
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['profile'] }); flash(true) },
   })
-  const updateWalkerM = useMutation({ mutationFn: updateWalkerProfile, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['profile'] }); flash() } })
+  const updateWalkerM = useMutation({
+    mutationFn: updateWalkerProfile,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['profile'] }); flash(false, true) },
+  })
   const imageM = useMutation({
     mutationFn: uploadProfileImage,
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['profile'] }); flash() },
@@ -73,210 +89,300 @@ export default function ProfilPage() {
     </div>
   )
 
+  const wp = profile.walker_profile
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+
+      {/* Hero header */}
       <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex items-center gap-5">
-            {/* Avatar upload zone */}
-            <div className="shrink-0 flex flex-col items-center gap-2">
-              <div className="relative">
-                {profile.profile_image ? (
-                  <img src={`${BACKEND_URL}${profile.profile_image}`} alt={profile.first_name}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-white"
-                    style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }} />
-                ) : (
-                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold border-4 border-white"
-                    style={{ backgroundColor: '#00BF8F', boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
-                    {profile.first_name[0]}{profile.last_name[0]}
-                  </div>
-                )}
-                {/* Camera badge */}
-                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-sm cursor-pointer shadow-sm"
-                  style={{ fontSize: '14px' }}>
-                  📷
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              {profile.profile_image ? (
+                <img src={`${BACKEND_URL}${profile.profile_image}`} alt={profile.first_name}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-white"
+                  style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.14)' }} />
+              ) : (
+                <div className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold border-4 border-white"
+                  style={{ backgroundColor: '#00BF8F', boxShadow: '0 2px 16px rgba(0,0,0,0.14)' }}>
+                  {profile.first_name[0]}{profile.last_name[0]}
                 </div>
-              </div>
+              )}
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={imageM.isPending}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all hover:border-[#00BF8F] hover:text-[#00BF8F]"
-                style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center shadow-sm hover:border-[#00BF8F] transition-all"
+                title="Promeni sliku"
               >
-                {imageM.isPending ? 'Učitavam...' : 'Promeni sliku'}
+                {imageM.isPending
+                  ? <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
+                  : <span style={{ fontSize: '15px' }}>📷</span>
+                }
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; if (f) imageM.mutate(f) }} />
             </div>
 
-            <div>
-              <h1 className="text-xl font-black text-gray-900">{profile.first_name} {profile.last_name}</h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-black text-gray-900">{profile.first_name} {profile.last_name}</h1>
               <p className="text-gray-400 text-sm">{profile.email}</p>
-              <span className="inline-block mt-1.5 text-xs font-semibold px-3 py-1 rounded-full"
-                style={profile.role === 'owner'
-                  ? { backgroundColor: '#dbeafe', color: '#1e40af' }
-                  : { backgroundColor: '#d1fae5', color: '#065f46' }}>
-                {profile.role === 'owner' ? '🏠 Vlasnik psa' : '🦮 Šetač / Čuvar'}
-              </span>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="text-xs font-semibold px-3 py-1 rounded-full"
+                  style={profile.role === 'owner'
+                    ? { backgroundColor: '#dbeafe', color: '#1e40af' }
+                    : { backgroundColor: '#d1fae5', color: '#065f46' }}>
+                  {profile.role === 'owner' ? '🏠 Vlasnik psa' : '🦮 Šetač / Čuvar'}
+                </span>
+                {user?.role === 'walker' && wp && (
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full"
+                    style={wp.active ? { backgroundColor: '#d1fae5', color: '#065f46' } : { backgroundColor: '#f3f4f6', color: '#6b7280' }}>
+                    {wp.active ? '● Aktivan' : '○ Neaktivan'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-4">
         {saved && (
           <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-5 py-3 flex items-center gap-2 text-sm font-medium">
-            ✓ Izmene sačuvane
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            Izmene sačuvane
           </div>
         )}
 
-        {/* Basic info */}
+        {/* Basic info card */}
         <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
-          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 rounded-t-2xl">
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <h2 className="font-black text-gray-900">Osnovni podaci</h2>
+            {!editingBasic && (
+              <button
+                onClick={() => setEditingBasic(true)}
+                className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg transition-all hover:bg-gray-100"
+                style={{ color: '#00BF8F' }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                Izmeni
+              </button>
+            )}
           </div>
-          <div className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {(['first_name', 'last_name'] as const).map(k => (
-                <div key={k}>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{k === 'first_name' ? 'Ime' : 'Prezime'}</label>
-                  <input value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })}
-                    className={inp}
-                    onFocus={e => Object.assign(e.target.style, inpFocus)}
-                    onBlur={e => Object.assign(e.target.style, inpBlur)} />
+
+          {!editingBasic ? (
+            /* View mode */
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Ime</p>
+                  <p className="text-sm font-semibold text-gray-800">{profile.first_name}</p>
                 </div>
-              ))}
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Prezime</p>
+                  <p className="text-sm font-semibold text-gray-800">{profile.last_name}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Telefon</p>
+                <p className="text-sm font-semibold text-gray-800">{profile.phone || <span className="text-gray-400 font-normal italic">Nije unet</span>}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Adresa</p>
+                <p className="text-sm font-semibold text-gray-800">{profile.address || <span className="text-gray-400 font-normal italic">Nije uneta</span>}</p>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Broj telefona</label>
-              <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
-                placeholder="+381 63 123 4567" className={inp}
-                onFocus={e => Object.assign(e.target.style, inpFocus)}
-                onBlur={e => Object.assign(e.target.style, inpBlur)} />
+          ) : (
+            /* Edit mode */
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {(['first_name', 'last_name'] as const).map(k => (
+                  <div key={k}>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{k === 'first_name' ? 'Ime' : 'Prezime'}</label>
+                    <input value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })}
+                      className={inp} onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                  </div>
+                ))}
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Broj telefona</label>
+                <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
+                  placeholder="+381 63 123 4567" className={inp}
+                  onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Adresa</label>
+                <AdresaInput
+                  value={form.address}
+                  placeholder="npr. Bulevar Oslobođenja 12, Novi Sad"
+                  onChange={(address, lat, lng) => setForm(f => ({
+                    ...f, address,
+                    lat: lat !== undefined ? lat : null,
+                    lng: lng !== undefined ? lng : null,
+                  }))}
+                />
+                {form.lat && form.lng && (
+                  <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    Lokacija potvrđena
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => { setEditingBasic(false); if (profile) setForm({ first_name: profile.first_name, last_name: profile.last_name, phone: profile.phone, address: profile.address, lat: profile.lat, lng: profile.lng }) }}
+                  className="flex-1 py-2.5 rounded-xl border font-bold text-sm transition-all hover:bg-gray-50"
+                  style={{ borderColor: '#e5e7eb', color: '#6b7280' }}>
+                  Otkaži
+                </button>
+                <button onClick={() => updateM.mutate(form)} disabled={updateM.isPending}
+                  className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm transition-all hover:opacity-90 disabled:opacity-40"
+                  style={{ backgroundColor: '#00BF8F' }}>
+                  {updateM.isPending ? 'Čuvanje...' : 'Sačuvaj'}
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Adresa</label>
-              <AdresaInput
-                value={form.address}
-                placeholder="npr. Bulevar Oslobođenja 12, Novi Sad"
-                onChange={(address, lat, lng) => setForm(f => ({
-                  ...f,
-                  address,
-                  lat: lat !== undefined ? lat : null,
-                  lng: lng !== undefined ? lng : null,
-                }))}
-              />
-              {form.lat && form.lng && (
-                <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  Lokacija potvrđena: {Number(form.lat).toFixed(4)}, {Number(form.lng).toFixed(4)}
-                </p>
+          )}
+        </div>
+
+        {/* Walker profile card */}
+        {user?.role === 'walker' && wp && (
+          <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+              <div>
+                <h2 className="font-black text-gray-900">🦮 Profil šetača</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Vidljivo vlasnicima pasa</p>
+              </div>
+              {!editingWalker && (
+                <button
+                  onClick={() => setEditingWalker(true)}
+                  className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg transition-all hover:bg-gray-100"
+                  style={{ color: '#00BF8F' }}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  Izmeni
+                </button>
               )}
             </div>
 
-            <button onClick={() => updateM.mutate(form)} disabled={updateM.isPending}
-              className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all hover:opacity-90 disabled:opacity-40"
-              style={{ backgroundColor: '#1f2937' }}>
-              {updateM.isPending ? 'Čuvanje...' : 'Sačuvaj izmene'}
-            </button>
-          </div>
-        </div>
-
-        {/* Walker profile */}
-        {user?.role === 'walker' && (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-              <div>
-                <h2 className="font-black text-gray-900">🦮 Profil šetača</h2>
-                <p className="text-xs text-gray-400">Vidljivo vlasnicima pasa</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">{walkerForm.active ? 'Aktivan' : 'Neaktivan'}</span>
-                <div
-                  onClick={() => setWalkerForm({ ...walkerForm, active: !walkerForm.active })}
-                  className="w-10 h-6 rounded-full cursor-pointer transition-all relative"
-                  style={{ backgroundColor: walkerForm.active ? '#00BF8F' : '#d1d5db' }}
-                >
-                  <div className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all"
-                    style={{ left: walkerForm.active ? '22px' : '4px' }} />
+            {!editingWalker ? (
+              /* Walker view mode */
+              <div className="p-5 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Cena po satu</p>
+                    <p className="text-lg font-black" style={{ color: '#00BF8F' }}>{Number(wp.hourly_rate).toLocaleString()} <span className="text-sm font-semibold text-gray-400">RSD</span></p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Usluga</p>
+                    <p className="text-sm font-semibold text-gray-800">{SVC_LABELS[wp.services]?.icon} {SVC_LABELS[wp.services]?.label}</p>
+                  </div>
+                </div>
+                {wp.bio && (
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">O meni</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">{wp.bio}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Dostupnost</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {DAYS.map((day, idx) => {
+                      const sch = walkerForm.availability[String(idx)]
+                      const active = sch?.active ?? false
+                      return (
+                        <div key={idx} className="flex flex-col items-center gap-0.5">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold"
+                            style={active ? { backgroundColor: '#00BF8F', color: 'white' } : { backgroundColor: '#f3f4f6', color: '#d1d5db' }}>
+                            {day}
+                          </div>
+                          {active && <span className="text-[9px] text-gray-400">{sch.from.slice(0,5)}</span>}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="p-6 space-y-5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Cena po satu (RSD)</label>
-                <input type="number" min="0" value={walkerForm.hourly_rate}
-                  onChange={e => setWalkerForm({ ...walkerForm, hourly_rate: e.target.value === '' ? '' : Number(e.target.value) })}
-                  placeholder="npr. 1500" className={inp}
-                  onFocus={e => Object.assign(e.target.style, inpFocus)}
-                  onBlur={e => Object.assign(e.target.style, inpBlur)} />
-              </div>
+            ) : (
+              /* Walker edit mode */
+              <div className="p-5 space-y-5">
+                {/* Active toggle */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div>
+                    <p className="text-sm font-bold text-gray-800">Aktivan profil</p>
+                    <p className="text-xs text-gray-400">Kada je isključeno, nisi vidljiv vlasnicima</p>
+                  </div>
+                  <div onClick={() => setWalkerForm({ ...walkerForm, active: !walkerForm.active })}
+                    className="w-11 h-6 rounded-full cursor-pointer transition-all relative shrink-0"
+                    style={{ backgroundColor: walkerForm.active ? '#00BF8F' : '#d1d5db' }}>
+                    <div className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm"
+                      style={{ left: walkerForm.active ? '23px' : '4px' }} />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Usluge</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { val: 'walking', icon: '🦮', label: 'Šetanje' },
-                    { val: 'boarding', icon: '🏠', label: 'Čuvanje' },
-                    { val: 'both', icon: '🐾', label: 'Sve usluge' },
-                  ].map(u => (
-                    <button key={u.val} type="button"
-                      onClick={() => setWalkerForm({ ...walkerForm, services: u.val as typeof walkerForm.services })}
-                      className="flex items-center gap-2 py-3 px-4 rounded-xl border-2 text-sm font-semibold transition-all"
-                      style={walkerForm.services === u.val
-                        ? { borderColor: '#00BF8F', backgroundColor: '#f0fdf9', color: '#059669' }
-                        : { borderColor: '#e5e7eb', color: '#4b5563' }}>
-                      {u.icon} {u.label}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Cena po satu (RSD)</label>
+                  <input type="number" min="0" value={walkerForm.hourly_rate}
+                    onChange={e => setWalkerForm({ ...walkerForm, hourly_rate: e.target.value === '' ? '' : Number(e.target.value) })}
+                    placeholder="npr. 1500" className={inp}
+                    onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Usluge</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { val: 'walking', icon: '🦮', label: 'Šetanje' },
+                      { val: 'boarding', icon: '🏠', label: 'Čuvanje' },
+                      { val: 'both', icon: '🐾', label: 'Sve' },
+                    ].map(u => (
+                      <button key={u.val} type="button"
+                        onClick={() => setWalkerForm({ ...walkerForm, services: u.val as typeof walkerForm.services })}
+                        className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 text-xs font-semibold transition-all"
+                        style={walkerForm.services === u.val
+                          ? { borderColor: '#00BF8F', backgroundColor: '#f0fdf9', color: '#059669' }
+                          : { borderColor: '#e5e7eb', color: '#4b5563' }}>
+                        <span className="text-xl">{u.icon}</span>{u.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">O meni</label>
+                  <textarea value={walkerForm.bio} onChange={e => setWalkerForm({ ...walkerForm, bio: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none"
+                    rows={4} placeholder="Kratko se predstavi, iskustvo sa psima..."
+                    onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                </div>
+
+                {/* Availability */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Raspored</label>
+                    <button type="button" onClick={() => setWalkerForm(f => ({ ...f, availability: defaultAvailability() }))}
+                      className="text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all hover:border-[#00BF8F] hover:text-[#00BF8F]"
+                      style={{ borderColor: '#e5e7eb', color: '#6b7280' }}>
+                      Resetuj
                     </button>
-                  ))}
-                </div>
-              </div>
+                  </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">O meni</label>
-                <textarea value={walkerForm.bio} onChange={e => setWalkerForm({ ...walkerForm, bio: e.target.value })}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none"
-                  rows={4} placeholder="Kratko se predstavi, iskustvo sa psima..."
-                  onFocus={e => Object.assign(e.target.style, inpFocus)}
-                  onBlur={e => Object.assign(e.target.style, inpBlur)} />
-              </div>
-
-              {/* Availability schedule */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Raspored dostupnosti</label>
-                  <button
-                    type="button"
-                    onClick={() => setWalkerForm(f => ({ ...f, availability: defaultAvailability() }))}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all hover:border-[#00BF8F] hover:text-[#00BF8F]"
-                    style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
-                  >
-                    Resetuj na podrazumevano
-                  </button>
-                </div>
-                {(() => {
-                  const DAYS = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
-                  const TIMES = Array.from({ length: 30 }, (_, i) => {
-                    const h = Math.floor(i / 2) + 7
-                    const m = i % 2 === 0 ? '00' : '30'
-                    return `${String(h).padStart(2, '0')}:${m}`
-                  })
-
-                  const applyToAll = (from: string, to: string) => {
-                    const newAvail: Record<string, { active: boolean; from: string; to: string }> = {}
-                    for (let i = 0; i < 7; i++) newAvail[String(i)] = { active: true, from, to }
-                    setWalkerForm(f => ({ ...f, availability: newAvail }))
-                  }
-
-                  const firstActive = Object.values(walkerForm.availability).find(s => s.active)
-
-                  return (
-                    <>
-                      {/* Quick apply */}
-                      <div className="flex items-center gap-2 mb-3 p-3 bg-gray-50 rounded-xl">
-                        <span className="text-xs text-gray-500 shrink-0">Primeni na sve:</span>
-                        <div className="flex gap-1.5 flex-wrap">
+                  {/* Quick presets */}
+                  {(() => {
+                    const TIMES = Array.from({ length: 30 }, (_, i) => {
+                      const h = Math.floor(i / 2) + 7
+                      const m = i % 2 === 0 ? '00' : '30'
+                      return `${String(h).padStart(2, '0')}:${m}`
+                    })
+                    const applyToAll = (from: string, to: string) => {
+                      const newAvail: Record<string, DaySchedule> = {}
+                      for (let i = 0; i < 7; i++) newAvail[String(i)] = { active: true, from, to }
+                      setWalkerForm(f => ({ ...f, availability: newAvail }))
+                    }
+                    return (
+                      <>
+                        <div className="flex items-center gap-2 mb-3 p-3 bg-gray-50 rounded-xl flex-wrap">
+                          <span className="text-xs text-gray-500 shrink-0">Primeni na sve:</span>
                           {[
                             { label: '08–20h', from: '08:00', to: '20:00' },
                             { label: '09–17h', from: '09:00', to: '17:00' },
@@ -284,65 +390,70 @@ export default function ProfilPage() {
                           ].map(p => (
                             <button key={p.label} type="button" onClick={() => applyToAll(p.from, p.to)}
                               className="text-xs font-bold px-2.5 py-1 rounded-lg border transition-all hover:border-[#00BF8F] hover:text-[#00BF8F]"
-                              style={{ borderColor: firstActive?.from === p.from && firstActive?.to === p.to ? '#00BF8F' : '#e5e7eb', color: firstActive?.from === p.from && firstActive?.to === p.to ? '#00BF8F' : '#6b7280' }}>
+                              style={{ borderColor: '#e5e7eb', color: '#6b7280' }}>
                               {p.label}
                             </button>
                           ))}
                         </div>
-                      </div>
 
-                      <div className="space-y-2">
-                        {DAYS.map((day, idx) => {
-                          const key = String(idx)
-                          const sch = walkerForm.availability[key] ?? { active: true, from: '08:00', to: '20:00' }
-                          return (
-                            <div key={key} className="flex items-center gap-3 py-2.5 px-3 rounded-xl border transition-all"
-                              style={{ borderColor: sch.active ? '#bbf7d0' : '#e5e7eb', backgroundColor: sch.active ? '#f0fdf9' : '#f9fafb' }}>
-                              <span className="text-xs font-black w-7 shrink-0" style={{ color: sch.active ? '#059669' : '#9ca3af' }}>{day}</span>
-                              <div
-                                onClick={() => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, active: !sch.active } } }))}
-                                className="w-9 h-5 rounded-full cursor-pointer transition-all relative shrink-0"
-                                style={{ backgroundColor: sch.active ? '#00BF8F' : '#d1d5db' }}
-                              >
-                                <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-sm"
-                                  style={{ left: sch.active ? '18px' : '2px' }} />
-                              </div>
-                              {sch.active ? (
-                                <div className="flex items-center gap-1.5 flex-1">
-                                  <select value={sch.from}
-                                    onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, from: e.target.value } } }))}
-                                    className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
-                                    style={{ borderColor: '#d1d5db' }}>
-                                    {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-                                  </select>
-                                  <span className="text-xs text-gray-400">—</span>
-                                  <select value={sch.to}
-                                    onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, to: e.target.value } } }))}
-                                    className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
-                                    style={{ borderColor: '#d1d5db' }}>
-                                    {TIMES.filter(t => t > sch.from).map(t => <option key={t} value={t}>{t}</option>)}
-                                  </select>
+                        <div className="space-y-2">
+                          {DAYS.map((day, idx) => {
+                            const key = String(idx)
+                            const sch = walkerForm.availability[key] ?? { active: true, from: '08:00', to: '20:00' }
+                            return (
+                              <div key={key} className="flex items-center gap-3 py-2.5 px-3 rounded-xl border transition-all"
+                                style={{ borderColor: sch.active ? '#bbf7d0' : '#e5e7eb', backgroundColor: sch.active ? '#f0fdf9' : '#f9fafb' }}>
+                                <span className="text-xs font-black w-7 shrink-0" style={{ color: sch.active ? '#059669' : '#9ca3af' }}>{day}</span>
+                                <div onClick={() => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, active: !sch.active } } }))}
+                                  className="w-9 h-5 rounded-full cursor-pointer transition-all relative shrink-0"
+                                  style={{ backgroundColor: sch.active ? '#00BF8F' : '#d1d5db' }}>
+                                  <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-sm"
+                                    style={{ left: sch.active ? '18px' : '2px' }} />
                                 </div>
-                              ) : (
-                                <span className="text-xs text-gray-400 flex-1">Nije dostupan</span>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </>
-                  )
-                })()}
-              </div>
+                                {sch.active ? (
+                                  <div className="flex items-center gap-1.5 flex-1">
+                                    <select value={sch.from}
+                                      onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, from: e.target.value } } }))}
+                                      className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
+                                      style={{ borderColor: '#d1d5db' }}>
+                                      {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                    <span className="text-xs text-gray-400">—</span>
+                                    <select value={sch.to}
+                                      onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, to: e.target.value } } }))}
+                                      className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
+                                      style={{ borderColor: '#d1d5db' }}>
+                                      {TIMES.filter(t => t > sch.from).map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-gray-400 flex-1">Nije dostupan</span>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
 
-              <button
-                onClick={() => updateWalkerM.mutate({ ...walkerForm, hourly_rate: Number(walkerForm.hourly_rate) || 0 })}
-                disabled={updateWalkerM.isPending}
-                className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all hover:opacity-90 disabled:opacity-40"
-                style={{ backgroundColor: '#00BF8F' }}>
-                {updateWalkerM.isPending ? 'Čuvanje...' : 'Sačuvaj profil šetača'}
-              </button>
-            </div>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setEditingWalker(false)}
+                    className="flex-1 py-2.5 rounded-xl border font-bold text-sm transition-all hover:bg-gray-50"
+                    style={{ borderColor: '#e5e7eb', color: '#6b7280' }}>
+                    Otkaži
+                  </button>
+                  <button
+                    onClick={() => updateWalkerM.mutate({ ...walkerForm, hourly_rate: Number(walkerForm.hourly_rate) || 0 })}
+                    disabled={updateWalkerM.isPending}
+                    className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm transition-all hover:opacity-90 disabled:opacity-40"
+                    style={{ backgroundColor: '#00BF8F' }}>
+                    {updateWalkerM.isPending ? 'Čuvanje...' : 'Sačuvaj'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

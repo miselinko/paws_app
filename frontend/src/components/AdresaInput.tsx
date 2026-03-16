@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
-// Photon (komoot) — GeoJSON format, puno brži od Nominatim, bez API ključa
-// bbox = Srbija: minLon, minLat, maxLon, maxLat
 const PHOTON_URL = 'https://photon.komoot.io/api/'
+// bbox Srbije: minLon, minLat, maxLon, maxLat
 const SERBIA_BBOX = '18.8,42.2,23.0,46.2'
 
 interface PhotonProps {
@@ -68,11 +67,16 @@ export default function AdresaInput({ value, onChange, placeholder = 'Unesite ad
   const search = (q: string) => {
     if (q.length < 3) { setResults([]); setOpen(false); return }
     setLoading(true)
-    fetch(`${PHOTON_URL}?q=${encodeURIComponent(q)}&limit=5&lang=en&bbox=${SERBIA_BBOX}`)
+    // Tražimo više rezultata pa filtriramo samo Srbiju
+    const url = `${PHOTON_URL}?q=${encodeURIComponent(q)}&limit=10&lang=en&bbox=${SERBIA_BBOX}`
+    fetch(url)
       .then(r => r.json())
       .then((data: { features: PhotonFeature[] }) => {
-        setResults(data.features || [])
-        setOpen((data.features || []).length > 0)
+        const all = data.features || []
+        const serbian = all.filter(f => f.properties.country === 'Serbia')
+        const results = (serbian.length > 0 ? serbian : all).slice(0, 5)
+        setResults(results)
+        setOpen(results.length > 0)
       })
       .catch(() => setResults([]))
       .finally(() => setLoading(false))
