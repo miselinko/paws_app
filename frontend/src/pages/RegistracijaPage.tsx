@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/client'
+import AdresaInput from '../components/AdresaInput'
 
 const schema = z.object({
   email: z.string().email('Unesi validan email'),
@@ -24,7 +25,7 @@ const inpFocus = { borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,
 export default function RegistracijaPage() {
   const navigate = useNavigate()
   const [apiError, setApiError] = useState('')
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<F>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<F>({
     resolver: zodResolver(schema),
     defaultValues: { role: 'owner' },
   })
@@ -157,9 +158,11 @@ export default function RegistracijaPage() {
 
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Adresa</label>
-              <input {...register('address')} placeholder="npr. Bulevar Oslobođenja 12, Novi Sad" className={inp} style={inpStyle}
-                onFocus={e => Object.assign(e.target.style, inpFocus)}
-                onBlur={e => Object.assign(e.target.style, inpStyle)} />
+              <AdresaInput
+                value={watch('address') || ''}
+                onChange={(addr) => setValue('address', addr, { shouldValidate: true })}
+                placeholder="npr. Bulevar Oslobođenja 12, Novi Sad"
+              />
               {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
             </div>
 

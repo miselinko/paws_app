@@ -244,57 +244,93 @@ export default function ProfilPage() {
 
               {/* Availability schedule */}
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Raspored dostupnosti</label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">Raspored dostupnosti</label>
+                  <button
+                    type="button"
+                    onClick={() => setWalkerForm(f => ({ ...f, availability: defaultAvailability() }))}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all hover:border-[#00BF8F] hover:text-[#00BF8F]"
+                    style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
+                  >
+                    Resetuj na podrazumevano
+                  </button>
+                </div>
                 {(() => {
                   const DAYS = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
-                  const TIMES = Array.from({ length: 32 }, (_, i) => {
-                    const h = Math.floor(i / 2) + 6
+                  const TIMES = Array.from({ length: 30 }, (_, i) => {
+                    const h = Math.floor(i / 2) + 7
                     const m = i % 2 === 0 ? '00' : '30'
                     return `${String(h).padStart(2, '0')}:${m}`
                   })
+
+                  const applyToAll = (from: string, to: string) => {
+                    const newAvail: Record<string, { active: boolean; from: string; to: string }> = {}
+                    for (let i = 0; i < 7; i++) newAvail[String(i)] = { active: true, from, to }
+                    setWalkerForm(f => ({ ...f, availability: newAvail }))
+                  }
+
+                  const firstActive = Object.values(walkerForm.availability).find(s => s.active)
+
                   return (
-                    <div className="space-y-2">
-                      {DAYS.map((day, idx) => {
-                        const key = String(idx)
-                        const sch = walkerForm.availability[key] ?? { active: true, from: '08:00', to: '20:00' }
-                        return (
-                          <div key={key} className="flex items-center gap-3 py-2.5 px-3 rounded-xl border transition-all"
-                            style={{ borderColor: sch.active ? '#bbf7d0' : '#e5e7eb', backgroundColor: sch.active ? '#f0fdf9' : '#f9fafb' }}>
-                            {/* Day name */}
-                            <span className="text-xs font-black w-7 shrink-0" style={{ color: sch.active ? '#059669' : '#9ca3af' }}>{day}</span>
-                            {/* Toggle */}
-                            <div
-                              onClick={() => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, active: !sch.active } } }))}
-                              className="w-9 h-5 rounded-full cursor-pointer transition-all relative shrink-0"
-                              style={{ backgroundColor: sch.active ? '#00BF8F' : '#d1d5db' }}
-                            >
-                              <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-sm"
-                                style={{ left: sch.active ? '18px' : '2px' }} />
-                            </div>
-                            {/* Time range */}
-                            {sch.active ? (
-                              <div className="flex items-center gap-1.5 flex-1">
-                                <select value={sch.from}
-                                  onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, from: e.target.value } } }))}
-                                  className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
-                                  style={{ borderColor: '#d1d5db' }}>
-                                  {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
-                                <span className="text-xs text-gray-400">—</span>
-                                <select value={sch.to}
-                                  onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, to: e.target.value } } }))}
-                                  className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
-                                  style={{ borderColor: '#d1d5db' }}>
-                                  {TIMES.filter(t => t > sch.from).map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
+                    <>
+                      {/* Quick apply */}
+                      <div className="flex items-center gap-2 mb-3 p-3 bg-gray-50 rounded-xl">
+                        <span className="text-xs text-gray-500 shrink-0">Primeni na sve:</span>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {[
+                            { label: '08–20h', from: '08:00', to: '20:00' },
+                            { label: '09–17h', from: '09:00', to: '17:00' },
+                            { label: '07–22h', from: '07:00', to: '22:00' },
+                          ].map(p => (
+                            <button key={p.label} type="button" onClick={() => applyToAll(p.from, p.to)}
+                              className="text-xs font-bold px-2.5 py-1 rounded-lg border transition-all hover:border-[#00BF8F] hover:text-[#00BF8F]"
+                              style={{ borderColor: firstActive?.from === p.from && firstActive?.to === p.to ? '#00BF8F' : '#e5e7eb', color: firstActive?.from === p.from && firstActive?.to === p.to ? '#00BF8F' : '#6b7280' }}>
+                              {p.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {DAYS.map((day, idx) => {
+                          const key = String(idx)
+                          const sch = walkerForm.availability[key] ?? { active: true, from: '08:00', to: '20:00' }
+                          return (
+                            <div key={key} className="flex items-center gap-3 py-2.5 px-3 rounded-xl border transition-all"
+                              style={{ borderColor: sch.active ? '#bbf7d0' : '#e5e7eb', backgroundColor: sch.active ? '#f0fdf9' : '#f9fafb' }}>
+                              <span className="text-xs font-black w-7 shrink-0" style={{ color: sch.active ? '#059669' : '#9ca3af' }}>{day}</span>
+                              <div
+                                onClick={() => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, active: !sch.active } } }))}
+                                className="w-9 h-5 rounded-full cursor-pointer transition-all relative shrink-0"
+                                style={{ backgroundColor: sch.active ? '#00BF8F' : '#d1d5db' }}
+                              >
+                                <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-sm"
+                                  style={{ left: sch.active ? '18px' : '2px' }} />
                               </div>
-                            ) : (
-                              <span className="text-xs text-gray-400 flex-1">Nije dostupan</span>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
+                              {sch.active ? (
+                                <div className="flex items-center gap-1.5 flex-1">
+                                  <select value={sch.from}
+                                    onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, from: e.target.value } } }))}
+                                    className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
+                                    style={{ borderColor: '#d1d5db' }}>
+                                    {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                                  </select>
+                                  <span className="text-xs text-gray-400">—</span>
+                                  <select value={sch.to}
+                                    onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, to: e.target.value } } }))}
+                                    className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
+                                    style={{ borderColor: '#d1d5db' }}>
+                                    {TIMES.filter(t => t > sch.from).map(t => <option key={t} value={t}>{t}</option>)}
+                                  </select>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-400 flex-1">Nije dostupan</span>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
                   )
                 })()}
               </div>

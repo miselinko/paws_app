@@ -280,7 +280,7 @@ function BookingWidget({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefin
                   {timeTo && (
                     <button type="button" onClick={() => setTimeTo('')}
                       className="text-xs text-gray-400 hover:text-gray-600 underline">
-                      change
+                      promeni
                     </button>
                   )}
                 </div>
@@ -567,6 +567,18 @@ export default function SetacProfilPage() {
               <Stars rating={wp.average_rating} count={wp.review_count} />
             </div>
             <BookingWidget walker={walker} dogs={dogs} />
+            <div className="px-5 pb-5">
+              <Link
+                to={`/messages/${walker.id}`}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-bold text-sm transition-all hover:bg-gray-50"
+                style={{ borderColor: '#00BF8F', color: '#00BF8F' }}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 16c0 1.1-.9 2-2 2H7l-4 4V6c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v10z" />
+                </svg>
+                Pošalji poruku
+              </Link>
+            </div>
           </div>
         </div>
       </div>
