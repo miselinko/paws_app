@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: paws-backend
+    name: paws-app
     env: python
     rootDir: backend
     buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate"
@@ -10,9 +10,3 @@ services:
         generateValue: true
       - key: DEBUG
         value: "False"
-      - key: ALLOWED_HOSTS
-        value: "paws-backend.onrender.com"
-      - key: DATABASE_URL
-        value: "postaviti-neon-connection-string-ovde"
-      - key: CORS_ALLOWED_ORIGINS
-        value: "https://paws-app.vercel.app"
