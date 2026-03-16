@@ -76,12 +76,19 @@ function ReservationCard({ r }: { r: Reservation }) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [showReview, setShowReview] = useState(false)
+  const [cancelError, setCancelError] = useState('')
   const st = STATUS[r.status]
   const svc = SVC[r.service_type as keyof typeof SVC] ?? { icon: '📅', label: r.service_type }
 
+  const isWithin3h = r.status === 'confirmed' && (new Date(r.start_time).getTime() - Date.now()) <= 3 * 60 * 60 * 1000
+
   const cancelM = useMutation({
     mutationFn: () => cancelReservation(r.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reservations'] }),
+    onSuccess: () => { setCancelError(''); queryClient.invalidateQueries({ queryKey: ['reservations'] }) },
+    onError: (e: unknown) => {
+      const err = e as { response?: { data?: { detail?: string } } }
+      setCancelError(err.response?.data?.detail || 'Greška pri otkazivanju.')
+    },
   })
   const respondM = useMutation({
     mutationFn: (status: 'confirmed' | 'rejected') => respondToReservation(r.id, status),
@@ -141,10 +148,24 @@ function ReservationCard({ r }: { r: Reservation }) {
         )}
 
         <div className="flex flex-wrap gap-2">
-          {user?.role === 'owner' && r.status === 'pending' && (
-            <button onClick={() => cancelM.mutate()} disabled={cancelM.isPending}
-              className="text-sm text-red-500 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50 transition-colors font-medium">
-              {cancelM.isPending ? 'Otkazujem...' : 'Otkaži'}
+          {/* Owner: cancel pending anytime, cancel confirmed if not within 3h */}
+          {user?.role === 'owner' && (r.status === 'pending' || r.status === 'confirmed') && (
+            <button
+              onClick={() => { setCancelError(''); cancelM.mutate() }}
+              disabled={cancelM.isPending || isWithin3h}
+              title={isWithin3h ? 'Nije moguće otkazati manje od 3 sata pre šetnje' : undefined}
+              className="text-sm text-red-500 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+              {cancelM.isPending ? 'Otkazujem...' : isWithin3h ? 'Otkaži (blokiran)' : 'Otkaži'}
+            </button>
+          )}
+          {/* Walker: cancel confirmed if not within 3h */}
+          {user?.role === 'walker' && r.status === 'confirmed' && (
+            <button
+              onClick={() => { setCancelError(''); cancelM.mutate() }}
+              disabled={cancelM.isPending || isWithin3h}
+              title={isWithin3h ? 'Nije moguće otkazati manje od 3 sata pre šetnje' : undefined}
+              className="text-sm text-red-500 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+              {cancelM.isPending ? 'Otkazujem...' : isWithin3h ? 'Otkaži (blokiran)' : 'Otkaži'}
             </button>
           )}
           {user?.role === 'walker' && r.status === 'pending' && (
@@ -172,6 +193,9 @@ function ReservationCard({ r }: { r: Reservation }) {
           )}
         </div>
 
+        {cancelError && (
+          <p className="text-xs text-red-500 mt-2">{cancelError}</p>
+        )}
         {showReview && <ReviewForm r={r} onDone={() => setShowReview(false)} />}
       </div>
     </div>

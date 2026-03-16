@@ -2,6 +2,8 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import timedelta
 from .models import Reservation
 from .serializers import ReservationSerializer, ReservationStatusSerializer
 
@@ -40,14 +42,33 @@ class ReservationCancelView(APIView):
 
     def post(self, request, pk):
         try:
-            reservation = Reservation.objects.get(pk=pk, owner=request.user)
+            reservation = Reservation.objects.get(pk=pk)
         except Reservation.DoesNotExist:
             return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        if reservation.status not in [Reservation.PENDING, Reservation.CONFIRMED]:
-            return Response({'detail': 'Reservation cannot be cancelled.'}, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user
+        is_owner = reservation.owner == user
+        is_walker = reservation.walker == user
+
+        if not is_owner and not is_walker:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if reservation.status == Reservation.PENDING:
+            # Only owner can cancel pending reservations
+            if not is_owner:
+                return Response({'detail': 'Samo vlasnik može otkazati rezervaciju na čekanju.'}, status=status.HTTP_403_FORBIDDEN)
+        elif reservation.status == Reservation.CONFIRMED:
+            # Both owner and walker can cancel confirmed, but not within 3 hours
+            if timezone.now() >= reservation.start_time - timedelta(hours=3):
+                return Response(
+                    {'detail': 'Nije moguće otkazati rezervaciju manje od 3 sata pre šetnje.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            return Response({'detail': 'Rezervacija ne može biti otkazana.'}, status=status.HTTP_400_BAD_REQUEST)
 
         reservation.status = Reservation.CANCELLED
+        reservation.cancelled_by = user
         reservation.save()
         return Response({'status': 'cancelled'})
 

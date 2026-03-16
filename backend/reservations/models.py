@@ -42,6 +42,12 @@ class Reservation(models.Model):
     end_time = models.DateTimeField()
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=PENDING)
     notes = models.TextField(blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='cancelled_reservations'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
