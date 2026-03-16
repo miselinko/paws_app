@@ -1,0 +1,138 @@
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+
+const schema = z.object({
+  email: z.string().email('Unesi validan email'),
+  password: z.string().min(1, 'Lozinka je obavezna'),
+})
+type F = z.infer<typeof schema>
+
+const inp = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors bg-white"
+const inpFocus = { outline: 'none', borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,0.12)' }
+
+export default function PrijavaPage() {
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const [error, setError] = useState('')
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<F>({ resolver: zodResolver(schema) })
+
+  const onSubmit = async (data: F) => {
+    try { setError(''); await login(data.email, data.password); navigate('/') }
+    catch { setError('Pogresna email adresa ili lozinka.') }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+
+      {/* Left photo panel */}
+      <div
+        className="hidden lg:flex flex-col justify-between px-14 py-12 w-[480px] shrink-0"
+        style={{
+          backgroundImage: `linear-gradient(to bottom right, rgba(0,0,0,0.60), rgba(0,0,0,0.35)), url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1200&auto=format&fit=crop')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#00BF8F' }}>
+            <span className="text-white text-xl font-black">P</span>
+          </div>
+          <span className="text-2xl font-black text-white">Paws</span>
+        </Link>
+
+        <div>
+          <h2 className="text-4xl font-black text-white mb-4 leading-tight">
+            Dobrodosao<br />nazad!
+          </h2>
+          <p className="text-white/70 text-base leading-relaxed mb-10">
+            Povezi se sa proverenim setacima i cuvarima pasa u tvojoj blizini.
+          </p>
+          <div className="space-y-3">
+            {['Provereni setaci', 'Kalendar rezervacija', 'Direktan chat', 'Ocene i recenzije'].map(item => (
+              <div key={item} className="flex items-center gap-3 text-white/90 text-sm">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: '#00BF8F' }}>
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                  </svg>
+                </div>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right form */}
+      <div className="flex-1 flex items-center justify-center px-5 py-12">
+        <div className="w-full max-w-sm">
+
+          {/* Mobile logo */}
+          <Link to="/" className="lg:hidden flex items-center gap-2 mb-8 justify-center">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#00BF8F' }}>
+              <span className="text-white font-black text-lg">P</span>
+            </div>
+            <span className="text-xl font-black text-gray-900">Paws</span>
+          </Link>
+
+          <h1 className="text-2xl font-black text-gray-900 mb-1">Prijavi se</h1>
+          <p className="text-gray-500 text-sm mb-7">
+            Nemas nalog?{' '}
+            <Link to="/register" className="font-semibold hover:underline" style={{ color: '#00BF8F' }}>Registruj se besplatno</Link>
+          </p>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-5">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Email adresa</label>
+              <input
+                {...register('email')}
+                type="email"
+                placeholder="ime@email.com"
+                className={inp}
+                onFocus={e => Object.assign(e.target.style, inpFocus)}
+                onBlur={e => { e.target.style.borderColor = ''; e.target.style.boxShadow = '' }}
+              />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Lozinka</label>
+              <input
+                {...register('password')}
+                type="password"
+                placeholder="••••••••"
+                className={inp}
+                onFocus={e => Object.assign(e.target.style, inpFocus)}
+                onBlur={e => { e.target.style.borderColor = ''; e.target.style.boxShadow = '' }}
+              />
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all hover:opacity-90 mt-2 flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#00BF8F' }}
+            >
+              {isSubmitting ? (
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+              ) : 'Prijavi se →'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}
