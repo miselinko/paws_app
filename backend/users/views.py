@@ -3,8 +3,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.conf import settings
 from .serializers import RegisterSerializer, UserSerializer, WalkerListSerializer, WalkerProfileSerializer
-import math
+from .models import PasswordResetToken
+import math, threading
 
 def haversine(lat1, lng1, lat2, lng2):
     R = 6371
@@ -105,3 +108,57 @@ class WalkerDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return User.objects.filter(role=User.WALKER)
+
+
+class ForgotPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        try:
+            user = User.objects.get(email=email)
+            PasswordResetToken.objects.filter(user=user).delete()
+            token = PasswordResetToken.objects.create(user=user)
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+            reset_url = f"{frontend_url}/reset-password?token={token.token}"
+            subject = '🔑 Resetovanje lozinke – Paws'
+            body = (
+                f"Zdravo {user.first_name},\n\n"
+                f"Primili smo zahtev za resetovanje lozinke na tvom Paws nalogu.\n\n"
+                f"Klikni na link ispod da postaviš novu lozinku (važi 1 sat):\n{reset_url}\n\n"
+                f"Ako nisi ti tražio/la reset, ignoriši ovaj email.\n\nPaws tim 🐾"
+            )
+            threading.Thread(
+                target=send_mail,
+                args=(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email]),
+                kwargs={'fail_silently': True},
+                daemon=True,
+            ).start()
+        except User.DoesNotExist:
+            pass
+        return Response({'detail': 'Ako email postoji u sistemu, poslaćemo ti link za resetovanje.'})
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        token_str = request.data.get('token', '').strip()
+        password = request.data.get('password', '')
+
+        try:
+            token = PasswordResetToken.objects.get(token=token_str)
+        except (PasswordResetToken.DoesNotExist, Exception):
+            return Response({'detail': 'Nevažeći ili istekao link.'}, status=400)
+
+        if not token.is_valid():
+            return Response({'detail': 'Link je istekao. Zatraži novi reset lozinke.'}, status=400)
+
+        if len(password) < 8:
+            return Response({'detail': 'Lozinka mora imati najmanje 8 karaktera.'}, status=400)
+
+        token.user.set_password(password)
+        token.user.save()
+        token.used = True
+        token.save()
+        return Response({'detail': 'Lozinka je uspešno promenjena. Možeš se prijaviti.'})

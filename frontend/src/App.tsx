@@ -10,6 +10,8 @@ import RezervacijePage from './pages/RezervacijePage'
 import MojiPsiPage from './pages/MojiPsiPage'
 import ProfilPage from './pages/ProfilPage'
 import PorukePage from './pages/PorukePage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -36,6 +38,8 @@ export default function App() {
         <Route path="/walkers/:id" element={<SetacProfilPage />} />
         <Route path="/login" element={<GuestRoute><PrijavaPage /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><RegistracijaPage /></GuestRoute>} />
+        <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/reservations" element={<PrivateRoute><RezervacijePage /></PrivateRoute>} />
         <Route path="/my-dogs" element={<PrivateRoute><MojiPsiPage /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><ProfilPage /></PrivateRoute>} />

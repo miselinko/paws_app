@@ -41,6 +41,7 @@ export interface Dog {
   name: string
   breed: string
   age: number
+  weight: number
   size: 'small' | 'medium' | 'large'
   gender: 'male' | 'female'
   neutered: boolean
@@ -49,11 +50,37 @@ export interface Dog {
   image: string | null
 }
 
+export interface WalkerInfo {
+  id: number
+  first_name: string
+  last_name: string
+  phone: string
+  email: string
+  address: string
+  profile_image: string | null
+  walker_profile: WalkerProfile
+  average_rating: number | null
+  review_count: number
+}
+
+export interface OwnerInfo {
+  id: number
+  first_name: string
+  last_name: string
+  phone: string
+  email: string
+  address: string
+  lat: number | null
+  lng: number | null
+  profile_image: string | null
+}
+
 export interface Reservation {
   id: number
   walker: number
-  walker_info: { id: number; first_name: string; last_name: string } | null
-  dogs: { id: number; name: string }[]
+  walker_info: WalkerInfo | null
+  owner_info: OwnerInfo | null
+  dogs: Dog[]
   start_time: string
   end_time: string
   status: 'pending' | 'confirmed' | 'rejected' | 'completed' | 'cancelled'

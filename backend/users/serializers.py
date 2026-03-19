@@ -59,6 +59,35 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.received_reviews.count()
 
 
+class OwnerInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'phone', 'email', 'address', 'lat', 'lng', 'profile_image']
+
+
+class WalkerReservationInfoSerializer(serializers.ModelSerializer):
+    walker_profile = WalkerProfileSerializer(read_only=True)
+    average_rating = serializers.SerializerMethodField()
+    review_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'first_name', 'last_name', 'profile_image',
+            'phone', 'email', 'address', 'walker_profile',
+            'average_rating', 'review_count',
+        ]
+
+    def get_average_rating(self, obj):
+        reviews = obj.received_reviews.all()
+        if not reviews.exists():
+            return None
+        return round(sum(r.rating for r in reviews) / reviews.count(), 1)
+
+    def get_review_count(self, obj):
+        return obj.received_reviews.count()
+
+
 class WalkerListSerializer(serializers.ModelSerializer):
     walker_profile = WalkerProfileSerializer(read_only=True)
     average_rating = serializers.SerializerMethodField()

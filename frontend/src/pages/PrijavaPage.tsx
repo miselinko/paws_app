@@ -117,6 +117,12 @@ export default function PrijavaPage() {
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
 
+            <div className="flex justify-end">
+              <Link to="/forgot-password" className="text-xs text-gray-400 hover:underline" style={{ color: '#00BF8F' }}>
+                Zaboravili ste lozinku?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={isSubmitting}

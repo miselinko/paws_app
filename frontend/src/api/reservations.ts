@@ -4,3 +4,7 @@ export const createReservation = (data: unknown) => api.post('/reservations/', d
 export const cancelReservation = (id: number) => api.post(`/reservations/${id}/cancel/`).then(r => r.data)
 export const respondToReservation = (id: number, status: string) =>
   api.post(`/reservations/${id}/respond/`, { status }).then(r => r.data)
+export const completeReservation = (id: number) =>
+  api.post(`/reservations/${id}/complete/`).then(r => r.data)
+export const getPendingCount = () =>
+  api.get('/reservations/pending-count/').then(r => r.data)

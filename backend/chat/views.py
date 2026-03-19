@@ -288,3 +288,21 @@ class UnreadCountView(APIView):
     def get(self, request):
         count = Message.objects.filter(recipient=request.user, read=False).count()
         return Response({'count': count})
+
+
+class DeleteConversationView(APIView):
+    """Delete all messages between current user and another user."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, user_id):
+        try:
+            other = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=404)
+
+        Message.objects.filter(
+            Q(sender=request.user, recipient=other) |
+            Q(sender=other, recipient=request.user)
+        ).delete()
+
+        return Response(status=204)

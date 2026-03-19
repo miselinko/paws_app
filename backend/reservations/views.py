@@ -2,10 +2,12 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import timedelta
+import threading
 from .models import Reservation
 from .serializers import ReservationSerializer, ReservationStatusSerializer
 
@@ -43,10 +45,12 @@ def send_reservation_email(reservation, new_status):
     else:
         return
 
-    try:
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True)
-    except Exception:
-        pass
+    threading.Thread(
+        target=send_mail,
+        args=(subject, body, settings.DEFAULT_FROM_EMAIL, recipients),
+        kwargs={'fail_silently': True},
+        daemon=True,
+    ).start()
 
 
 def send_new_reservation_email(reservation):
@@ -98,10 +102,12 @@ def send_new_reservation_email(reservation):
 
     body += "Prijavi se na Paws platformu da prihvatiš ili odbiješ rezervaciju.\n\nPaws tim 🐾"
 
-    try:
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [walker.email], fail_silently=True)
-    except Exception:
-        pass
+    threading.Thread(
+        target=send_mail,
+        args=(subject, body, settings.DEFAULT_FROM_EMAIL, [walker.email]),
+        kwargs={'fail_silently': True},
+        daemon=True,
+    ).start()
 
 
 class ReservationListCreateView(generics.ListCreateAPIView):
@@ -188,3 +194,42 @@ class WalkerReservationRespondView(APIView):
         reservation.save()
         send_reservation_email(reservation, new_status)
         return Response({'status': new_status})
+
+
+class WalkerCompleteReservationView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        user = request.user
+        try:
+            reservation = Reservation.objects.get(
+                Q(walker=user) | Q(owner=user), pk=pk
+            )
+        except Reservation.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if reservation.status != Reservation.CONFIRMED:
+            return Response({'detail': 'Samo potvrđene rezervacije mogu biti završene.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Walker može da završi tek nakon start_time
+        if reservation.walker == user and timezone.now() < reservation.start_time:
+            return Response({'detail': 'Šetnja još nije počela.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Owner može da završi tek nakon end_time
+        if reservation.owner == user and timezone.now() < reservation.end_time:
+            return Response({'detail': 'Šetnja još nije završena.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reservation.status = Reservation.COMPLETED
+        reservation.save()
+        return Response({'status': 'completed'})
+
+
+class ReservationPendingCountView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role == 'walker':
+            count = Reservation.objects.filter(walker=request.user, status=Reservation.PENDING).count()
+        else:
+            count = 0
+        return Response({'count': count})

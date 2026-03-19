@@ -2,7 +2,7 @@ import { BACKEND_URL } from '../config'
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getConversations, getMessages, sendMessage, sendBotMessage } from '../api/chat'
+import { getConversations, getMessages, sendMessage, sendBotMessage, deleteConversation } from '../api/chat'
 import type { Conversation, Message, ChatUser } from '../api/chat'
 import { useAuth } from '../context/AuthContext'
 
@@ -128,6 +128,62 @@ function BotChat() {
   )
 }
 
+function ConversationItem({ c, active, onDeleted }: { c: Conversation; active: boolean; onDeleted: () => void }) {
+  const [confirm, setConfirm] = useState(false)
+  const navigate = useNavigate()
+  const deleteM = useMutation({
+    mutationFn: () => deleteConversation(c.user.id),
+    onSuccess: () => { onDeleted(); navigate('/messages') },
+  })
+
+  return (
+    <div className="relative flex items-center border-b border-gray-50 group"
+      style={active ? { backgroundColor: '#f0fdf9', borderLeft: '3px solid #00BF8F' } : {}}>
+      <Link to={`/messages/${c.user.id}`} className="flex items-center gap-3 px-4 py-3.5 flex-1 min-w-0">
+        <Avatar {...c.user} id={c.user.id} size="sm" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="font-semibold text-sm text-gray-900 truncate">{c.user.first_name} {c.user.last_name}</span>
+            <span className="text-xs text-gray-400 shrink-0 ml-1">{fmtTime(c.time)}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <p className="text-xs text-gray-400 truncate flex-1">{c.last_message}</p>
+            {c.unread > 0 && (
+              <span className="w-4 h-4 rounded-full text-white text-xs flex items-center justify-center shrink-0 font-bold"
+                style={{ backgroundColor: '#00BF8F' }}>{c.unread}</span>
+            )}
+          </div>
+        </div>
+      </Link>
+
+      {/* Delete button — pojavljuje se na hover */}
+      {!confirm && (
+        <button onClick={() => setConfirm(true)}
+          className="shrink-0 mr-3 w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
+          🗑
+        </button>
+      )}
+
+      {/* Potvrda brisanja */}
+      {confirm && (
+        <div className="absolute inset-0 flex items-center justify-between px-4 bg-white z-10 border-l-4 border-red-300">
+          <span className="text-xs text-gray-600 font-medium">Obriši razgovor?</span>
+          <div className="flex gap-1.5">
+            <button onClick={() => deleteM.mutate()}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg text-white bg-red-500 hover:bg-red-600">
+              {deleteM.isPending ? '...' : 'Obriši'}
+            </button>
+            <button onClick={() => setConfirm(false)}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50">
+              Otkaži
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const COLORS = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500']
 
 function Avatar({ first_name, last_name, profile_image, id, size = 'md' }: { first_name: string; last_name: string; profile_image: string | null; id: number; size?: 'sm' | 'md' }) {
@@ -243,33 +299,12 @@ export default function PorukePage() {
               </div>
             )}
             {conversations?.map((c: Conversation) => (
-              <Link
+              <ConversationItem
                 key={c.user.id}
-                to={`/messages/${c.user.id}`}
-                className="flex items-center gap-3 px-4 py-3.5 transition-colors border-b border-gray-50"
-                style={activeId === c.user.id
-                  ? { backgroundColor: '#f0fdf9', borderLeft: '3px solid #00BF8F' }
-                  : {}}
-                onMouseEnter={e => { if (activeId !== c.user.id) e.currentTarget.style.backgroundColor = '#f9fafb' }}
-                onMouseLeave={e => { if (activeId !== c.user.id) e.currentTarget.style.backgroundColor = '' }}
-              >
-                <Avatar {...c.user} id={c.user.id} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="font-semibold text-sm text-gray-900 truncate">{c.user.first_name} {c.user.last_name}</span>
-                    <span className="text-xs text-gray-400 shrink-0 ml-1">{fmtTime(c.time)}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <p className="text-xs text-gray-400 truncate flex-1">{c.last_message}</p>
-                    {c.unread > 0 && (
-                      <span className="w-4 h-4 rounded-full text-white text-xs flex items-center justify-center shrink-0 font-bold"
-                        style={{ backgroundColor: '#00BF8F' }}>
-                        {c.unread}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
+                c={c}
+                active={activeId === c.user.id}
+                onDeleted={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
+              />
             ))}
           </div>
         </div>

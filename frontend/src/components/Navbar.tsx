@@ -4,6 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import { getUnreadCount } from '../api/chat'
+import { getPendingCount } from '../api/reservations'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -15,6 +16,14 @@ export default function Navbar() {
     queryFn: getUnreadCount,
     enabled: !!user,
     refetchInterval: 10000,
+    select: (d: { count: number }) => d.count,
+  })
+
+  const { data: pendingCount } = useQuery({
+    queryKey: ['pendingCount'],
+    queryFn: getPendingCount,
+    enabled: !!user && user.role === 'walker',
+    refetchInterval: 15000,
     select: (d: { count: number }) => d.count,
   })
 
@@ -151,7 +160,7 @@ export default function Navbar() {
             ] : [
               { to: '/', icon: '🏠', label: 'Dom' },
               { to: '/walkers', icon: '🐾', label: 'Šetači' },
-              { to: '/reservations', icon: '📅', label: 'Termini' },
+              { to: '/reservations', icon: '📅', label: 'Termini', badge: pendingCount },
               { to: '/messages', icon: '💬', label: 'Poruke', badge: unread },
               { to: '/profile', icon: '👤', label: 'Profil' },
             ]).map(item => (

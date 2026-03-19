@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Reservation
 from dogs.serializers import DogSerializer
-from users.serializers import WalkerListSerializer
+from users.serializers import WalkerListSerializer, WalkerReservationInfoSerializer, OwnerInfoSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -14,7 +14,8 @@ class ReservationSerializer(serializers.ModelSerializer):
         source='dogs'
     )
     dogs = DogSerializer(many=True, read_only=True)
-    walker_info = WalkerListSerializer(source='walker', read_only=True)
+    walker_info = WalkerReservationInfoSerializer(source='walker', read_only=True)
+    owner_info = OwnerInfoSerializer(source='owner', read_only=True)
 
     has_review = serializers.SerializerMethodField()
 
@@ -24,7 +25,7 @@ class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = [
-            'id', 'walker', 'walker_info', 'dogs', 'dog_ids',
+            'id', 'walker', 'walker_info', 'owner_info', 'dogs', 'dog_ids',
             'service_type', 'duration', 'start_time', 'end_time',
             'status', 'notes', 'cancelled_by', 'created_at', 'has_review'
         ]

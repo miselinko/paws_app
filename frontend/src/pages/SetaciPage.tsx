@@ -51,6 +51,7 @@ export default function SetaciPage() {
   const [service, setService] = useState(params.get('usluga') || '')
   const [size, setSize] = useState('')
   const [maxRate, setMaxRate] = useState('')
+  const [sort, setSort] = useState('rating')
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationLoading, setLocationLoading] = useState(false)
 
@@ -140,6 +141,15 @@ export default function SetaciPage() {
               {SIZES.map(v => <option key={v.val} value={v.val}>{v.label}</option>)}
             </select>
 
+            {/* Sort */}
+            <select value={sort} onChange={e => setSort(e.target.value)}
+              className="border border-gray-200 rounded-full px-4 py-2 text-sm font-medium text-gray-600 bg-white focus:outline-none"
+              style={{ borderColor: sort !== 'rating' ? '#00BF8F' : '' }}>
+              <option value="rating">⭐ Ocena</option>
+              <option value="price_asc">💰 Cena: niža prvo</option>
+              <option value="price_desc">💰 Cena: viša prvo</option>
+            </select>
+
             {/* Price filter */}
             <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2">
               <span className="text-sm text-gray-400">Max cena:</span>
@@ -182,7 +192,12 @@ export default function SetaciPage() {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {walkers?.map((w, idx) => {
+          {[...(walkers ?? [])].sort((a, b) => {
+            if (sort === 'rating') return (b.walker_profile?.average_rating ?? 0) - (a.walker_profile?.average_rating ?? 0)
+            if (sort === 'price_asc') return (a.walker_profile?.hourly_rate ?? 0) - (b.walker_profile?.hourly_rate ?? 0)
+            if (sort === 'price_desc') return (b.walker_profile?.hourly_rate ?? 0) - (a.walker_profile?.hourly_rate ?? 0)
+            return 0
+          }).map((w, idx) => {
             const wp = w.walker_profile
             const gradColor = GRAD_COLORS[w.id % GRAD_COLORS.length]
 
