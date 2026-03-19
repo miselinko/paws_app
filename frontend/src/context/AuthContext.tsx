@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import api from '../api/client'
+import queryClient from '../queryClient'
 import type { User } from '../types'
 
 interface AuthCtx {
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await api.post('/auth/login/', { email, password })
     localStorage.setItem('access', data.access)
     localStorage.setItem('refresh', data.refresh)
+    queryClient.clear()
     const me = await api.get('/users/profile/')
     setUser(me.data)
   }
@@ -39,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('access')
     localStorage.removeItem('refresh')
     setUser(null)
+    queryClient.clear()
   }
 
   return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>

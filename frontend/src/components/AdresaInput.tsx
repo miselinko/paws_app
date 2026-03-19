@@ -51,6 +51,7 @@ export default function AdresaInput({ value, onChange, placeholder = 'Unesite ad
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setQuery(value) }, [value])
@@ -66,10 +67,14 @@ export default function AdresaInput({ value, onChange, placeholder = 'Unesite ad
 
   const search = (q: string) => {
     if (q.length < 3) { setResults([]); setOpen(false); return }
+
+    // Otkaži prethodni zahtev
+    if (abortRef.current) abortRef.current.abort()
+    abortRef.current = new AbortController()
+
     setLoading(true)
-    // Tražimo više rezultata pa filtriramo samo Srbiju
     const url = `${PHOTON_URL}?q=${encodeURIComponent(q)}&limit=10&lang=en&bbox=${SERBIA_BBOX}`
-    fetch(url)
+    fetch(url, { signal: abortRef.current.signal })
       .then(r => r.json())
       .then((data: { features: PhotonFeature[] }) => {
         const all = data.features || []
@@ -78,7 +83,7 @@ export default function AdresaInput({ value, onChange, placeholder = 'Unesite ad
         setResults(results)
         setOpen(results.length > 0)
       })
-      .catch(() => setResults([]))
+      .catch(e => { if (e.name !== 'AbortError') setResults([]) })
       .finally(() => setLoading(false))
   }
 
@@ -86,7 +91,7 @@ export default function AdresaInput({ value, onChange, placeholder = 'Unesite ad
     setQuery(val)
     onChange(val)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => search(val), 250)
+    debounceRef.current = setTimeout(() => search(val), 450)
   }
 
   const handleSelect = (f: PhotonFeature) => {

@@ -45,6 +45,7 @@ export default function RegistracijaPage() {
   const navigate = useNavigate()
   const [apiError, setApiError] = useState('')
   const [services, setServices] = useState<'walking' | 'boarding' | 'both'>('both')
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null })
 
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<F>({
     resolver: zodResolver(schema),
@@ -56,7 +57,11 @@ export default function RegistracijaPage() {
   const onSubmit = async (data: F) => {
     try {
       setApiError('')
-      const payload = data.role === 'walker' ? { ...data, services } : data
+      const payload = {
+        ...data,
+        ...(coords.lat != null && coords.lng != null ? { lat: coords.lat, lng: coords.lng } : {}),
+        ...(data.role === 'walker' ? { services } : {}),
+      }
       await api.post('/users/register/', payload)
       navigate('/login')
     } catch (e: unknown) {
@@ -218,7 +223,10 @@ export default function RegistracijaPage() {
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Adresa</label>
               <AdresaInput
                 value={watch('address') || ''}
-                onChange={(addr) => setValue('address', addr, { shouldValidate: true })}
+                onChange={(addr, lat, lng) => {
+                  setValue('address', addr, { shouldValidate: true })
+                  setCoords({ lat: lat ?? null, lng: lng ?? null })
+                }}
                 placeholder="npr. Bulevar Oslobođenja 12, Novi Sad"
               />
               {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
