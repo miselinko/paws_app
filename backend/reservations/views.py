@@ -54,20 +54,49 @@ def send_new_reservation_email(reservation):
     walker = reservation.walker
     date_str = reservation.start_time.strftime('%d.%m.%Y')
     time_str = f"{reservation.start_time.strftime('%H:%M')} – {reservation.end_time.strftime('%H:%M')}"
-    service = 'šetanje' if reservation.service_type == 'walking' else 'čuvanje'
-    dogs = ', '.join(d.name for d in reservation.dogs.all())
+    service = 'Šetanje' if reservation.service_type == 'walking' else 'Čuvanje'
+
+    dog_lines = []
+    for d in reservation.dogs.all():
+        size_map = {'small': 'mali', 'medium': 'srednji', 'large': 'veliki'}
+        gender_map = {'male': 'muški', 'female': 'ženski'}
+        line = f"  • {d.name} ({d.breed}, {d.age} god, {size_map.get(d.size, d.size)}, {gender_map.get(d.gender, d.gender)}, {d.weight}kg)"
+        if d.temperament:
+            line += f"\n    Karakter: {d.temperament}"
+        if d.notes:
+            line += f"\n    Napomene: {d.notes}"
+        dog_lines.append(line)
+    dogs_section = '\n'.join(dog_lines)
+
+    location = owner.address if owner.address else '(adresa nije uneta)'
+    maps_link = ''
+    if owner.lat and owner.lng:
+        maps_link = f"\n    Google Maps: https://www.google.com/maps?q={owner.lat},{owner.lng}"
 
     subject = '🐾 Nova rezervacija – Paws'
     body = (
         f"Zdravo {walker.first_name},\n\n"
-        f"Imaš novu rezervaciju!\n\n"
-        f"Vlasnik: {owner.first_name} {owner.last_name}\n"
-        f"Usluga: {service}\n"
-        f"Datum: {date_str}\n"
-        f"Vreme: {time_str}\n"
-        f"Pas/psi: {dogs}\n\n"
-        f"Prijavi se na Paws platformu da prihvatiš ili odbiješ rezervaciju.\n\nPaws tim"
+        f"Stigla ti je nova rezervacija! Pogledaj detalje ispod i prihvati ili odbij je na platformi.\n\n"
+        f"{'='*40}\n"
+        f"DETALJI REZERVACIJE\n"
+        f"{'='*40}\n"
+        f"Usluga:  {service}\n"
+        f"Datum:   {date_str}\n"
+        f"Vreme:   {time_str}\n"
+        f"{'='*40}\n\n"
+        f"VLASNIK\n"
+        f"Ime:     {owner.first_name} {owner.last_name}\n"
+        f"Telefon: {owner.phone if owner.phone else '(nije unet)'}\n"
+        f"Email:   {owner.email}\n"
+        f"Adresa:  {location}{maps_link}\n\n"
+        f"PAS/PSI\n"
+        f"{dogs_section}\n\n"
     )
+
+    if reservation.notes:
+        body += f"NAPOMENA VLASNIKA\n{reservation.notes}\n\n"
+
+    body += "Prijavi se na Paws platformu da prihvatiš ili odbiješ rezervaciju.\n\nPaws tim 🐾"
 
     try:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [walker.email], fail_silently=True)
