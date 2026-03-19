@@ -2,9 +2,131 @@ import { BACKEND_URL } from '../config'
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getConversations, getMessages, sendMessage } from '../api/chat'
+import { getConversations, getMessages, sendMessage, sendBotMessage } from '../api/chat'
 import type { Conversation, Message, ChatUser } from '../api/chat'
 import { useAuth } from '../context/AuthContext'
+
+const BOT_ID = 'bot'
+
+interface BotMessage {
+  id: number
+  role: 'user' | 'assistant'
+  content: string
+}
+
+function BotChat() {
+  const [history, setHistory] = useState<BotMessage[]>([])
+  const [text, setText] = useState('')
+  const [loading, setLoading] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [history, loading])
+
+  const send = async () => {
+    const t = text.trim()
+    if (!t || loading) return
+    const userMsg: BotMessage = { id: Date.now(), role: 'user', content: t }
+    setHistory(h => [...h, userMsg])
+    setText('')
+    setLoading(true)
+    try {
+      const { reply } = await sendBotMessage(t, history.map(m => ({ role: m.role, content: m.content })))
+      setHistory(h => [...h, { id: Date.now() + 1, role: 'assistant', content: reply }])
+    } catch {
+      setHistory(h => [...h, { id: Date.now() + 1, role: 'assistant', content: 'Došlo je do greške. Pokušaj ponovo.' }])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <>
+      {/* Header */}
+      <div className="px-4 py-3.5 border-b border-gray-100 flex items-center gap-3 shrink-0">
+        <button onClick={() => navigate('/messages')}
+          className="md:hidden w-8 h-8 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-500 shrink-0 transition-colors">
+          ←
+        </button>
+        <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"
+          style={{ backgroundColor: '#f0fdf9' }}>🐾</div>
+        <div>
+          <div className="font-bold text-gray-900">Paws Asistent</div>
+          <div className="text-xs" style={{ color: '#00BF8F' }}>● Online</div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3 bg-gray-50">
+        {history.length === 0 && (
+          <div className="text-center py-8 space-y-3">
+            <div className="text-5xl">🐾</div>
+            <p className="font-bold text-gray-700">Zdravo! Ja sam Paws Asistent.</p>
+            <p className="text-sm text-gray-400">Pitaj me bilo šta o rezervacijama, šetačima ili kako koristiti aplikaciju.</p>
+            <div className="flex flex-col gap-2 mt-4">
+              {['Kako da rezervišem šetnju?', 'Kako da otkažem rezervaciju?', 'Kako funkcioniše plaćanje?'].map(q => (
+                <button key={q} onClick={() => { setText(q); }}
+                  className="text-sm px-4 py-2.5 rounded-xl border-2 font-medium transition-all text-left"
+                  style={{ borderColor: '#00BF8F', color: '#00BF8F', backgroundColor: '#f0fdf9' }}>
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {history.map(m => (
+          <div key={m.id} className={`flex gap-2 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            {m.role === 'assistant' && (
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0"
+                style={{ backgroundColor: '#f0fdf9' }}>🐾</div>
+            )}
+            <div className={`max-w-[75%] sm:max-w-xs lg:max-w-sm`}>
+              <div className="px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
+                style={m.role === 'user'
+                  ? { backgroundColor: '#00BF8F', color: 'white', borderRadius: '18px 18px 4px 18px' }
+                  : { backgroundColor: 'white', color: '#1f2937', border: '1px solid #e5e7eb', borderRadius: '18px 18px 18px 4px' }}>
+                {m.content}
+              </div>
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0"
+              style={{ backgroundColor: '#f0fdf9' }}>🐾</div>
+            <div className="px-4 py-3 rounded-2xl bg-white border border-gray-200 flex gap-1 items-center"
+              style={{ borderRadius: '18px 18px 18px 4px' }}>
+              {[0,1,2].map(i => (
+                <div key={i} className="w-2 h-2 rounded-full bg-gray-300 animate-bounce"
+                  style={{ animationDelay: `${i * 0.15}s` }} />
+              ))}
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div className="px-4 py-3.5 border-t border-gray-100 flex gap-2.5 shrink-0 bg-white">
+        <input
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
+          placeholder="Pitaj Paws Asistenta..."
+          className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors"
+          style={{ borderColor: text ? '#00BF8F' : '' }}
+        />
+        <button onClick={send} disabled={!text.trim() || loading}
+          className="text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-40 shrink-0"
+          style={{ backgroundColor: '#00BF8F' }}>
+          {loading ? '...' : '→'}
+        </button>
+      </div>
+    </>
+  )
+}
 
 const COLORS = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500']
 
@@ -31,7 +153,8 @@ function fmtTime(iso: string) {
 
 export default function PorukePage() {
   const { userId } = useParams<{ userId?: string }>()
-  const activeId = userId ? Number(userId) : null
+  const isBot = userId === BOT_ID
+  const activeId = userId && !isBot ? Number(userId) : null
   const { user } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -64,7 +187,9 @@ export default function PorukePage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const activeUser: ChatUser | undefined = conversations?.find((c: Conversation) => c.user.id === activeId)?.user
+  const activeUser: ChatUser | undefined = !isBot
+    ? conversations?.find((c: Conversation) => c.user.id === activeId)?.user
+    : undefined
 
   const send = () => {
     const t = text.trim()
@@ -76,7 +201,7 @@ export default function PorukePage() {
     <div className="bg-gray-50 flex flex-col" style={{ height: 'calc(100dvh - 4rem)' }}>
 
       {/* Header */}
-      <div className={`bg-white border-b border-gray-100 shrink-0 ${activeId ? 'hidden md:block' : 'block'}`}
+      <div className={`bg-white border-b border-gray-100 shrink-0 ${(activeId || isBot) ? 'hidden md:block' : 'block'}`}
         style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900">Poruke</h1>
@@ -89,16 +214,31 @@ export default function PorukePage() {
       <div className="flex-1 max-w-5xl mx-auto w-full px-0 sm:px-5 sm:py-5 flex gap-0 sm:gap-4 min-h-0 overflow-hidden">
 
         {/* Sidebar */}
-        <div className={`${activeId ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-72 md:shrink-0 bg-white sm:rounded-2xl border-0 sm:border sm:border-gray-100 overflow-hidden`}
+        <div className={`${(activeId || isBot) ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-72 md:shrink-0 bg-white sm:rounded-2xl border-0 sm:border sm:border-gray-100 overflow-hidden`}
           style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
           <div className="px-4 py-3.5 border-b border-gray-100">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Razgovori</p>
           </div>
           <div className="flex-1 overflow-y-auto">
+            {/* Bot — uvek pinovan na vrhu */}
+            <Link to="/messages/bot"
+              className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 transition-colors"
+              style={isBot
+                ? { backgroundColor: '#f0fdf9', borderLeft: '3px solid #00BF8F' }
+                : {}}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg shrink-0"
+                style={{ backgroundColor: '#f0fdf9', border: '2px solid #00BF8F' }}>🐾</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="font-semibold text-sm text-gray-900">Paws Asistent</span>
+                  <span className="text-xs font-bold" style={{ color: '#00BF8F' }}>Bot</span>
+                </div>
+                <p className="text-xs text-gray-400 truncate">Pitaj me nešto o aplikaciji...</p>
+              </div>
+            </Link>
+
             {(!conversations || conversations.length === 0) && (
-              <div className="text-center py-16 px-4">
-                <div className="text-4xl mb-3">💬</div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Nema poruka</p>
+              <div className="text-center py-12 px-4">
                 <p className="text-xs text-gray-400">Razgovori sa šetačima će se pojaviti ovde</p>
               </div>
             )}
@@ -135,10 +275,10 @@ export default function PorukePage() {
         </div>
 
         {/* Chat */}
-        <div className={`${activeId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white sm:rounded-2xl border-0 sm:border sm:border-gray-100 overflow-hidden min-w-0`}
+        <div className={`${(activeId || isBot) ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white sm:rounded-2xl border-0 sm:border sm:border-gray-100 overflow-hidden min-w-0`}
           style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
 
-          {!activeId ? (
+          {isBot ? <BotChat /> : !activeId ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <div className="text-5xl mb-3">💬</div>
@@ -148,7 +288,7 @@ export default function PorukePage() {
             </div>
           ) : (
             <>
-              {/* Chat header */}
+              {/* Chat header - regular user */}
               <div className="px-4 py-3.5 border-b border-gray-100 flex items-center gap-3 shrink-0">
                 <button onClick={() => navigate('/messages')}
                   className="md:hidden w-8 h-8 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-500 shrink-0 transition-colors">

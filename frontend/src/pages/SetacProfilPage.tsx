@@ -1,5 +1,5 @@
 import { BACKEND_URL } from '../config'
-import { useState, lazy, Suspense } from 'react'
+import { useState, lazy, Suspense, useRef, useEffect } from 'react'
 import Reveal from '../components/Reveal'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
@@ -40,6 +40,147 @@ function Stars({ rating, count }: { rating: number; count: number }) {
         ))}
       </div>
       <span className="text-sm text-gray-500">{rating > 0 ? `${rating.toFixed(1)} (${count} recenzija)` : 'Još nema recenzija'}</span>
+    </div>
+  )
+}
+
+const MONTHS_SR = ['Januar','Februar','Mart','April','Maj','Jun','Jul','Avgust','Septembar','Oktobar','Novembar','Decembar']
+const DAYS_SR = ['Pon','Uto','Sri','Čet','Pet','Sub','Ned']
+
+function DatePickerPopup({
+  value, onChange, availability, hasAvailability
+}: {
+  value: string
+  onChange: (iso: string) => void
+  availability: Record<string, { active: boolean; from: string; to: string }>
+  hasAvailability: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [viewDate, setViewDate] = useState(() => {
+    const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }
+  })
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    if (open) document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const today = new Date(); today.setHours(0,0,0,0)
+  const { year, month } = viewDate
+  const firstDay = new Date(year, month, 1)
+  // Start from Monday: 0=Mon...6=Sun
+  const startDow = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const cells: (number | null)[] = [...Array(startDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  const isUnavail = (day: number) => {
+    const d = new Date(year, month, day)
+    if (d < today) return true
+    if (!hasAvailability) return false
+    const dow = d.getDay() === 0 ? 6 : d.getDay() - 1
+    const ds = availability[String(dow)]
+    return ds ? !ds.active : false
+  }
+
+  const toIso = (day: number) => {
+    return `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+  }
+
+  const displayValue = value
+    ? (() => {
+        const d = new Date(value + 'T12:00:00')
+        return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`
+      })()
+    : null
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between border-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all"
+        style={value
+          ? { borderColor: '#00BF8F', backgroundColor: '#f0fdf9', color: '#065f46' }
+          : { borderColor: '#e5e7eb', backgroundColor: 'white', color: '#9ca3af' }}
+      >
+        <span className="flex items-center gap-2">
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {displayValue ?? 'Izaberi datum'}
+        </span>
+        <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-gray-100 z-50 p-4"
+          style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
+
+          {/* Month nav */}
+          <div className="flex items-center justify-between mb-3">
+            <button type="button" onClick={() => setViewDate(v => {
+              const d = new Date(v.year, v.month - 1)
+              return { year: d.getFullYear(), month: d.getMonth() }
+            })} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span className="text-sm font-black text-gray-900">{MONTHS_SR[month]} {year}</span>
+            <button type="button" onClick={() => setViewDate(v => {
+              const d = new Date(v.year, v.month + 1)
+              return { year: d.getFullYear(), month: d.getMonth() }
+            })} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Day names */}
+          <div className="grid grid-cols-7 mb-1">
+            {DAYS_SR.map(d => (
+              <div key={d} className="text-center text-[10px] font-bold text-gray-400 py-1">{d}</div>
+            ))}
+          </div>
+
+          {/* Days grid */}
+          <div className="grid grid-cols-7 gap-0.5">
+            {cells.map((day, i) => {
+              if (!day) return <div key={i} />
+              const iso = toIso(day)
+              const unavail = isUnavail(day)
+              const selected = value === iso
+              const isToday = new Date(year, month, day).toDateString() === new Date().toDateString()
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  disabled={unavail}
+                  onClick={() => { onChange(iso); setOpen(false) }}
+                  className="aspect-square rounded-xl text-sm font-semibold flex items-center justify-center transition-all"
+                  style={selected
+                    ? { backgroundColor: '#00BF8F', color: 'white' }
+                    : unavail
+                    ? { color: '#d1d5db', cursor: 'not-allowed' }
+                    : isToday
+                    ? { backgroundColor: '#f0fdf9', color: '#00BF8F', fontWeight: 800 }
+                    : { color: '#374151' }}
+                >
+                  {day}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -188,28 +329,22 @@ function BookingWidget({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefin
         )
       })()}
 
-      {/* Date */}
+      {/* Date picker */}
       <div>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Datum</label>
-        <input
-          type="date"
-          min={today}
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Datum</label>
+        <DatePickerPopup
           value={date}
-          onChange={e => {
-            setDate(e.target.value)
-            setTimeFrom('')
-            setTimeTo('')
-          }}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none"
-          style={{ borderColor: date ? (dayUnavailable ? '#fca5a5' : '#00BF8F') : '' }}
+          onChange={iso => { setDate(iso); setTimeFrom(''); setTimeTo('') }}
+          availability={availability}
+          hasAvailability={hasAvailability}
         />
-        {dayUnavailable && (
+        {date && dayUnavailable && (
           <p className="mt-1.5 text-xs font-semibold text-red-500 flex items-center gap-1">
             ✕ Šetač nije dostupan ovog dana
           </p>
         )}
-        {daySchedule?.active && (
-          <p className="mt-1.5 text-xs text-[#00BF8F] font-semibold">
+        {date && daySchedule?.active && (
+          <p className="mt-1.5 text-xs font-semibold" style={{ color: '#00BF8F' }}>
             ✓ Dostupno: {daySchedule.from} — {daySchedule.to}h
           </p>
         )}

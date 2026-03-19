@@ -142,13 +142,19 @@ export default function Navbar() {
         <nav className="fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-100"
           style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.08)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="flex items-center justify-around px-1 py-1">
-            {[
+            {(user.role === 'owner' ? [
+              { to: '/walkers', icon: '🐾', label: 'Šetači' },
+              { to: '/my-dogs', icon: '🐕', label: 'Moji psi' },
+              { to: '/reservations', icon: '📅', label: 'Termini' },
+              { to: '/messages', icon: '💬', label: 'Poruke', badge: unread },
+              { to: '/profile', icon: '👤', label: 'Profil' },
+            ] : [
               { to: '/', icon: '🏠', label: 'Dom' },
               { to: '/walkers', icon: '🐾', label: 'Šetači' },
               { to: '/reservations', icon: '📅', label: 'Termini' },
               { to: '/messages', icon: '💬', label: 'Poruke', badge: unread },
               { to: '/profile', icon: '👤', label: 'Profil' },
-            ].map(item => (
+            ]).map(item => (
               <NavLink key={item.to} to={item.to} end={item.to === '/'}
                 className={({ isActive }) =>
                   `flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl relative transition-all ${isActive ? 'text-[#00BF8F]' : 'text-gray-400'}`

@@ -15,3 +15,5 @@ export const getMessages = (userId: number) => api.get(`/chat/${userId}/`).then(
 export const sendMessage = (userId: number, text: string) =>
   api.post(`/chat/${userId}/`, { text }).then(r => r.data)
 export const getUnreadCount = () => api.get('/chat/unread/').then(r => r.data)
+export const sendBotMessage = (message: string, history: { role: string; content: string }[]) =>
+  api.post('/chat/bot/', { message, history }).then(r => r.data)
