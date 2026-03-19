@@ -1,5 +1,5 @@
 import { BACKEND_URL } from '../config'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getWalkers } from '../api/users'
@@ -11,7 +11,7 @@ interface WalkerWithDistance extends Walker {
 }
 
 const SERVICES = [
-  { val: '', label: 'Sve usluge' },
+  { val: '', label: 'Svi' },
   { val: 'walking', label: '🦮 Šetanje' },
   { val: 'boarding', label: '🏠 Čuvanje' },
 ]
@@ -19,8 +19,14 @@ const SERVICES = [
 const SIZES = [
   { val: '', label: 'Svi psi' },
   { val: 'small', label: 'Mali (do 10kg)' },
-  { val: 'medium', label: 'Srednji (10-25kg)' },
+  { val: 'medium', label: 'Srednji (10–25kg)' },
   { val: 'large', label: 'Veliki (25kg+)' },
+]
+
+const SORTS = [
+  { val: 'rating',     label: '⭐ Ocena' },
+  { val: 'price_asc',  label: '↑ Cena: niža prvo' },
+  { val: 'price_desc', label: '↓ Cena: viša prvo' },
 ]
 
 const GRAD_COLORS = [
@@ -54,6 +60,18 @@ export default function SetaciPage() {
   const [sort, setSort] = useState('rating')
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationLoading, setLocationLoading] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false)
+    }
+    if (filterOpen) document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [filterOpen])
+
+  const activeFilterCount = [size, maxRate, sort !== 'rating' ? sort : ''].filter(Boolean).length
 
   const queryParams: Record<string, string> = {}
   if (service) queryParams.usluga = service
@@ -85,25 +103,28 @@ export default function SetaciPage() {
     )
   }
 
+  const clearFilters = () => { setSize(''); setMaxRate(''); setSort('rating') }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <style>{`@keyframes fadeDown { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }`}</style>
 
       {/* Header */}
       <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-4">
-            {isLoading ? 'Učitavam šetače...' : `${walkers?.length ?? 0} šetača u tvojoj blizini`}
+            {isLoading ? 'Učitavam šetače...' : `${walkers?.length ?? 0} šetača`}
           </h1>
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            {/* Service filter */}
-            <div className="flex gap-1.5 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+
+            {/* Service pills */}
+            <div className="flex gap-1.5">
               {SERVICES.map(s => (
                 <button
                   key={s.val}
                   onClick={() => setService(s.val)}
-                  className="px-3.5 py-2 rounded-full text-sm font-semibold transition-all border"
+                  className="px-4 py-2 rounded-full text-sm font-bold transition-all border"
                   style={service === s.val
                     ? { backgroundColor: '#00BF8F', color: 'white', borderColor: '#00BF8F' }
                     : { backgroundColor: 'white', color: '#4b5563', borderColor: '#e5e7eb' }}
@@ -113,55 +134,143 @@ export default function SetaciPage() {
               ))}
             </div>
 
-            {/* Location filter */}
+            {/* Divider */}
+            <div className="w-px h-7 bg-gray-200 hidden sm:block" />
+
+            {/* Near me */}
             <button
               onClick={findNearMe}
               disabled={locationLoading}
-              className="px-3.5 py-2 rounded-full text-sm font-semibold transition-all border flex items-center gap-1.5"
+              className="px-4 py-2 rounded-full text-sm font-bold transition-all border flex items-center gap-1.5"
               style={myLocation
                 ? { backgroundColor: '#00BF8F', color: 'white', borderColor: '#00BF8F' }
                 : { backgroundColor: 'white', color: '#4b5563', borderColor: '#e5e7eb' }}
             >
-              {locationLoading ? (
-                <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                </svg>
-              ) : '📍'}
-              {locationLoading ? 'Tražim lokaciju...' : myLocation ? 'Blizu mene (25km) ✕' : 'Blizu mene'}
+              {locationLoading
+                ? <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
+                : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              }
+              <span className="hidden sm:inline">
+                {locationLoading ? 'Tražim...' : myLocation ? 'Blizu mene ✕' : 'Blizu mene'}
+              </span>
+              <span className="sm:hidden">
+                {myLocation ? '✕' : ''}
+              </span>
             </button>
 
-            {/* Size filter */}
-            <select
-              value={size}
-              onChange={e => setSize(e.target.value)}
-              className="border border-gray-200 rounded-full px-4 py-2 text-sm font-medium text-gray-600 bg-white focus:outline-none"
-              style={{ borderColor: size ? '#00BF8F' : '' }}
-            >
-              {SIZES.map(v => <option key={v.val} value={v.val}>{v.label}</option>)}
-            </select>
+            {/* Filter button */}
+            <div className="relative" ref={filterRef}>
+              <button
+                onClick={() => setFilterOpen(v => !v)}
+                className="px-4 py-2 rounded-full text-sm font-bold transition-all border flex items-center gap-2"
+                style={filterOpen || activeFilterCount > 0
+                  ? { backgroundColor: '#00BF8F', color: 'white', borderColor: '#00BF8F' }
+                  : { backgroundColor: 'white', color: '#4b5563', borderColor: '#e5e7eb' }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M7 12h10M11 20h2" />
+                </svg>
+                Filteri
+                {activeFilterCount > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-white text-[10px] font-black flex items-center justify-center" style={{ color: '#00BF8F' }}>
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
 
-            {/* Sort */}
-            <select value={sort} onChange={e => setSort(e.target.value)}
-              className="border border-gray-200 rounded-full px-4 py-2 text-sm font-medium text-gray-600 bg-white focus:outline-none"
-              style={{ borderColor: sort !== 'rating' ? '#00BF8F' : '' }}>
-              <option value="rating">⭐ Ocena</option>
-              <option value="price_asc">💰 Cena: niža prvo</option>
-              <option value="price_desc">💰 Cena: viša prvo</option>
-            </select>
+              {/* Dropdown */}
+              {filterOpen && (
+                <div
+                  className="absolute left-0 top-full mt-2 bg-white rounded-2xl border border-gray-100 z-50 p-4 w-72"
+                  style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.12)', animation: 'fadeDown 0.18s ease' }}
+                >
+                  {/* Sort */}
+                  <div className="mb-4">
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Sortiraj</p>
+                    <div className="flex flex-col gap-1">
+                      {SORTS.map(s => (
+                        <button
+                          key={s.val}
+                          onClick={() => setSort(s.val)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all text-left"
+                          style={sort === s.val
+                            ? { backgroundColor: '#f0fdf9', color: '#059669' }
+                            : { color: '#374151' }}
+                        >
+                          {sort === s.val && (
+                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {sort !== s.val && <span className="w-3.5" />}
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            {/* Price filter */}
-            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2">
-              <span className="text-sm text-gray-400 shrink-0">Max:</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={maxRate}
-                onChange={e => setMaxRate(e.target.value)}
-                placeholder="2000"
-                className="w-16 text-sm font-medium text-gray-700 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="text-xs text-gray-400 shrink-0">{service === 'boarding' ? 'RSD/dan' : 'RSD/h'}</span>
+                  {/* Dog size */}
+                  <div className="mb-4">
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Veličina psa</p>
+                    <div className="flex flex-col gap-1">
+                      {SIZES.map(s => (
+                        <button
+                          key={s.val}
+                          onClick={() => setSize(s.val)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all text-left"
+                          style={size === s.val
+                            ? { backgroundColor: '#f0fdf9', color: '#059669' }
+                            : { color: '#374151' }}
+                        >
+                          {size === s.val && (
+                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {size !== s.val && <span className="w-3.5" />}
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Max price */}
+                  <div className="mb-4">
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                      Max cena ({service === 'boarding' ? 'RSD/dan' : 'RSD/h'})
+                    </p>
+                    <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2.5"
+                      style={{ borderColor: maxRate ? '#00BF8F' : '' }}>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={maxRate}
+                        onChange={e => setMaxRate(e.target.value)}
+                        placeholder="npr. 2000"
+                        className="flex-1 text-sm font-medium text-gray-700 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      {maxRate && (
+                        <button onClick={() => setMaxRate('')} className="text-gray-400 hover:text-gray-600">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Clear */}
+                  {activeFilterCount > 0 && (
+                    <button
+                      onClick={clearFilters}
+                      className="w-full py-2 rounded-xl text-sm font-bold border transition-all hover:bg-gray-50"
+                      style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
+                    >
+                      Ukloni filtere
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -233,10 +342,8 @@ export default function SetaciPage() {
                     </div>
                   )}
 
-                  {/* Dark overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-                  {/* Price badge */}
                   {(showHourly || showDaily) && (
                     <div className="absolute top-3 right-3 bg-white rounded-lg px-2.5 py-1.5 flex flex-col items-end gap-0.5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
                       {showHourly && (
@@ -254,7 +361,6 @@ export default function SetaciPage() {
                     </div>
                   )}
 
-                  {/* Rating badge */}
                   <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
                     <Stars rating={wp.average_rating} count={wp.review_count} />
                   </div>
@@ -280,7 +386,6 @@ export default function SetaciPage() {
                     </p>
                   )}
 
-                  {/* Services */}
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {(wp.services === 'both'
                       ? ['walking', 'boarding']
