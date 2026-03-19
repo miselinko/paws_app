@@ -78,6 +78,7 @@ class WalkerProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='walker_profile')
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    daily_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     services = models.CharField(max_length=10, choices=SERVICE_CHOICES, default=BOTH)
     bio = models.TextField(blank=True)
     active = models.BooleanField(default=True)

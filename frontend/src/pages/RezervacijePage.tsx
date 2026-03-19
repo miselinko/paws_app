@@ -458,34 +458,95 @@ function ReservationCard({ r }: { r: Reservation }) {
   )
 }
 
+type TabKey = 'all' | 'pending' | 'upcoming' | 'completed' | 'past'
+
 export default function RezervacijePage() {
   const { user } = useAuth()
+  const [tab, setTab] = useState<TabKey>('all')
   const { data: reservations, isLoading } = useQuery({ queryKey: ['reservations'], queryFn: getReservations })
 
-  const needsAction = reservations?.filter((r: Reservation) => user?.role === 'walker' && r.status === 'pending') ?? []
-  const upcoming = reservations?.filter((r: Reservation) =>
-    r.status === 'confirmed' || (user?.role === 'owner' && r.status === 'pending')
-  ) ?? []
-  const past = reservations?.filter((r: Reservation) =>
-    ['completed', 'rejected', 'cancelled'].includes(r.status)
-  ) ?? []
+  const all: Reservation[]       = reservations ?? []
+  const pending: Reservation[]   = all.filter(r => r.status === 'pending')
+  const upcoming: Reservation[]  = all.filter(r => r.status === 'confirmed')
+  const completed: Reservation[] = all.filter(r => r.status === 'completed')
+  const past: Reservation[]      = all.filter(r => r.status === 'rejected' || r.status === 'cancelled')
+
+  const needsAction = user?.role === 'walker' ? pending : []
+
+  const TABS: { key: TabKey; label: string; count: number; urgent?: boolean }[] = [
+    { key: 'all',       label: 'Sve',        count: all.length },
+    { key: 'pending',   label: 'Na čekanju', count: pending.length,   urgent: needsAction.length > 0 },
+    { key: 'upcoming',  label: 'Nadolazeće', count: upcoming.length },
+    { key: 'completed', label: 'Završene',   count: completed.length },
+    { key: 'past',      label: 'Otkazane',   count: past.length },
+  ]
+
+  const visibleAll      = tab === 'all'
+  const visiblePending  = tab === 'all' || tab === 'pending'
+  const visibleUpcoming = tab === 'all' || tab === 'upcoming'
+  const visibleCompleted = tab === 'all' || tab === 'completed'
+  const visiblePast     = tab === 'all' || tab === 'past'
+
+  const isEmpty = !isLoading && (
+    tab === 'all'       ? all.length === 0 :
+    tab === 'pending'   ? pending.length === 0 :
+    tab === 'upcoming'  ? upcoming.length === 0 :
+    tab === 'completed' ? completed.length === 0 :
+    past.length === 0
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
+
+      {/* Header */}
       <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-0">
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900">Rezervacije</h1>
           {reservations && (
-            <p className="text-gray-400 text-sm mt-0.5">
-              {reservations.length} ukupno
-              {needsAction.length > 0 && <span className="ml-2 font-bold" style={{ color: '#92400e' }}>· {needsAction.length} čeka odgovor</span>}
+            <p className="text-gray-400 text-sm mt-0.5 mb-4">
+              {all.length} ukupno
+              {needsAction.length > 0 && (
+                <span className="ml-2 font-bold" style={{ color: '#92400e' }}>· {needsAction.length} čeka odgovor</span>
+              )}
             </p>
           )}
+
+          {/* Tabs */}
+          <div className="flex gap-1 overflow-x-auto pb-0 scrollbar-none -mx-4 sm:-mx-6 px-4 sm:px-6"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {TABS.map(t => {
+              const isActive = tab === t.key
+              const isUrgent = t.urgent && !isActive
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className="flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-all shrink-0"
+                  style={isActive
+                    ? { borderColor: '#00BF8F', color: '#00BF8F' }
+                    : { borderColor: 'transparent', color: '#6b7280' }}
+                >
+                  {t.label}
+                  {t.count > 0 && (
+                    <span className="text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center"
+                      style={isActive
+                        ? { backgroundColor: '#00BF8F', color: 'white' }
+                        : isUrgent
+                        ? { backgroundColor: '#f59e0b', color: 'white' }
+                        : { backgroundColor: '#f3f4f6', color: '#6b7280' }}>
+                      {t.count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
+        {/* Skeleton */}
         {isLoading && (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
@@ -495,41 +556,70 @@ export default function RezervacijePage() {
           </div>
         )}
 
-        {!isLoading && reservations?.length === 0 && (
-          <div className="text-center py-24">
+        {/* Empty state */}
+        {isEmpty && (
+          <div className="text-center py-20">
             <div className="text-5xl mb-4">📅</div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Nema rezervacija</h3>
-            <p className="text-gray-400 text-sm">Rezervacije će se pojaviti ovde</p>
+            <h3 className="text-lg font-bold text-gray-700 mb-1">
+              {tab === 'all' ? 'Nema rezervacija' :
+               tab === 'pending' ? 'Nema rezervacija na čekanju' :
+               tab === 'upcoming' ? 'Nema nadolazećih rezervacija' :
+               tab === 'completed' ? 'Nema završenih rezervacija' :
+               'Nema otkazanih rezervacija'}
+            </h3>
+            <p className="text-gray-400 text-sm">
+              {tab === 'all' ? 'Rezervacije će se pojaviti ovde' : 'Promeni filter da vidiš ostale'}
+            </p>
           </div>
         )}
 
-        {needsAction.length > 0 && (
+        {/* Na čekanju */}
+        {!isLoading && visiblePending && pending.length > 0 && (
           <section>
-            <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Čeka odgovor</h2>
-              <span className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold bg-amber-500">{needsAction.length}</span>
-            </div>
-            <div className="space-y-3">{needsAction.map((r: Reservation) => <ReservationCard key={r.id} r={r} />)}</div>
+            {visibleAll && (
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Na čekanju</h2>
+                <span className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold bg-amber-500">{pending.length}</span>
+              </div>
+            )}
+            <div className="space-y-3">{pending.map((r: Reservation) => <ReservationCard key={r.id} r={r} />)}</div>
           </section>
         )}
 
-        {upcoming.length > 0 && (
+        {/* Nadolazeće */}
+        {!isLoading && visibleUpcoming && upcoming.length > 0 && (
           <section>
-            <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nadolazeće</h2>
-              <span className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold"
-                style={{ backgroundColor: '#00BF8F' }}>{upcoming.length}</span>
-            </div>
+            {visibleAll && (
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nadolazeće</h2>
+                <span className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold"
+                  style={{ backgroundColor: '#00BF8F' }}>{upcoming.length}</span>
+              </div>
+            )}
             <div className="space-y-3">{upcoming.map((r: Reservation) => <ReservationCard key={r.id} r={r} />)}</div>
           </section>
         )}
 
-        {past.length > 0 && (
+        {/* Završene */}
+        {!isLoading && visibleCompleted && completed.length > 0 && (
           <section>
-            <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Istorija</h2>
-            <div className="space-y-3 opacity-75">{past.map((r: Reservation) => <ReservationCard key={r.id} r={r} />)}</div>
+            {visibleAll && (
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Završene</h2>
+            )}
+            <div className="space-y-3 opacity-80">{completed.map((r: Reservation) => <ReservationCard key={r.id} r={r} />)}</div>
           </section>
         )}
+
+        {/* Otkazane / odbijene */}
+        {!isLoading && visiblePast && past.length > 0 && (
+          <section>
+            {visibleAll && (
+              <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Otkazane / Odbijene</h2>
+            )}
+            <div className="space-y-3 opacity-60">{past.map((r: Reservation) => <ReservationCard key={r.id} r={r} />)}</div>
+          </section>
+        )}
+
       </div>
     </div>
   )

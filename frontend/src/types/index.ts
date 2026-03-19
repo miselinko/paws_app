@@ -16,6 +16,7 @@ export interface DaySchedule {
 export interface WalkerProfile {
   id: number
   hourly_rate: number
+  daily_rate: number | null
   services: 'walking' | 'boarding' | 'both'
   bio: string
   active: boolean

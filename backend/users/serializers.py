@@ -8,10 +8,15 @@ User = get_user_model()
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     password2 = serializers.CharField(write_only=True)
+    services = serializers.ChoiceField(
+        choices=['walking', 'boarding', 'both'],
+        required=False,
+        write_only=True,
+    )
 
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'phone', 'role', 'address', 'password', 'password2']
+        fields = ['email', 'first_name', 'last_name', 'phone', 'role', 'address', 'password', 'password2', 'services']
 
     def validate(self, data):
         if data['password'] != data['password2']:
@@ -21,18 +26,19 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('password2')
         password = validated_data.pop('password')
+        services = validated_data.pop('services', 'both')
         user = User(**validated_data)
         user.set_password(password)
         user.save()
         if user.role == User.WALKER:
-            WalkerProfile.objects.create(user=user)
+            WalkerProfile.objects.create(user=user, services=services)
         return user
 
 
 class WalkerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = WalkerProfile
-        fields = ['hourly_rate', 'services', 'bio', 'active', 'availability']
+        fields = ['hourly_rate', 'daily_rate', 'services', 'bio', 'active', 'availability']
 
 
 class UserSerializer(serializers.ModelSerializer):

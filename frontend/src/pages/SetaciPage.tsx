@@ -58,7 +58,7 @@ export default function SetaciPage() {
   const queryParams: Record<string, string> = {}
   if (service) queryParams.usluga = service
   if (size) queryParams.velicina = size
-  if (maxRate) queryParams.max_cena = maxRate
+  if (maxRate) queryParams.cena_max = maxRate
   if (myLocation) {
     queryParams.lat = String(myLocation.lat)
     queryParams.lng = String(myLocation.lng)
@@ -152,15 +152,16 @@ export default function SetaciPage() {
 
             {/* Price filter */}
             <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2">
-              <span className="text-sm text-gray-400">Max cena:</span>
+              <span className="text-sm text-gray-400 shrink-0">Max:</span>
               <input
                 type="number"
+                inputMode="numeric"
                 value={maxRate}
                 onChange={e => setMaxRate(e.target.value)}
-                placeholder="npr. 2000"
-                className="w-24 text-sm font-medium text-gray-700 focus:outline-none"
+                placeholder="2000"
+                className="w-16 text-sm font-medium text-gray-700 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
-              <span className="text-xs text-gray-400">RSD/h</span>
+              <span className="text-xs text-gray-400 shrink-0">{service === 'boarding' ? 'RSD/dan' : 'RSD/h'}</span>
             </div>
           </div>
         </div>
@@ -193,13 +194,21 @@ export default function SetaciPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[...(walkers ?? [])].sort((a, b) => {
+            const priceOf = (w: WalkerWithDistance) => {
+              const wp = w.walker_profile
+              if (service === 'boarding' || wp.services === 'boarding') return Number(wp.daily_rate) || Number(wp.hourly_rate)
+              return Number(wp.hourly_rate)
+            }
             if (sort === 'rating') return (b.walker_profile?.average_rating ?? 0) - (a.walker_profile?.average_rating ?? 0)
-            if (sort === 'price_asc') return (a.walker_profile?.hourly_rate ?? 0) - (b.walker_profile?.hourly_rate ?? 0)
-            if (sort === 'price_desc') return (b.walker_profile?.hourly_rate ?? 0) - (a.walker_profile?.hourly_rate ?? 0)
+            if (sort === 'price_asc') return priceOf(a) - priceOf(b)
+            if (sort === 'price_desc') return priceOf(b) - priceOf(a)
             return 0
           }).map((w, idx) => {
             const wp = w.walker_profile
             const gradColor = GRAD_COLORS[w.id % GRAD_COLORS.length]
+
+            const showHourly = (service === 'walking' || service === '') && (wp.services === 'walking' || wp.services === 'both') && Number(wp.hourly_rate) > 0
+            const showDaily = (service === 'boarding' || service === '') && (wp.services === 'boarding' || wp.services === 'both') && Number(wp.daily_rate) > 0
 
             return (
               <Reveal key={w.id} delay={Math.min(idx % 3, 2) * 80}>
@@ -228,10 +237,22 @@ export default function SetaciPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
                   {/* Price badge */}
-                  <div className="absolute top-3 right-3 bg-white rounded-lg px-2.5 py-1.5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-                    <span className="text-sm font-black text-gray-900">{Number(wp.hourly_rate).toLocaleString()}</span>
-                    <span className="text-xs text-gray-400 ml-0.5">RSD/h</span>
-                  </div>
+                  {(showHourly || showDaily) && (
+                    <div className="absolute top-3 right-3 bg-white rounded-lg px-2.5 py-1.5 flex flex-col items-end gap-0.5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+                      {showHourly && (
+                        <div className="flex items-baseline gap-0.5 leading-none">
+                          <span className="text-sm font-black text-gray-900">{Number(wp.hourly_rate).toLocaleString()}</span>
+                          <span className="text-[10px] text-gray-400">RSD/h</span>
+                        </div>
+                      )}
+                      {showDaily && (
+                        <div className="flex items-baseline gap-0.5 leading-none">
+                          <span className="text-sm font-black" style={{ color: '#FAAB43' }}>{Number(wp.daily_rate).toLocaleString()}</span>
+                          <span className="text-[10px] text-gray-400">RSD/dan</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Rating badge */}
                   <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-2.5 py-1.5">

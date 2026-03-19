@@ -38,6 +38,7 @@ export default function ProfilPage() {
 
   const [walkerForm, setWalkerForm] = useState({
     hourly_rate: '' as string | number,
+    daily_rate: '' as string | number,
     services: 'both' as 'walking' | 'boarding' | 'both',
     bio: '',
     active: true,
@@ -51,6 +52,7 @@ export default function ProfilPage() {
         const a = profile.walker_profile.availability
         setWalkerForm({
           hourly_rate: profile.walker_profile.hourly_rate === 0 ? '' : profile.walker_profile.hourly_rate,
+          daily_rate: profile.walker_profile.daily_rate ?? '',
           services: profile.walker_profile.services,
           bio: profile.walker_profile.bio,
           active: profile.walker_profile.active,
@@ -93,6 +95,7 @@ export default function ProfilPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
       {/* Hero header */}
       <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
@@ -132,8 +135,16 @@ export default function ProfilPage() {
                 <span className="text-xs font-semibold px-3 py-1 rounded-full"
                   style={profile.role === 'owner'
                     ? { backgroundColor: '#dbeafe', color: '#1e40af' }
+                    : wp?.services === 'boarding'
+                    ? { backgroundColor: '#fef3c7', color: '#92400e' }
                     : { backgroundColor: '#d1fae5', color: '#065f46' }}>
-                  {profile.role === 'owner' ? '🏠 Vlasnik psa' : '🦮 Šetač / Čuvar'}
+                  {profile.role === 'owner'
+                ? '🏠 Vlasnik psa'
+                : wp?.services === 'walking'
+                ? '🦮 Šetač'
+                : wp?.services === 'boarding'
+                ? '🏠 Čuvar'
+                : '🐾 Šetač & Čuvar'}
                 </span>
                 {user?.role === 'walker' && wp && (
                   <span className="text-xs font-semibold px-3 py-1 rounded-full"
@@ -156,7 +167,7 @@ export default function ProfilPage() {
         )}
 
         {/* Basic info card */}
-        <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+        <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)', animation: 'fadeIn 0.4s ease' }}>
           <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <h2 className="font-black text-gray-900">Osnovni podaci</h2>
             {!editingBasic && (
@@ -247,7 +258,7 @@ export default function ProfilPage() {
 
         {/* Walker profile card */}
         {user?.role === 'walker' && wp && (
-          <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+          <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)', animation: 'fadeIn 0.5s ease' }}>
             <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
               <div>
                 <h2 className="font-black text-gray-900">🦮 Profil šetača</h2>
@@ -268,11 +279,24 @@ export default function ProfilPage() {
             {!editingWalker ? (
               /* Walker view mode */
               <div className="p-5 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Cena po satu</p>
-                    <p className="text-lg font-black" style={{ color: '#00BF8F' }}>{Number(wp.hourly_rate).toLocaleString()} <span className="text-sm font-semibold text-gray-400">RSD</span></p>
+                {((wp.services === 'walking' || wp.services === 'both') && Number(wp.hourly_rate) > 0) ||
+                 ((wp.services === 'boarding' || wp.services === 'both') && Number(wp.daily_rate) > 0) ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {(wp.services === 'walking' || wp.services === 'both') && Number(wp.hourly_rate) > 0 && (
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Cena po satu</p>
+                        <p className="text-lg font-black" style={{ color: '#00BF8F' }}>{Number(wp.hourly_rate).toLocaleString()} <span className="text-sm font-semibold text-gray-400">RSD</span></p>
+                      </div>
+                    )}
+                    {(wp.services === 'boarding' || wp.services === 'both') && Number(wp.daily_rate) > 0 && (
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Cena po danu</p>
+                        <p className="text-lg font-black" style={{ color: '#FAAB43' }}>{Number(wp.daily_rate).toLocaleString()} <span className="text-sm font-semibold text-gray-400">RSD</span></p>
+                      </div>
+                    )}
                   </div>
+                ) : null}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Usluga</p>
                     <p className="text-sm font-semibold text-gray-800">{SVC_LABELS[wp.services]?.icon} {SVC_LABELS[wp.services]?.label}</p>
@@ -286,17 +310,21 @@ export default function ProfilPage() {
                 )}
                 <div>
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Dostupnost</p>
-                  <div className="flex gap-1.5 flex-wrap">
+                  <div className="grid grid-cols-7 gap-1.5">
                     {DAYS.map((day, idx) => {
                       const sch = walkerForm.availability[String(idx)]
                       const active = sch?.active ?? false
                       return (
-                        <div key={idx} className="flex flex-col items-center gap-0.5">
-                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold"
+                        <div key={idx} className="flex flex-col items-center gap-1">
+                          <div className="w-full aspect-square rounded-xl flex items-center justify-center text-xs font-bold"
                             style={active ? { backgroundColor: '#00BF8F', color: 'white' } : { backgroundColor: '#f3f4f6', color: '#d1d5db' }}>
                             {day}
                           </div>
-                          {active && <span className="text-[9px] text-gray-400">{sch.from.slice(0,5)}</span>}
+                          {active ? (
+                            <span className="text-[9px] text-gray-400 text-center leading-tight">{sch.from.slice(0,5)}<br/>–{sch.to.slice(0,5)}</span>
+                          ) : (
+                            <span className="text-[9px] text-gray-300">—</span>
+                          )}
                         </div>
                       )
                     })}
@@ -321,14 +349,6 @@ export default function ProfilPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Cena po satu (RSD)</label>
-                  <input type="number" min="0" value={walkerForm.hourly_rate}
-                    onChange={e => setWalkerForm({ ...walkerForm, hourly_rate: e.target.value === '' ? '' : Number(e.target.value) })}
-                    placeholder="npr. 1500" className={inp}
-                    onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
-                </div>
-
-                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Usluge</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -347,6 +367,26 @@ export default function ProfilPage() {
                     ))}
                   </div>
                 </div>
+
+                {(walkerForm.services === 'walking' || walkerForm.services === 'both') && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Cena po satu / šetanje (RSD)</label>
+                    <input type="number" min="0" value={walkerForm.hourly_rate}
+                      onChange={e => setWalkerForm({ ...walkerForm, hourly_rate: e.target.value === '' ? '' : Number(e.target.value) })}
+                      placeholder="npr. 1500" className={inp}
+                      onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                  </div>
+                )}
+
+                {(walkerForm.services === 'boarding' || walkerForm.services === 'both') && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Cena po danu / čuvanje (RSD)</label>
+                    <input type="number" min="0" value={walkerForm.daily_rate}
+                      onChange={e => setWalkerForm({ ...walkerForm, daily_rate: e.target.value === '' ? '' : Number(e.target.value) })}
+                      placeholder="npr. 2000" className={inp}
+                      onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">O meni</label>
@@ -401,17 +441,19 @@ export default function ProfilPage() {
                             const key = String(idx)
                             const sch = walkerForm.availability[key] ?? { active: true, from: '08:00', to: '20:00' }
                             return (
-                              <div key={key} className="flex items-center gap-3 py-2.5 px-3 rounded-xl border transition-all"
+                              <div key={key} className="flex flex-wrap items-center gap-2 py-2.5 px-3 rounded-xl border transition-all"
                                 style={{ borderColor: sch.active ? '#bbf7d0' : '#e5e7eb', backgroundColor: sch.active ? '#f0fdf9' : '#f9fafb' }}>
-                                <span className="text-xs font-black w-7 shrink-0" style={{ color: sch.active ? '#059669' : '#9ca3af' }}>{day}</span>
-                                <div onClick={() => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, active: !sch.active } } }))}
-                                  className="w-9 h-5 rounded-full cursor-pointer transition-all relative shrink-0"
-                                  style={{ backgroundColor: sch.active ? '#00BF8F' : '#d1d5db' }}>
-                                  <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-sm"
-                                    style={{ left: sch.active ? '18px' : '2px' }} />
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-xs font-black w-7" style={{ color: sch.active ? '#059669' : '#9ca3af' }}>{day}</span>
+                                  <div onClick={() => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, active: !sch.active } } }))}
+                                    className="w-9 h-5 rounded-full cursor-pointer transition-all relative shrink-0"
+                                    style={{ backgroundColor: sch.active ? '#00BF8F' : '#d1d5db' }}>
+                                    <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all shadow-sm"
+                                      style={{ left: sch.active ? '18px' : '2px' }} />
+                                  </div>
                                 </div>
                                 {sch.active ? (
-                                  <div className="flex items-center gap-1.5 flex-1">
+                                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
                                     <select value={sch.from}
                                       onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, from: e.target.value } } }))}
                                       className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
@@ -445,7 +487,11 @@ export default function ProfilPage() {
                     Otkaži
                   </button>
                   <button
-                    onClick={() => updateWalkerM.mutate({ ...walkerForm, hourly_rate: Number(walkerForm.hourly_rate) || 0 })}
+                    onClick={() => updateWalkerM.mutate({
+                      ...walkerForm,
+                      hourly_rate: Number(walkerForm.hourly_rate) || 0,
+                      daily_rate: walkerForm.daily_rate !== '' ? Number(walkerForm.daily_rate) : null,
+                    })}
                     disabled={updateWalkerM.isPending}
                     className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm transition-all hover:opacity-90 disabled:opacity-40"
                     style={{ backgroundColor: '#00BF8F' }}>
