@@ -19,10 +19,6 @@ const GRAD_COLORS = [
   'from-rose-400 to-pink-500',
 ]
 
-const SVC_LABELS: Record<string, { icon: string; label: string }> = {
-  walking: { icon: '🦮', label: 'Šetanje' },
-  boarding: { icon: '🏠', label: 'Čuvanje' },
-}
 
 function getAvailableServices(services: string): Array<'walking' | 'boarding'> {
   if (services === 'both') return ['walking', 'boarding']
@@ -245,11 +241,6 @@ function WalkingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefi
     const [h, m] = time.split(':').map(Number)
     const total = h * 60 + m + mins
     return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
-  }
-
-  function parseTime(time: string): number {
-    const [h, m] = time.split(':').map(Number)
-    return h * 60 + m
   }
 
   const dayEnd = daySchedule?.active ? daySchedule.to : '22:00'
