@@ -250,8 +250,6 @@ function BookingWidget({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefin
     },
   })
 
-  // Min date = today
-  const today = new Date().toISOString().split('T')[0]
 
   if (success) return (
     <div className="text-center py-6 px-5">
