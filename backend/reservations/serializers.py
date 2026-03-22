@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import Reservation
 from dogs.serializers import DogSerializer
-from users.serializers import WalkerListSerializer, WalkerReservationInfoSerializer, OwnerInfoSerializer
+from dogs.models import Dog
+from users.serializers import WalkerReservationInfoSerializer, OwnerInfoSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -10,7 +11,7 @@ User = get_user_model()
 class ReservationSerializer(serializers.ModelSerializer):
     dog_ids = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True,
-        queryset=__import__('dogs').models.Dog.objects.all(),
+        queryset=Dog.objects.all(),
         source='dogs'
     )
     dogs = DogSerializer(many=True, read_only=True)

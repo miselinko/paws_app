@@ -3,8 +3,13 @@ export interface User {
   email: string
   first_name: string
   last_name: string
+  phone: string
   role: 'owner' | 'walker'
   profile_image: string | null
+  address: string
+  lat: number | null
+  lng: number | null
+  walker_profile: WalkerProfile | null
 }
 
 export interface DaySchedule {

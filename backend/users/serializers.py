@@ -36,9 +36,21 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class WalkerProfileSerializer(serializers.ModelSerializer):
+    average_rating = serializers.SerializerMethodField()
+    review_count = serializers.SerializerMethodField()
+
+    def get_average_rating(self, obj):
+        reviews = obj.user.received_reviews.all()
+        if not reviews.exists():
+            return 0
+        return round(sum(r.rating for r in reviews) / reviews.count(), 1)
+
+    def get_review_count(self, obj):
+        return obj.user.received_reviews.count()
+
     class Meta:
         model = WalkerProfile
-        fields = ['hourly_rate', 'daily_rate', 'services', 'bio', 'active', 'availability']
+        fields = ['hourly_rate', 'daily_rate', 'services', 'bio', 'active', 'availability', 'average_rating', 'review_count']
 
 
 class UserSerializer(serializers.ModelSerializer):

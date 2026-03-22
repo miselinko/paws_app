@@ -2,12 +2,19 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
 from .serializers import RegisterSerializer, UserSerializer, WalkerListSerializer, WalkerProfileSerializer
 from .models import PasswordResetToken
 import math, threading
+
+
+class WalkerPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 def haversine(lat1, lng1, lat2, lng2):
     R = 6371
@@ -64,6 +71,7 @@ class WalkerProfileUpdateView(generics.UpdateAPIView):
 class WalkerListView(generics.ListAPIView):
     serializer_class = WalkerListSerializer
     permission_classes = [permissions.AllowAny]
+    pagination_class = WalkerPagination
 
     def get_queryset(self):
         qs = User.objects.filter(
@@ -137,6 +145,16 @@ class ForgotPasswordView(APIView):
         except User.DoesNotExist:
             pass
         return Response({'detail': 'Ako email postoji u sistemu, poslaćemo ti link za resetovanje.'})
+
+
+class DeleteAccountView(APIView):
+    """DELETE /api/users/profile/delete/ — permanently delete the account."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.delete()
+        return Response({'detail': 'Nalog je obrisan.'}, status=204)
 
 
 class ResetPasswordView(APIView):

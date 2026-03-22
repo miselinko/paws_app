@@ -1,9 +1,10 @@
 import { BACKEND_URL } from '../config'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getMyProfile, updateMyProfile, updateWalkerProfile, uploadProfileImage } from '../api/users'
+import { getMyProfile, updateMyProfile, updateWalkerProfile, uploadProfileImage, deleteAccount } from '../api/users'
 import { useAuth } from '../context/AuthContext'
 import AdresaInput from '../components/AdresaInput'
+import { useNavigate } from 'react-router-dom'
 
 const inp = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none bg-white"
 const inpFocus = { borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,0.10)' }
@@ -22,8 +23,10 @@ const defaultAvailability = (): Record<string, DaySchedule> =>
   Object.fromEntries(Array.from({ length: 7 }, (_, i) => [String(i), { active: true, from: '08:00', to: '20:00' }]))
 
 export default function ProfilPage() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [saved, setSaved] = useState(false)
   const [editingBasic, setEditingBasic] = useState(false)
   const [editingWalker, setEditingWalker] = useState(false)
@@ -76,6 +79,14 @@ export default function ProfilPage() {
   const updateWalkerM = useMutation({
     mutationFn: updateWalkerProfile,
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['profile'] }); flash(false, true) },
+  })
+  const toggleActiveM = useMutation({
+    mutationFn: (active: boolean) => updateWalkerProfile({ active }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
+  })
+  const deleteM = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: () => { logout(); navigate('/') },
   })
   const imageM = useMutation({
     mutationFn: uploadProfileImage,
@@ -279,6 +290,31 @@ export default function ProfilPage() {
             {!editingWalker ? (
               /* Walker view mode */
               <div className="p-5 space-y-4">
+                {/* Active toggle */}
+                <div className="flex items-center justify-between p-4 rounded-xl border-2 transition-all"
+                  style={wp.active
+                    ? { borderColor: '#bbf7d0', backgroundColor: '#f0fdf9' }
+                    : { borderColor: '#e5e7eb', backgroundColor: '#f9fafb' }}>
+                  <div>
+                    <p className="text-sm font-bold" style={{ color: wp.active ? '#059669' : '#6b7280' }}>
+                      {wp.active ? '● Profil je aktivan' : '○ Profil je deaktiviran'}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: wp.active ? '#6ee7b7' : '#9ca3af' }}>
+                      {wp.active ? 'Vidljiv si vlasnicima pasa' : 'Nisi vidljiv u pretrazi'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => toggleActiveM.mutate(!wp.active)}
+                    disabled={toggleActiveM.isPending}
+                    className="px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all disabled:opacity-50"
+                    style={wp.active
+                      ? { borderColor: '#e5e7eb', color: '#6b7280', backgroundColor: 'white' }
+                      : { borderColor: '#00BF8F', color: '#00BF8F', backgroundColor: 'white' }}
+                  >
+                    {toggleActiveM.isPending ? '...' : wp.active ? 'Deaktiviraj' : 'Aktiviraj'}
+                  </button>
+                </div>
+
                 {((wp.services === 'walking' || wp.services === 'both') && Number(wp.hourly_rate) > 0) ||
                  ((wp.services === 'boarding' || wp.services === 'both') && Number(wp.daily_rate) > 0) ? (
                   <div className="grid grid-cols-2 gap-4">
@@ -502,6 +538,49 @@ export default function ProfilPage() {
             )}
           </div>
         )}
+        {/* Account management */}
+        <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)', animation: 'fadeIn 0.6s ease' }}>
+          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+            <h2 className="font-black text-gray-900">Upravljanje nalogom</h2>
+          </div>
+          <div className="p-5">
+            {!deleteConfirm ? (
+              <button
+                onClick={() => setDeleteConfirm(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition-all hover:bg-red-50"
+                style={{ borderColor: '#fecaca', color: '#dc2626' }}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Obriši nalog
+              </button>
+            ) : (
+              <div className="rounded-xl border-2 border-red-200 bg-red-50 p-4" style={{ animation: 'fadeIn 0.2s ease' }}>
+                <p className="text-sm font-bold text-red-700 mb-1">Sigurno želiš da obrišeš nalog?</p>
+                <p className="text-xs text-red-500 mb-4">Ova akcija je trajna i ne može se poništiti. Svi tvoji podaci, rezervacije i poruke će biti obrisani.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setDeleteConfirm(false)}
+                    className="flex-1 py-2 rounded-xl border text-sm font-bold transition-all hover:bg-white"
+                    style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
+                  >
+                    Otkaži
+                  </button>
+                  <button
+                    onClick={() => deleteM.mutate()}
+                    disabled={deleteM.isPending}
+                    className="flex-1 py-2 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 disabled:opacity-50"
+                    style={{ backgroundColor: '#dc2626' }}
+                  >
+                    {deleteM.isPending ? 'Brišem...' : 'Da, obriši'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   )
