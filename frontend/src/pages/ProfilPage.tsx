@@ -1,7 +1,7 @@
 import { imgUrl } from '../config'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getMyProfile, updateMyProfile, updateWalkerProfile, uploadProfileImage, deleteAccount } from '../api/users'
+import { getMyProfile, updateMyProfile, updateWalkerProfile, uploadProfileImage, deleteAccount, deleteProfileImage } from '../api/users'
 import { useAuth } from '../context/AuthContext'
 import AdresaInput from '../components/AdresaInput'
 import { useNavigate } from 'react-router-dom'
@@ -92,6 +92,10 @@ export default function ProfilPage() {
     mutationFn: uploadProfileImage,
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['profile'] }); flash() },
   })
+  const deleteImageM = useMutation({
+    mutationFn: deleteProfileImage,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
+  })
 
   if (!profile) return (
     <div className="flex justify-center items-center min-h-96">
@@ -135,6 +139,19 @@ export default function ProfilPage() {
                   : <span style={{ fontSize: '15px' }}>📷</span>
                 }
               </button>
+              {profile.profile_image && (
+                <button
+                  onClick={() => deleteImageM.mutate()}
+                  disabled={deleteImageM.isPending}
+                  className="absolute -bottom-1 -left-1 w-8 h-8 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center shadow-sm hover:border-red-400 transition-all"
+                  title="Ukloni sliku"
+                >
+                  {deleteImageM.isPending
+                    ? <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
+                    : <span style={{ fontSize: '13px' }}>🗑</span>
+                  }
+                </button>
+              )}
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; if (f) imageM.mutate(f) }} />
             </div>

@@ -12,3 +12,4 @@ export const getWalker = (id: number) => api.get(`/users/walkers/${id}/`).then(r
 export const forgotPassword = (email: string) => api.post('/users/forgot-password/', { email }).then(r => r.data)
 export const resetPassword = (token: string, password: string) => api.post('/users/reset-password/', { token, password }).then(r => r.data)
 export const deleteAccount = () => api.delete('/users/profile/delete/')
+export const deleteProfileImage = () => api.delete('/users/profile/image/').then(r => r.data)

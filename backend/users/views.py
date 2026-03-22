@@ -41,7 +41,8 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
 
 
 class ProfileImageView(APIView):
-    """PATCH /api/users/profile/image/ — upload profile photo."""
+    """PATCH /api/users/profile/image/ — upload profile photo.
+       DELETE /api/users/profile/image/ — remove profile photo."""
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
@@ -51,6 +52,13 @@ class ProfileImageView(APIView):
             return Response({'detail': 'No file provided.'}, status=400)
         user = request.user
         user.profile_image = image
+        user.save(update_fields=['profile_image'])
+        serializer = UserSerializer(user, context={'request': request})
+        return Response(serializer.data)
+
+    def delete(self, request):
+        user = request.user
+        user.profile_image = None
         user.save(update_fields=['profile_image'])
         serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)

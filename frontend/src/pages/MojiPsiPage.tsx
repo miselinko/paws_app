@@ -1,7 +1,7 @@
 import { imgUrl } from '../config'
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getMyDogs, createDog, updateDog, deleteDog } from '../api/dogs'
+import { getMyDogs, createDog, updateDog, deleteDog, deleteDogImage } from '../api/dogs'
 import Reveal from '../components/Reveal'
 import type { Dog } from '../types'
 
@@ -47,12 +47,13 @@ const inpFocus = { borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,
 const inpBlur  = { borderColor: '#e5e7eb', boxShadow: '' }
 
 function DogCard({
-  dog, editing, onEdit, onDelete,
+  dog, editing, onEdit, onDelete, onDeleteImage,
 }: {
   dog: Dog
   editing: boolean
   onEdit: () => void
   onDelete: () => void
+  onDeleteImage: () => void
 }) {
   const sz = SIZE_SR[dog.size]
   const gradColor = GRAD_COLORS[dog.id % GRAD_COLORS.length]
@@ -91,6 +92,15 @@ function DogCard({
 
         {/* Action buttons */}
         <div className="absolute top-2 right-2 flex gap-1.5">
+          {dog.image && (
+            <button
+              onClick={onDeleteImage}
+              className="w-8 h-8 rounded-xl bg-white/90 flex items-center justify-center text-sm hover:bg-red-50 transition-all"
+              title="Ukloni sliku"
+            >
+              🖼
+            </button>
+          )}
           <button
             onClick={onEdit}
             className="w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all"
@@ -121,7 +131,6 @@ function DogCard({
       <div className="flex divide-x divide-gray-100 border-b border-gray-100">
         {[
           { label: 'Starost', value: `${dog.age} god.` },
-          { label: 'Težina', value: dog.weight ? `${dog.weight} kg` : '—' },
           { label: 'Pol', value: dog.gender === 'male' ? '♂ Muški' : '♀ Ženski' },
         ].map(({ label, value }) => (
           <div key={label} className="flex-1 py-3 text-center">
@@ -237,6 +246,11 @@ export default function MojiPsiPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['myDogs'] }),
   })
 
+  const deleteImageM = useMutation({
+    mutationFn: deleteDogImage,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['myDogs'] }),
+  })
+
   const isPending = createM.isPending || updateM.isPending
 
   return (
@@ -291,9 +305,9 @@ export default function MojiPsiPage() {
             </div>
 
             <div className="p-6 space-y-5">
-              {/* Name, age, weight */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {([['name', 'Ime psa', 'Maks', 'text'], ['age', 'Starost (god.)', '3', 'number'], ['weight', 'Težina (kg)', '15', 'number']] as const).map(([key, label, ph, type]) => (
+              {/* Name, age */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {([['name', 'Ime psa', 'Maks', 'text'], ['age', 'Starost (god.)', '3', 'number']] as const).map(([key, label, ph, type]) => (
                   <div key={key}>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
                     <input type={type} value={String(form[key as keyof typeof form])}
@@ -481,6 +495,7 @@ export default function MojiPsiPage() {
                 editing={editingDog?.id === dog.id}
                 onEdit={() => editingDog?.id === dog.id ? closeForm() : openEdit(dog)}
                 onDelete={() => { if (confirm(`Obriši ${dog.name}?`)) deleteM.mutate(dog.id) }}
+                onDeleteImage={() => { if (confirm(`Ukloni sliku za ${dog.name}?`)) deleteImageM.mutate(dog.id) }}
               />
             </Reveal>
           ))}

@@ -21,6 +21,8 @@ class CloudinaryMediaStorage(Storage):
 
     def _save(self, name, content):
         folder = os.path.dirname(name)
+        if hasattr(content, 'seek'):
+            content.seek(0)
         result = cloudinary.uploader.upload(
             content,
             folder=folder,
