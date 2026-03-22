@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'cloudinary_storage',
     'cloudinary',
     # Local apps
     'users',
@@ -134,7 +133,7 @@ CLOUDINARY_STORAGE = {
 
 STORAGES = {
     'default': {
-        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+        'BACKEND': 'config.cloudinary_storage.CloudinaryMediaStorage',
     },
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
