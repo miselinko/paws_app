@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '../config'
+import { imgUrl } from '../config'
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -189,7 +189,7 @@ const COLORS = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500'
 function Avatar({ first_name, last_name, profile_image, id, size = 'md' }: { first_name: string; last_name: string; profile_image: string | null; id: number; size?: 'sm' | 'md' }) {
   const color = COLORS[id % COLORS.length]
   const sz = size === 'sm' ? 'w-9 h-9 text-xs' : 'w-10 h-10 text-sm'
-  if (profile_image) return <img src={`${BACKEND_URL}${profile_image}`} alt="" className={`${sz} rounded-full object-cover shrink-0`} />
+  if (profile_image) return <img src={imgUrl(profile_image)} alt="" className={`${sz} rounded-full object-cover shrink-0`} />
   return (
     <div className={`${sz} rounded-full ${color} flex items-center justify-center text-white font-bold shrink-0`}>
       {first_name[0]}{last_name[0]}

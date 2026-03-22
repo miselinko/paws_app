@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '../config'
+import { imgUrl } from '../config'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getMyProfile, updateMyProfile, updateWalkerProfile, uploadProfileImage, deleteAccount } from '../api/users'
@@ -115,7 +115,7 @@ export default function ProfilPage() {
             {/* Avatar */}
             <div className="relative shrink-0">
               {profile.profile_image ? (
-                <img src={`${BACKEND_URL}${profile.profile_image}`} alt={profile.first_name}
+                <img src={imgUrl(profile.profile_image)} alt={profile.first_name}
                   className="w-24 h-24 rounded-full object-cover border-4 border-white"
                   style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.14)' }} />
               ) : (

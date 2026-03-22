@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '../config'
+import { imgUrl } from '../config'
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -91,7 +91,7 @@ export default function Navbar() {
                 className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 {user.profile_image ? (
-                  <img src={`${BACKEND_URL}${user.profile_image}`} className="w-8 h-8 rounded-full object-cover" alt="" />
+                  <img src={imgUrl(user.profile_image)} className="w-8 h-8 rounded-full object-cover" alt="" />
                 ) : (
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: '#00BF8F' }}>
                     {user.first_name[0]}{user.last_name[0]}

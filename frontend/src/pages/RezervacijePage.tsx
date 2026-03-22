@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getReservations, cancelReservation, respondToReservation, completeReservation } from '../api/reservations'
 import { createReview } from '../api/reviews'
 import { useAuth } from '../context/AuthContext'
-import { BACKEND_URL } from '../config'
+import { imgUrl } from '../config'
 import type { Reservation, Dog, WalkerInfo } from '../types'
 
 const SIZE_SR: Record<string, string> = { small: 'Mali', medium: 'Srednji', large: 'Veliki' }
@@ -38,7 +38,7 @@ function Avatar({ firstName, lastName, image, size = 10 }: { firstName: string; 
   const colors = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500']
   const color = colors[(firstName.charCodeAt(0) + lastName.charCodeAt(0)) % colors.length]
   const sz = `w-${size} h-${size}`
-  if (image) return <img src={`${BACKEND_URL}${image}`} className={`${sz} rounded-full object-cover shrink-0`} />
+  if (image) return <img src={imgUrl(image)} className={`${sz} rounded-full object-cover shrink-0`} />
   return (
     <div className={`${sz} rounded-full ${color} flex items-center justify-center text-white font-bold shrink-0`}
       style={{ fontSize: size > 8 ? 14 : 11 }}>

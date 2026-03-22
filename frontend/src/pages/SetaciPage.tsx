@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '../config'
+import { imgUrl } from '../config'
 import { useState, useRef, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -332,7 +332,7 @@ export default function SetaciPage() {
                 <div className="relative h-52 overflow-hidden">
                   {w.profile_image ? (
                     <img
-                      src={`${BACKEND_URL}${w.profile_image}`}
+                      src={imgUrl(w.profile_image)}
                       alt={w.first_name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

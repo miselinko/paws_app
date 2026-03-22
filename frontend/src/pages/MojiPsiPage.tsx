@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '../config'
+import { imgUrl } from '../config'
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getMyDogs, createDog, updateDog, deleteDog } from '../api/dogs'
@@ -72,7 +72,7 @@ function DogCard({
       <div className="relative h-36 overflow-hidden">
         {dog.image ? (
           <img
-            src={`${BACKEND_URL}${dog.image}`}
+            src={imgUrl(dog.image)}
             alt={dog.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -200,7 +200,7 @@ export default function MojiPsiPage() {
     })
     setTempTags(dog.temperament ? dog.temperament.split(',').map(t => t.trim()).filter(Boolean) : [])
     setImage(null)
-    setImagePreview(dog.image ? `${BACKEND_URL}${dog.image}` : null)
+    setImagePreview(dog.image ? imgUrl(dog.image) ?? null : null)
     setShowForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }

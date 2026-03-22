@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '../config'
+import { imgUrl } from '../config'
 import { useState, lazy, Suspense, useRef, useEffect } from 'react'
 import Reveal from '../components/Reveal'
 import { useParams, useNavigate, Link } from 'react-router-dom'
@@ -947,7 +947,7 @@ function ReviewsSection({ walkerId }: { walkerId: number }) {
           <div key={r.id} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
             <div className="flex items-center gap-3 mb-2">
               {r.owner_image ? (
-                <img src={`${BACKEND_URL}${r.owner_image}`} className="w-8 h-8 rounded-full object-cover" alt="" />
+                <img src={imgUrl(r.owner_image)} className="w-8 h-8 rounded-full object-cover" alt="" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
                   {r.owner_name[0]}
@@ -1008,7 +1008,7 @@ export default function SetacProfilPage() {
       {/* Hero */}
       <div className="relative h-64 sm:h-80 overflow-hidden">
         {walker.profile_image ? (
-          <img src={`${BACKEND_URL}${walker.profile_image}`} alt={walker.first_name} className="w-full h-full object-cover" />
+          <img src={imgUrl(walker.profile_image)} alt={walker.first_name} className="w-full h-full object-cover" />
         ) : (
           <div className={`w-full h-full bg-gradient-to-br ${gradColor}`} />
         )}
