@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status as drf_status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -6,10 +6,14 @@ from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
-from .serializers import RegisterSerializer, UserSerializer, WalkerListSerializer, WalkerProfileSerializer
+from django.db.models import Count, Q
+from .serializers import (
+    RegisterSerializer, UserSerializer, WalkerListSerializer,
+    WalkerProfileSerializer, AdminUserListSerializer, AdminUserDetailSerializer,
+)
+from .permissions import IsAdmin
 from .models import PasswordResetToken
 import math, threading
-
 
 class WalkerPagination(PageNumberPagination):
     page_size = 20
@@ -95,6 +99,9 @@ class WalkerListView(generics.ListAPIView):
         if max_rate:
             qs = qs.filter(walker_profile__hourly_rate__lte=max_rate)
 
+        if self.request.query_params.get('istaknuti') == 'true':
+            qs = qs.filter(walker_profile__is_featured=True)
+
         # Distance filter: ?lat=44.8&lng=20.4&radius=10 (km)
         lat = self.request.query_params.get('lat')
         lng = self.request.query_params.get('lng')
@@ -110,12 +117,12 @@ class WalkerListView(generics.ListAPIView):
                         if d <= radius_f:
                             w.distance = round(d, 1)
                             results.append(w)
-                results.sort(key=lambda w: w.distance)
+                results.sort(key=lambda w: (not w.walker_profile.is_featured, w.distance))
                 return results
             except (ValueError, TypeError):
                 pass
 
-        return qs
+        return sorted(qs, key=lambda w: not w.walker_profile.is_featured)
 
 
 class WalkerDetailView(generics.RetrieveAPIView):
@@ -188,3 +195,250 @@ class ResetPasswordView(APIView):
         token.used = True
         token.save()
         return Response({'detail': 'Lozinka je uspešno promenjena. Možeš se prijaviti.'})
+
+
+# ─── Admin views ────────────────────────────────────────────────────
+
+class AdminPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class AdminDashboardView(APIView):
+    """GET /api/users/admin/stats/ — aggregate dashboard numbers."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        from reservations.models import Reservation
+        from reviews.models import Review
+        from dogs.models import Dog
+
+        users = User.objects.all()
+        reservations = Reservation.objects.all()
+
+        return Response({
+            'total_users': users.count(),
+            'owners': users.filter(role='owner').count(),
+            'walkers': users.filter(role='walker').count(),
+            'admins': users.filter(role='admin').count(),
+            'active_users': users.filter(is_active=True).count(),
+            'inactive_users': users.filter(is_active=False).count(),
+            'total_reservations': reservations.count(),
+            'pending_reservations': reservations.filter(status='pending').count(),
+            'completed_reservations': reservations.filter(status='completed').count(),
+            'cancelled_reservations': reservations.filter(status='cancelled').count(),
+            'total_reviews': Review.objects.count(),
+            'total_dogs': Dog.objects.count(),
+        })
+
+
+class AdminUserListView(generics.ListAPIView):
+    """GET /api/users/admin/users/ — list all users with search & filter."""
+    serializer_class = AdminUserListSerializer
+    permission_classes = [IsAdmin]
+    pagination_class = AdminPagination
+
+    def get_queryset(self):
+        qs = User.objects.annotate(
+            dogs_count=Count('dogs', distinct=True),
+            reservations_count=Count('owner_reservations', distinct=True)
+            + Count('walker_reservations', distinct=True),
+            reviews_count=Count('given_reviews', distinct=True)
+            + Count('received_reviews', distinct=True),
+        ).order_by('-created_at')
+
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(
+                Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+                | Q(email__icontains=search)
+            )
+
+        role = self.request.query_params.get('role')
+        if role in ('owner', 'walker', 'admin'):
+            qs = qs.filter(role=role)
+
+        is_active = self.request.query_params.get('is_active')
+        if is_active == 'true':
+            qs = qs.filter(is_active=True)
+        elif is_active == 'false':
+            qs = qs.filter(is_active=False)
+
+        if self.request.query_params.get('is_featured') == 'true':
+            qs = qs.filter(walker_profile__is_featured=True)
+
+        return qs
+
+
+class AdminUserDetailView(APIView):
+    """GET/PATCH/DELETE /api/users/admin/users/<id>/"""
+    permission_classes = [IsAdmin]
+
+    def get(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'Korisnik nije pronađen.'}, status=404)
+        return Response(AdminUserDetailSerializer(user).data)
+
+    def patch(self, request, pk):
+        """Toggle is_active (ban/unban)."""
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'Korisnik nije pronađen.'}, status=404)
+        if user.role == 'admin':
+            return Response({'detail': 'Ne možeš deaktivirati admina.'}, status=400)
+        is_active = request.data.get('is_active')
+        if is_active is not None:
+            user.is_active = is_active
+            user.save(update_fields=['is_active'])
+        is_featured = request.data.get('is_featured')
+        if is_featured is not None and user.role == 'walker':
+            from .models import WalkerProfile
+            WalkerProfile.objects.filter(user=user).update(is_featured=is_featured)
+        return Response(AdminUserDetailSerializer(user).data)
+
+    def delete(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'Korisnik nije pronađen.'}, status=404)
+        if user.role == 'admin':
+            return Response({'detail': 'Ne možeš obrisati admina.'}, status=400)
+        user.delete()
+        return Response(status=drf_status.HTTP_204_NO_CONTENT)
+
+
+class AdminReservationListView(APIView):
+    """GET /api/users/admin/reservations/ — all reservations with filter."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        from reservations.models import Reservation
+
+        qs = Reservation.objects.select_related('owner', 'walker').order_by('-created_at')
+
+        status_filter = request.query_params.get('status')
+        if status_filter in ('pending', 'confirmed', 'completed', 'cancelled', 'rejected'):
+            qs = qs.filter(status=status_filter)
+
+        service = request.query_params.get('service_type')
+        if service in ('walking', 'boarding'):
+            qs = qs.filter(service_type=service)
+
+        search = request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(
+                Q(owner__first_name__icontains=search)
+                | Q(owner__last_name__icontains=search)
+                | Q(walker__first_name__icontains=search)
+                | Q(walker__last_name__icontains=search)
+            )
+
+        paginator = AdminPagination()
+        page = paginator.paginate_queryset(qs, request)
+        data = [
+            {
+                'id': r.id,
+                'owner_name': r.owner.full_name,
+                'owner_id': r.owner.id,
+                'walker_name': r.walker.full_name,
+                'walker_id': r.walker.id,
+                'status': r.status,
+                'service_type': r.service_type,
+                'start_time': r.start_time.isoformat(),
+                'end_time': r.end_time.isoformat(),
+                'duration': r.duration,
+                'notes': r.notes,
+                'created_at': r.created_at.isoformat(),
+            }
+            for r in page
+        ]
+        return paginator.get_paginated_response(data)
+
+
+class AdminReviewListView(APIView):
+    """GET /api/users/admin/reviews/ — all reviews."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        from reviews.models import Review
+
+        qs = Review.objects.select_related('owner', 'walker', 'reservation').order_by('-created_at')
+
+        rating = request.query_params.get('rating')
+        if rating and rating.isdigit() and 1 <= int(rating) <= 5:
+            qs = qs.filter(rating=int(rating))
+
+        search = request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(
+                Q(owner__first_name__icontains=search)
+                | Q(owner__last_name__icontains=search)
+                | Q(walker__first_name__icontains=search)
+                | Q(walker__last_name__icontains=search)
+            )
+
+        paginator = AdminPagination()
+        page = paginator.paginate_queryset(qs, request)
+        data = [
+            {
+                'id': r.id,
+                'owner_name': r.owner.full_name,
+                'owner_id': r.owner.id,
+                'walker_name': r.walker.full_name,
+                'walker_id': r.walker.id,
+                'rating': r.rating,
+                'comment': r.comment,
+                'created_at': r.created_at.isoformat(),
+            }
+            for r in page
+        ]
+        return paginator.get_paginated_response(data)
+
+
+class AdminDogListView(APIView):
+    """GET /api/users/admin/dogs/ — all dogs."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        from dogs.models import Dog
+
+        qs = Dog.objects.select_related('owner').order_by('-created_at')
+
+        search = request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(
+                Q(name__icontains=search)
+                | Q(breed__icontains=search)
+                | Q(owner__first_name__icontains=search)
+                | Q(owner__last_name__icontains=search)
+            )
+
+        size = request.query_params.get('size')
+        if size in ('small', 'medium', 'large'):
+            qs = qs.filter(size=size)
+
+        paginator = AdminPagination()
+        page = paginator.paginate_queryset(qs, request)
+        data = [
+            {
+                'id': d.id,
+                'name': d.name,
+                'breed': d.breed,
+                'age': d.age,
+                'size': d.size,
+                'gender': d.gender,
+                'owner_name': d.owner.full_name,
+                'owner_id': d.owner.id,
+                'image': d.image.url if d.image else None,
+                'created_at': d.created_at.isoformat(),
+            }
+            for d in page
+        ]
+        return paginator.get_paginated_response(data)
+
+

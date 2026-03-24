@@ -6,9 +6,7 @@ import { getWalkers } from '../api/users'
 import type { Walker } from '../types'
 import Reveal from '../components/Reveal'
 
-interface WalkerWithDistance extends Walker {
-  distance?: number | null
-}
+type WalkerWithDistance = Walker
 
 const SERVICES = [
   { val: '', label: 'Svi' },
@@ -303,6 +301,8 @@ export default function SetaciPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[...(walkers ?? [])].sort((a, b) => {
+            const featuredDiff = (b.walker_profile?.is_featured ? 1 : 0) - (a.walker_profile?.is_featured ? 1 : 0)
+            if (featuredDiff !== 0) return featuredDiff
             const priceOf = (w: WalkerWithDistance) => {
               const wp = w.walker_profile
               if (service === 'boarding' || wp.services === 'boarding') return Number(wp.daily_rate) || Number(wp.hourly_rate)
@@ -323,8 +323,11 @@ export default function SetaciPage() {
               <Reveal key={w.id} delay={Math.min(idx % 3, 2) * 80}>
               <Link
                 to={`/walkers/${w.id}`}
-                className="bg-white rounded-2xl overflow-hidden flex flex-col transition-all hover:-translate-y-1 group"
-                style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.1)' }}
+                className="rounded-2xl overflow-hidden flex flex-col transition-all hover:-translate-y-1 group"
+                style={{
+                  backgroundColor: wp.is_featured ? '#d6efe6' : '#ffffff',
+                  boxShadow: '0 2px 11px rgba(71,71,71,0.1)',
+                }}
                 onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 8px 24px rgba(71,71,71,0.18)')}
                 onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 2px 11px rgba(71,71,71,0.1)')}
               >
@@ -343,7 +346,6 @@ export default function SetaciPage() {
                   )}
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-
                   {(showHourly || showDaily) && (
                     <div className="absolute top-3 right-3 bg-white rounded-lg px-2.5 py-1.5 flex flex-col items-end gap-0.5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
                       {showHourly && (

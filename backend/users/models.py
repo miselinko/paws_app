@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
 from datetime import timedelta
 import uuid
 
@@ -82,6 +81,7 @@ class WalkerProfile(models.Model):
     services = models.CharField(max_length=10, choices=SERVICE_CHOICES, default=BOTH)
     bio = models.TextField(blank=True)
     active = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False)
     availability = models.JSONField(default=dict, blank=True)
 
     class Meta:

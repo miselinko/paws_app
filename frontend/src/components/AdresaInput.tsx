@@ -43,9 +43,11 @@ interface Props {
   value: string
   onChange: (adresa: string, lat?: number, lng?: number) => void
   placeholder?: string
+  onLocate?: () => void
+  isLocating?: boolean
 }
 
-export default function AdresaInput({ value, onChange, placeholder = 'Unesite adresu...' }: Props) {
+export default function AdresaInput({ value, onChange, placeholder = 'Unesite adresu...', onLocate, isLocating = false }: Props) {
   const [query, setQuery] = useState(value)
   const [results, setResults] = useState<PhotonFeature[]>([])
   const [open, setOpen] = useState(false)
@@ -116,17 +118,23 @@ export default function AdresaInput({ value, onChange, placeholder = 'Unesite ad
           style={{ borderColor: query ? '#00BF8F' : '#e5e7eb', boxShadow: query ? '0 0 0 3px rgba(0,191,143,0.10)' : '' }}
           autoComplete="off"
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-          {loading
+        <button
+          type="button"
+          onClick={onLocate}
+          disabled={isLocating || loading || !onLocate}
+          title="Koristi trenutnu lokaciju"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-default cursor-pointer"
+        >
+          {loading || isLocating
             ? <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
-            : <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            : <svg className="w-4 h-4 text-[#00BF8F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
           }
-        </div>
+        </button>
       </div>
 
       {open && results.length > 0 && (

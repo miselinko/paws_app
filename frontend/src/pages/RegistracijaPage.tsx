@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useCallback, lazy, Suspense } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import AdresaInput from '../components/AdresaInput'
+
+const MapaPicker = lazy(() => import('../components/MapaPicker'))
 
 const schema = z.object({
   email: z.string().email('Unesi validan email'),
@@ -46,6 +48,10 @@ export default function RegistracijaPage() {
   const [apiError, setApiError] = useState('')
   const [services, setServices] = useState<'walking' | 'boarding' | 'both'>('both')
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null })
+  const [currentAddress, setCurrentAddress] = useState('Trenutna adresa nije učitana')
+  const [isLocating, setIsLocating] = useState(false)
+  const [locationError, setLocationError] = useState('')
+  const [showMap, setShowMap] = useState(false)
 
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<F>({
     resolver: zodResolver(schema),
@@ -53,6 +59,72 @@ export default function RegistracijaPage() {
   })
   const role = watch('role')
   const left = LEFT_CONTENT[role] ?? LEFT_CONTENT.owner
+
+  const reverseGeocode = useCallback(async (lat: number, lng: number) => {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=sr`
+    const res = await fetch(url, { headers: { 'User-Agent': 'PawsApp/1.0' } })
+    const data = await res.json() as {
+      address?: {
+        road?: string
+        house_number?: string
+        city?: string
+        town?: string
+        village?: string
+        county?: string
+      }
+      display_name?: string
+    }
+    if (data.display_name && !data.address) return data.display_name
+    const a = data.address
+    if (!a) return ''
+    const street = a.road ? `${a.road}${a.house_number ? ` ${a.house_number}` : ''}` : ''
+    const city = a.city || a.town || a.village || a.county || ''
+    return [street, city].filter(Boolean).join(', ') || data.display_name || ''
+  }, [])
+
+  const fillFromCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Pregledač ne podržava geolokaciju.')
+      return
+    }
+
+    setIsLocating(true)
+    setLocationError('')
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const rawLat = position.coords.latitude
+          const rawLng = position.coords.longitude
+          if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
+            setLocationError('Koordinate nisu dostupne. Proverite podešavanja lokacije u pregledaču.')
+            setIsLocating(false)
+            return
+          }
+          const lat = parseFloat(rawLat.toFixed(6))
+          const lng = parseFloat(rawLng.toFixed(6))
+          const address = await reverseGeocode(lat, lng)
+          if (!address) {
+            setLocationError('Nije moguće očitati adresu sa trenutne lokacije.')
+            setIsLocating(false)
+            return
+          }
+          setCurrentAddress(address)
+          setValue('address', address, { shouldValidate: true })
+          setCoords({ lat, lng })
+        } catch {
+          setLocationError('Nije moguće očitati adresu sa trenutne lokacije.')
+        } finally {
+          setIsLocating(false)
+        }
+      },
+      () => {
+        setLocationError('Lokacija nije dozvoljena ili nije dostupna.')
+        setIsLocating(false)
+      },
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 }
+    )
+  }
 
   const onSubmit = async (data: F) => {
     try {
@@ -228,7 +300,35 @@ export default function RegistracijaPage() {
                   setCoords({ lat: lat ?? null, lng: lng ?? null })
                 }}
                 placeholder="npr. Bulevar Oslobođenja 12, Novi Sad"
+                onLocate={fillFromCurrentLocation}
+                isLocating={isLocating}
               />
+              {currentAddress !== 'Trenutna adresa nije učitana' && (
+                <p className="text-xs text-gray-400 mt-1.5">
+                  Približna lokacija: <span className="font-semibold text-gray-600">{currentAddress}</span>
+                  {' — ako nije tačna, '}
+                  <button type="button" onClick={() => setShowMap(true)} className="font-semibold underline hover:no-underline" style={{ color: '#00BF8F' }}>
+                    izaberi na mapi
+                  </button>
+                </p>
+              )}
+              {showMap && coords.lat != null && coords.lng != null && (
+                <Suspense fallback={<div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center" style={{ height: '280px' }}><p className="text-xs text-gray-400">Učitavam mapu...</p></div>}>
+                  <MapaPicker
+                    lat={coords.lat}
+                    lng={coords.lng}
+                    reverseGeocode={reverseGeocode}
+                    onClose={() => setShowMap(false)}
+                    onConfirm={(address, lat, lng) => {
+                      setValue('address', address, { shouldValidate: true })
+                      setCoords({ lat, lng })
+                      setCurrentAddress(address)
+                      setShowMap(false)
+                    }}
+                  />
+                </Suspense>
+              )}
+              {locationError && <p className="text-red-500 text-xs mt-1">{locationError}</p>}
               {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
             </div>
 

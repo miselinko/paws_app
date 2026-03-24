@@ -4,7 +4,7 @@ export interface User {
   first_name: string
   last_name: string
   phone: string
-  role: 'owner' | 'walker'
+  role: 'owner' | 'walker' | 'admin'
   profile_image: string | null
   address: string
   lat: number | null
@@ -25,6 +25,7 @@ export interface WalkerProfile {
   services: 'walking' | 'boarding' | 'both'
   bio: string
   active: boolean
+  is_featured: boolean
   average_rating: number
   review_count: number
   availability: Record<string, DaySchedule>
@@ -40,6 +41,7 @@ export interface Walker {
   lat: number | null
   lng: number | null
   walker_profile: WalkerProfile
+  distance?: number | null
 }
 
 export interface Dog {

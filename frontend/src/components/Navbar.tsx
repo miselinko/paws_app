@@ -67,6 +67,13 @@ export default function Navbar() {
               {user.role === 'owner' && (
                 <NavLink to="/my-dogs" className={linkClass}>Moji psi</NavLink>
               )}
+              {user.role === 'admin' && (
+                <NavLink to="/admin" className={({ isActive }) =>
+                  `px-4 py-2 rounded-lg text-sm font-bold transition-colors ${isActive ? 'text-purple-600 bg-purple-50' : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'}`
+                }>
+                  Admin
+                </NavLink>
+              )}
             </>
           )}
         </div>
@@ -90,13 +97,16 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(!menuOpen)}
                 className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-50 transition-colors"
               >
-                {user.profile_image ? (
-                  <img src={imgUrl(user.profile_image)} className="w-8 h-8 rounded-full object-cover" alt="" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: '#00BF8F' }}>
-                    {user.first_name[0]}{user.last_name[0]}
-                  </div>
-                )}
+                <div className="relative">
+                  {user.profile_image ? (
+                    <img src={imgUrl(user.profile_image)} className="w-8 h-8 rounded-full object-cover" alt="" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      style={{ backgroundColor: '#00BF8F' }}>
+                      {user.first_name[0]}{user.last_name[0]}
+                    </div>
+                  )}
+                </div>
                 <span className="hidden sm:block text-sm font-medium text-gray-700">{user.first_name}</span>
                 <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -122,6 +132,11 @@ export default function Navbar() {
                     {user.role === 'owner' && (
                       <Link to="/my-dogs" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                         <span>🐕</span> Moji psi
+                      </Link>
+                    )}
+                    {user.role === 'admin' && (
+                      <Link to="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-purple-600 hover:bg-purple-50">
+                        <span>🛡️</span> Admin panel
                       </Link>
                     )}
                     <div className="border-t border-gray-100 mt-1 pt-1">
@@ -151,7 +166,12 @@ export default function Navbar() {
         <nav className="fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-100"
           style={{ boxShadow: '0 -2px 12px rgba(0,0,0,0.08)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="flex items-center justify-around px-1 py-1">
-            {(user.role === 'owner' ? [
+            {(user.role === 'admin' ? [
+              { to: '/admin', icon: '🛡️', label: 'Admin' },
+              { to: '/walkers', icon: '🐾', label: 'Šetači' },
+              { to: '/messages', icon: '💬', label: 'Poruke', badge: unread },
+              { to: '/profile', icon: '👤', label: 'Profil' },
+            ] : user.role === 'owner' ? [
               { to: '/walkers', icon: '🐾', label: 'Šetači' },
               { to: '/my-dogs', icon: '🐕', label: 'Moji psi' },
               { to: '/reservations', icon: '📅', label: 'Termini' },

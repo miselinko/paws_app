@@ -9,7 +9,7 @@ from django.conf import settings
 from datetime import timedelta
 import threading
 from .models import Reservation
-from .serializers import ReservationSerializer, ReservationStatusSerializer
+from .serializers import ReservationSerializer
 
 User = get_user_model()
 

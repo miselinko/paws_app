@@ -4,7 +4,7 @@ interface Props {
   children: React.ReactNode
   delay?: number
   className?: string
-  from?: 'bottom' | 'left' | 'fade'
+  from?: 'bottom' | 'fade'
 }
 
 export default function Reveal({ children, delay = 0, className = '', from = 'bottom' }: Props) {
@@ -22,10 +22,7 @@ export default function Reveal({ children, delay = 0, className = '', from = 'bo
     return () => obs.disconnect()
   }, [])
 
-  const initial =
-    from === 'left' ? 'translateX(-24px)' :
-    from === 'fade' ? 'none' :
-    'translateY(24px)'
+  const initial = from === 'fade' ? 'none' : 'translateY(24px)'
 
   return (
     <div
