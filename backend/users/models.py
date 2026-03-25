@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from datetime import timedelta
 import uuid
 
@@ -45,6 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_email_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = UserManager()
@@ -90,6 +92,19 @@ class WalkerProfile(models.Model):
 
     def __str__(self):
         return f'Walker profile: {self.user.full_name}'
+
+
+class EmailVerificationToken(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='verification_tokens')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+    def is_valid(self):
+        return not self.used and timezone.now() < self.created_at + timedelta(hours=24)
+
+    def __str__(self):
+        return f'Verification token for {self.user.email}'
 
 
 class PasswordResetToken(models.Model):

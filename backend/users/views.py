@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.throttling import AnonRateThrottle
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
@@ -12,8 +13,16 @@ from .serializers import (
     WalkerProfileSerializer, AdminUserListSerializer, AdminUserDetailSerializer,
 )
 from .permissions import IsAdmin
-from .models import PasswordResetToken
+from .models import PasswordResetToken, EmailVerificationToken
 import math, threading
+
+
+class LoginRateThrottle(AnonRateThrottle):
+    scope = 'login'
+
+
+class PasswordResetThrottle(AnonRateThrottle):
+    scope = 'password_reset'
 
 class WalkerPagination(PageNumberPagination):
     page_size = 20
@@ -30,9 +39,61 @@ def haversine(lat1, lng1, lat2, lng2):
 User = get_user_model()
 
 
+def send_verification_email(user):
+    token = EmailVerificationToken.objects.create(user=user)
+    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={token.token}"
+    send_mail(
+        subject='Potvrdi svoju email adresu — Paws',
+        message=f'Zdravo {user.first_name},\n\nKlikni na link da potvrdiš email adresu:\n{verify_url}\n\nLink važi 24 sata.\n\nTim Paws 🐾',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=True,
+    )
+
+
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        threading.Thread(target=send_verification_email, args=(user,), daemon=True).start()
+
+
+class VerifyEmailView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        token_str = request.query_params.get('token')
+        if not token_str:
+            return Response({'detail': 'Token nije prosleđen.'}, status=400)
+        try:
+            token = EmailVerificationToken.objects.select_related('user').get(token=token_str)
+        except (EmailVerificationToken.DoesNotExist, ValueError):
+            return Response({'detail': 'Nevažeći token.'}, status=400)
+        if not token.is_valid():
+            return Response({'detail': 'Token je istekao. Zatraži novi.'}, status=400)
+        token.user.is_email_verified = True
+        token.user.save(update_fields=['is_email_verified'])
+        token.used = True
+        token.save(update_fields=['used'])
+        return Response({'detail': 'Email adresa je potvrđena. Možeš se prijaviti.'})
+
+
+class ResendVerificationView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetThrottle]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'detail': 'Ako nalog postoji, email je poslat.'})
+        if user.is_email_verified:
+            return Response({'detail': 'Email je već potvrđen.'})
+        threading.Thread(target=send_verification_email, args=(user,), daemon=True).start()
+        return Response({'detail': 'Verifikacioni email je poslat.'})
 
 
 class MyProfileView(generics.RetrieveUpdateAPIView):
@@ -135,6 +196,7 @@ class WalkerDetailView(generics.RetrieveAPIView):
 
 class ForgotPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -174,6 +236,7 @@ class DeleteAccountView(APIView):
 
 class ResetPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetThrottle]
 
     def post(self, request):
         token_str = request.data.get('token', '').strip()

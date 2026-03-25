@@ -161,6 +161,7 @@ class WalkerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = WalkerProfile
         fields = ['hourly_rate', 'daily_rate', 'services', 'bio', 'active', 'is_featured', 'availability', 'average_rating', 'review_count']
+        read_only_fields = ['is_featured']
 
 
 class UserSerializer(serializers.ModelSerializer):

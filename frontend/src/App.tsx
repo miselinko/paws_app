@@ -13,6 +13,7 @@ import PorukePage from './pages/PorukePage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import AdminPage from './pages/AdminPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/register" element={<GuestRoute><RegistracijaPage /></GuestRoute>} />
         <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/reservations" element={<PrivateRoute><RezervacijePage /></PrivateRoute>} />
         <Route path="/my-dogs" element={<PrivateRoute><MojiPsiPage /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><ProfilPage /></PrivateRoute>} />

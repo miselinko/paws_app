@@ -1,0 +1,164 @@
+====================================================
+  PAWS APP — PLAN RAZVOJA (2026-03-25)
+====================================================
+
+## STANJE PROJEKTA
+
+Funkcionalan MVP sa:
+- Django REST backend
+- React/TypeScript web app
+- React Native/Expo mobilna app (Android)
+- Cloudinary za slike
+- Groq AI chat bot
+- Autentifikacija (JWT)
+- Rezervacije, šetači, psi, poruke, recenzije
+
+----------------------------------------------------
+## KRITIČNO — pre produkcije
+----------------------------------------------------
+
+1. PLAĆANJE
+   - Nema Stripe/PayPal integracije
+   - Nema naplate, cena, transakcija
+   - Procena: 3-5 dana
+   - Fajlovi: novi backend app + frontend checkout
+
+2. CORS SIGURNOST
+   - CORS_ALLOW_ALL_ORIGINS = True (prima sve domene!) — namerno ostavljeno jer
+     backend živi na Renderu i whitelist bi blokirao produkcijski frontend
+   - Pravo rešenje kad se zna finalna domena:
+       1. U settings.py zameniti sa:
+          CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS',
+              default='http://localhost:5173').split(',')
+       2. Na Render dashboardu dodati env var:
+          CORS_ALLOWED_ORIGINS=https://tvoja-domena.com
+   - Fajl: backend/config/settings.py
+   - Procena: 30 min (kad je domena poznata)
+
+3. WALKER MOZE SEBI DA POSTAVI is_featured ✅ ZAVRŠENO
+   — read_only_fields = ['is_featured'] u WalkerProfileSerializer
+   - Admin-only polje nije zaštićeno u WalkerProfileUpdateView
+   - Fajl: backend/users/views.py
+   - Procena: 30 min
+
+4. NEMA RATE LIMITINGA NA AUTH ✅ ZAVRŠENO
+   — login: 10/min, password_reset: 5/h, anon: 200/day, user: 2000/day
+   - /auth/login/ — brute force moguć
+   - /forgot-password/ — spam emailova moguć
+   - Fix: Django REST throttling
+   - Procena: 1h
+
+5. EMAIL VERIFIKACIJA ✅ ZAVRŠENO
+   — EmailVerificationToken model, VerifyEmailView, ResendVerificationView
+   — Frontend /verify-email stranica
+   — Migracija 0007 primenjena
+   - Ko god može napraviti nalog sa bilo kojim emailom
+   - Treba: slanje verifikacionog emaila pri registraciji
+   - Procena: 1 dan
+
+----------------------------------------------------
+## VAŽNO — narednih mesec dana
+----------------------------------------------------
+
+6. PUSH NOTIFIKACIJE (mobilni)
+   - Korisnik ne zna kad mu je rezervacija potvrđena/odbijena
+   - Tehnologija: Expo Push Notifications
+   - Backend: slanje notifikacije pri promeni statusa
+   - Procena: 1 dan
+
+7. DOSTUPNOST ŠETAČA SE NE PROVERAVA
+   - Polje availability postoji ali se ignoriše pri rezervaciji
+   - Treba: validacija pri kreiranju rezervacije
+   - Fajl: backend/reservations/views.py
+   - Procena: 2-3h
+
+8. NEMA OVERLAP PROVERE REZERVACIJA
+   - Walker može biti duplo rezervisan u istom terminu
+   - Fix: provera preklapanja u serializer/view
+   - Procena: 2h
+
+9. PORUKE NEMAJU PAGINACIJU
+   - Sve poruke se učitavaju odjednom (1000+ = problem)
+   - Fajl: backend/chat/views.py ConversationView
+   - Procena: 2h
+
+10. SLIKE — NEMA SIZE LIMIT NI MIME VALIDACIJE
+    - Može se uploadovati bilo šta
+    - Fix: provera content_type + max velicina
+    - Procena: 1h
+
+----------------------------------------------------
+## POBOLJŠANJA — kad bude vremena
+----------------------------------------------------
+
+11. WALKER DASHBOARD (mobilni)
+    - Prihvatanje/odbijanje rezervacija iz mobilne app
+    - Upravljanje rasporedom
+    - Procena: 2-3 dana
+
+12. RECENZIJE NA ŠETAČEVOM PROFILU (mobilni)
+    - Web ih prikazuje, mobilni ne
+    - Procena: 2-3h
+
+13. DEEP LINKING (mobilni)
+    - Link koji otvara profil šetača direktno u app-u
+    - Expo Linking + React Navigation
+    - Procena: 1 dan
+
+14. SOFT DELETE KORISNIKA
+    - Trenutno user.delete() briše sve
+    - Fix: is_active = False, čuvanje istorije
+    - Procena: 2h
+
+15. DATABASE INDEXI
+    - Nema indexa na: Reservation.status, Message.recipient, User.role
+    - Fix: db_index=True u modelima
+    - Procena: 1h
+
+16. HAVERSINE NA BAZI (PostGIS)
+    - Trenutno: uzima sve walkere iz DB, filtrira u Pythonu
+    - Fix: PostGIS + ST_DWithin za skalabilnost
+    - Procena: 1 dan
+
+17. ADMIN AUDIT LOG
+    - Admin može da banuje/briše korisnike bez traga
+    - Fix: AuditLog model za sve admin akcije
+    - Procena: 1 dan
+
+----------------------------------------------------
+## PREDLOG REDOSLEDA
+----------------------------------------------------
+
+Sprint 1 (odmah):
+  → CORS fix (30 min)
+  → Walker is_featured zaštita (30 min)
+  → Rate limiting na auth (1h)
+  → Slike MIME + size validacija (1h)
+
+Sprint 2 (ova nedelja):
+  → Dostupnost + overlap provera (3h)
+  → Paginacija poruka (2h)
+  → Email verifikacija (1 dan)
+
+Sprint 3 (sledeća nedelja):
+  → Push notifikacije (1 dan)
+  → Walker dashboard mobilni (2-3 dana)
+
+Sprint 4 (kad bude vremena):
+  → Stripe plaćanje (3-5 dana)
+  → Deep linking (1 dan)
+  → PostGIS geolokacija (1 dan)
+
+----------------------------------------------------
+## TEHNICKE NAPOMENE
+----------------------------------------------------
+
+- APK build: powershell.exe -ExecutionPolicy Bypass -File mobile/android/build_release.ps1
+- APK izlaz: mobile/android/app/build/outputs/apk/release/app-release.apk
+- Mobilni image upload: fetch (ne axios!) + PATCH metoda za profil
+- SafeAreaProvider mora biti root wrapper u App.tsx
+- Bot zaštita: INJECTION_PATTERNS lista u backend/chat/views.py
+- Cloudinary: slike idu u profiles/ i dogs/ foldere
+- Nominatim: countrycodes=rs, User-Agent header obavezan
+
+====================================================

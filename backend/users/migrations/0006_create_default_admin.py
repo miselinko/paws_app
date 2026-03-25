@@ -3,6 +3,7 @@ import os
 
 
 def create_default_admin(apps, schema_editor):
+    from django.contrib.auth.hashers import make_password
     User = apps.get_model('users', 'User')
     email = os.environ.get('ADMIN_EMAIL', 'admin@paws.rs')
     password = os.environ.get('ADMIN_PASSWORD', 'admin123')
@@ -16,14 +17,8 @@ def create_default_admin(apps, schema_editor):
             is_staff=True,
             is_superuser=True,
             is_active=True,
-            password='!',  # unusable password, set below
+            password=make_password(password),
         )
-        # set_password requires the real model, not the historical one
-        from django.contrib.auth import get_user_model
-        RealUser = get_user_model()
-        u = RealUser.objects.get(email=email)
-        u.set_password(password)
-        u.save()
 
 
 class Migration(migrations.Migration):

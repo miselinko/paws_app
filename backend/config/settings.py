@@ -85,6 +85,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '200/day',
+        'user': '2000/day',
+        'login': '10/minute',
+        'password_reset': '5/hour',
+    },
 }
 
 SIMPLE_JWT = {
@@ -93,6 +103,7 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 GROQ_API_KEY = config('GROQ_API_KEY', default='')
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')

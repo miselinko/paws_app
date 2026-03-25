@@ -3,10 +3,20 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.throttling import AnonRateThrottle
+
+
+class LoginThrottle(AnonRateThrottle):
+    scope = 'login'
+
+
+class ThrottledTokenObtainPairView(TokenObtainPairView):
+    throttle_classes = [LoginThrottle]
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/login/', TokenObtainPairView.as_view(), name='login'),
+    path('api/auth/login/', ThrottledTokenObtainPairView.as_view(), name='login'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('api/users/', include('users.urls')),
     path('api/dogs/', include('dogs.urls')),
