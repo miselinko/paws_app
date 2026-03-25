@@ -6,6 +6,8 @@ from .views import (
     WalkerReservationRespondView,
     WalkerCompleteReservationView,
     ReservationPendingCountView,
+    WalkStartView,
+    WalkLocationView,
 )
 
 urlpatterns = [
@@ -15,4 +17,6 @@ urlpatterns = [
     path('<int:pk>/cancel/', ReservationCancelView.as_view(), name='reservation-cancel'),
     path('<int:pk>/respond/', WalkerReservationRespondView.as_view(), name='reservation-respond'),
     path('<int:pk>/complete/', WalkerCompleteReservationView.as_view(), name='reservation-complete'),
+    path('<int:pk>/start/', WalkStartView.as_view(), name='walk-start'),
+    path('<int:pk>/location/', WalkLocationView.as_view(), name='walk-location'),
 ]

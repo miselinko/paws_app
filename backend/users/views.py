@@ -13,7 +13,7 @@ from .serializers import (
     WalkerProfileSerializer, AdminUserListSerializer, AdminUserDetailSerializer,
 )
 from .permissions import IsAdmin
-from .models import PasswordResetToken, EmailVerificationToken, PushToken
+from .models import PasswordResetToken, EmailVerificationToken, PushToken, AuditLog
 import math, threading, urllib.request, json as json_lib
 
 
@@ -271,13 +271,14 @@ class ForgotPasswordView(APIView):
 
 
 class DeleteAccountView(APIView):
-    """DELETE /api/users/profile/delete/ — permanently delete the account."""
+    """DELETE /api/users/profile/delete/ — deactivate (soft-delete) the account."""
     permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request):
         user = request.user
-        user.delete()
-        return Response({'detail': 'Nalog je obrisan.'}, status=204)
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+        return Response({'detail': 'Nalog je deaktiviran.'}, status=204)
 
 
 class ResetPasswordView(APIView):
@@ -393,7 +394,7 @@ class AdminUserDetailView(APIView):
         return Response(AdminUserDetailSerializer(user).data)
 
     def patch(self, request, pk):
-        """Toggle is_active (ban/unban)."""
+        """Toggle is_active (ban/unban) and/or is_featured."""
         try:
             user = User.objects.get(pk=pk)
         except User.DoesNotExist:
@@ -404,10 +405,14 @@ class AdminUserDetailView(APIView):
         if is_active is not None:
             user.is_active = is_active
             user.save(update_fields=['is_active'])
+            action = AuditLog.ACTION_UNBAN if is_active else AuditLog.ACTION_BAN
+            AuditLog.objects.create(admin=request.user, target_user=user, action=action)
         is_featured = request.data.get('is_featured')
         if is_featured is not None and user.role == 'walker':
             from .models import WalkerProfile
             WalkerProfile.objects.filter(user=user).update(is_featured=is_featured)
+            action = AuditLog.ACTION_FEATURE if is_featured else AuditLog.ACTION_UNFEATURE
+            AuditLog.objects.create(admin=request.user, target_user=user, action=action)
         return Response(AdminUserDetailSerializer(user).data)
 
     def delete(self, request, pk):
@@ -417,7 +422,9 @@ class AdminUserDetailView(APIView):
             return Response({'detail': 'Korisnik nije pronađen.'}, status=404)
         if user.role == 'admin':
             return Response({'detail': 'Ne možeš obrisati admina.'}, status=400)
-        user.delete()
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+        AuditLog.objects.create(admin=request.user, target_user=user, action=AuditLog.ACTION_DELETE)
         return Response(status=drf_status.HTTP_204_NO_CONTENT)
 
 

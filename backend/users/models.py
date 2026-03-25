@@ -39,7 +39,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=20, blank=True)
     profile_image = models.ImageField(upload_to='profiles/', blank=True, null=True)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=OWNER)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=OWNER, db_index=True)
     address = models.CharField(max_length=255, blank=True)
     lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -127,3 +127,43 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f'Reset token for {self.user.email}'
+
+
+class AuditLog(models.Model):
+    ACTION_BAN = 'ban'
+    ACTION_UNBAN = 'unban'
+    ACTION_FEATURE = 'feature'
+    ACTION_UNFEATURE = 'unfeature'
+    ACTION_DELETE = 'delete'
+
+    ACTION_CHOICES = [
+        (ACTION_BAN, 'Ban user'),
+        (ACTION_UNBAN, 'Unban user'),
+        (ACTION_FEATURE, 'Feature walker'),
+        (ACTION_UNFEATURE, 'Unfeature walker'),
+        (ACTION_DELETE, 'Delete (deactivate) user'),
+    ]
+
+    admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='audit_logs_performed',
+    )
+    target_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='audit_logs_received',
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, db_index=True)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Audit Log'
+        verbose_name_plural = 'Audit Logs'
+
+    def __str__(self):
+        return f'{self.admin} → {self.action} → {self.target_user} at {self.created_at:%Y-%m-%d %H:%M}'

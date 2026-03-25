@@ -28,9 +28,11 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'walker', 'walker_info', 'owner_info', 'dogs', 'dog_ids',
             'service_type', 'duration', 'start_time', 'end_time',
-            'status', 'notes', 'cancelled_by', 'created_at', 'has_review'
+            'status', 'notes', 'cancelled_by', 'created_at', 'has_review',
+            'last_lat', 'last_lng', 'walk_started_at',
         ]
-        read_only_fields = ['status', 'cancelled_by', 'created_at', 'owner']
+        read_only_fields = ['status', 'cancelled_by', 'created_at', 'owner',
+                            'last_lat', 'last_lng', 'walk_started_at']
 
     def validate(self, data):
         if data['start_time'] >= data['end_time']:

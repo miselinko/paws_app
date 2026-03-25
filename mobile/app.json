@@ -3,6 +3,7 @@
     "name": "Paws",
     "slug": "paws-mobile",
     "version": "1.0.0",
+    "scheme": "paws",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/logo.png",

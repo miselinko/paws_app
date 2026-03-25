@@ -1,20 +1,41 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getReservations, cancelReservation, respondToReservation, completeReservation } from '../api/reservations'
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import {
+  getReservations, cancelReservation, respondToReservation,
+  completeReservation, startWalk, updateWalkLocation, getWalkLocation,
+} from '../api/reservations'
 import { createReview } from '../api/reviews'
 import { useAuth } from '../context/AuthContext'
 import { imgUrl } from '../config'
 import type { Reservation, Dog, WalkerInfo } from '../types'
 
+// Fix Leaflet default icon
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+})
+
+const walkerIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
+})
+
 const SIZE_SR: Record<string, string> = { small: 'Mali', medium: 'Srednji', large: 'Veliki' }
 const GENDER_SR: Record<string, string> = { male: '♂ Muški', female: '♀ Ženski' }
 
 const STATUS = {
-  pending:   { label: 'Na čekanju', color: '#92400e',  bg: '#fef3c7', border: '#f59e0b' },
-  confirmed: { label: 'Potvrđeno',  color: '#065f46',  bg: '#d1fae5', border: '#00BF8F' },
-  rejected:  { label: 'Odbijeno',   color: '#991b1b',  bg: '#fee2e2', border: '#f87171' },
-  completed: { label: 'Završeno',   color: '#374151',  bg: '#f3f4f6', border: '#d1d5db' },
-  cancelled: { label: 'Otkazano',   color: '#9ca3af',  bg: '#f9fafb', border: '#e5e7eb' },
+  pending:     { label: 'Na čekanju', color: '#92400e', bg: '#fef3c7', border: '#f59e0b' },
+  confirmed:   { label: 'Potvrđeno',  color: '#065f46', bg: '#d1fae5', border: '#00BF8F' },
+  in_progress: { label: 'U toku 🔴',  color: '#065f46', bg: '#d1fae5', border: '#00BF8F' },
+  rejected:    { label: 'Odbijeno',   color: '#991b1b', bg: '#fee2e2', border: '#f87171' },
+  completed:   { label: 'Završeno',   color: '#374151', bg: '#f3f4f6', border: '#d1d5db' },
+  cancelled:   { label: 'Otkazano',   color: '#9ca3af', bg: '#f9fafb', border: '#e5e7eb' },
 } as const
 
 const SVC = {
@@ -208,6 +229,59 @@ function ReviewForm({ r, onDone }: { r: Reservation; onDone: () => void }) {
   )
 }
 
+function walkDuration(startedAt: string | null): string {
+  if (!startedAt) return ''
+  const mins = Math.floor((Date.now() - new Date(startedAt).getTime()) / 60000)
+  if (mins < 1) return 'Upravo počelo'
+  if (mins < 60) return `Traje ${mins} min`
+  return `Traje ${Math.floor(mins / 60)}h ${mins % 60}min`
+}
+
+function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap()
+  useEffect(() => { map.panTo([lat, lng]) }, [lat, lng])
+  return null
+}
+
+function WalkLiveMap({ reservationId, walkerName }: { reservationId: number; walkerName: string }) {
+  const { data: loc } = useQuery({
+    queryKey: ['walk-location', reservationId],
+    queryFn: () => getWalkLocation(reservationId),
+    refetchInterval: 5000,
+  })
+
+  const lat = loc?.lat ? parseFloat(loc.lat) : null
+  const lng = loc?.lng ? parseFloat(loc.lng) : null
+
+  return (
+    <div className="mt-3 rounded-2xl overflow-hidden border border-green-200"
+      style={{ boxShadow: '0 1px 6px rgba(0,191,143,0.15)' }}>
+      <div className="px-3 py-2 flex items-center justify-between"
+        style={{ backgroundColor: '#f0fdf9' }}>
+        <span className="text-xs font-bold text-green-800">📡 Lokacija šetača</span>
+        {loc?.walk_started_at && (
+          <span className="text-xs font-medium text-green-600">{walkDuration(loc.walk_started_at)}</span>
+        )}
+      </div>
+      {lat && lng ? (
+        <div style={{ height: 220 }}>
+          <MapContainer center={[lat, lng]} zoom={15} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <Marker position={[lat, lng]} icon={walkerIcon}>
+            </Marker>
+            <MapRecenter lat={lat} lng={lng} />
+          </MapContainer>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center gap-2 py-8 bg-white">
+          <div className="w-4 h-4 border-2 border-gray-200 border-t-green-500 rounded-full animate-spin" />
+          <span className="text-sm text-gray-400">Čekanje na lokaciju šetača...</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ReservationCard({ r }: { r: Reservation }) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
@@ -215,14 +289,16 @@ function ReservationCard({ r }: { r: Reservation }) {
   const [showReview, setShowReview] = useState(false)
   const [cancelError, setCancelError] = useState('')
   const [respondError, setRespondError] = useState('')
-  const st = STATUS[r.status]
+  const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const st = STATUS[r.status as keyof typeof STATUS] ?? STATUS.cancelled
   const svc = SVC[r.service_type as keyof typeof SVC] ?? { icon: '📅', label: r.service_type }
   const { day, date, time } = fmtRange(r.start_time, r.end_time)
   const isWithin3h = r.status === 'confirmed' && (new Date(r.start_time).getTime() - Date.now()) <= 3 * 60 * 60 * 1000
-  const hasStarted = new Date(r.start_time).getTime() < Date.now()
-  const isPast = new Date(r.end_time).getTime() < Date.now()
+  const hasStarted = new Date(r.start_time).getTime() - Date.now() <= 30 * 60 * 1000
+
   const isWalkerPending = user?.role === 'walker' && r.status === 'pending'
-  const ownerCanReview = user?.role === 'owner' && r.status === 'confirmed' && isPast && !r.has_review
+
+  const isInProgress = r.status === 'in_progress'
 
   const cancelM = useMutation({
     mutationFn: () => cancelReservation(r.id),
@@ -236,6 +312,10 @@ function ReservationCard({ r }: { r: Reservation }) {
     mutationFn: () => completeReservation(r.id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reservations'] }),
   })
+  const startM = useMutation({
+    mutationFn: () => startWalk(r.id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reservations'] }),
+  })
 
   const respondM = useMutation({
     mutationFn: (s: 'confirmed' | 'rejected') => respondToReservation(r.id, s),
@@ -245,6 +325,23 @@ function ReservationCard({ r }: { r: Reservation }) {
       setRespondError(err.response?.data?.detail || 'Greška. Pokušaj ponovo.')
     },
   })
+
+  // Walker: send GPS every 5s when in_progress
+  useEffect(() => {
+    if (!isInProgress || user?.role !== 'walker') {
+      if (locationIntervalRef.current) { clearInterval(locationIntervalRef.current); locationIntervalRef.current = null }
+      return
+    }
+    if (!navigator.geolocation) return
+
+    const send = () => navigator.geolocation.getCurrentPosition(
+      pos => updateWalkLocation(r.id, pos.coords.latitude, pos.coords.longitude).catch(() => {}),
+      () => {}
+    )
+    send()
+    locationIntervalRef.current = setInterval(send, 5000)
+    return () => { if (locationIntervalRef.current) clearInterval(locationIntervalRef.current) }
+  }, [isInProgress, user?.role, r.id])
 
   const person = user?.role === 'walker' ? r.owner_info : r.walker_info
   const personName = person ? `${person.first_name} ${person.last_name}` : null
@@ -305,27 +402,28 @@ function ReservationCard({ r }: { r: Reservation }) {
         </div>
       </div>
 
-      {/* Završi šetnju — walker na confirmed */}
+      {/* Pokreni šetnju — walker na confirmed */}
       {user?.role === 'walker' && r.status === 'confirmed' && (
         <div className="px-4 pb-1">
-          <button onClick={() => completeM.mutate()} disabled={completeM.isPending || !hasStarted}
+          <button onClick={() => startM.mutate()} disabled={startM.isPending || !hasStarted}
             className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#00BF8F' }}>
-            {completeM.isPending ? 'Završavam...' : !hasStarted ? `🕐 Čeka početak (${time})` : '✓ Završi šetnju'}
+            {startM.isPending ? 'Pokretanje...' : !hasStarted ? `🕐 Čeka početak (${time})` : '🐾 Pokreni šetnju'}
           </button>
         </div>
       )}
 
-      {/* Owner — šetnja prošla, može da oceni */}
-      {ownerCanReview && (
+      {/* Završi šetnju — walker na in_progress */}
+      {user?.role === 'walker' && r.status === 'in_progress' && (
         <div className="px-4 pb-1">
-          <button onClick={() => { completeM.mutate(); setShowReview(true) }} disabled={completeM.isPending}
-            className="w-full py-2.5 rounded-xl text-sm font-bold border-2 transition-all hover:bg-amber-50 active:scale-95"
-            style={{ color: '#92400e', borderColor: '#fcd34d' }}>
-            ⭐ Šetnja je završena — ostavi recenziju
+          <button onClick={() => completeM.mutate()} disabled={completeM.isPending}
+            className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95"
+            style={{ backgroundColor: '#059669' }}>
+            {completeM.isPending ? 'Završavam...' : '🏁 Završi šetnju'}
           </button>
         </div>
       )}
+
 
       {/* Cancel button — vidljivo za otkazive rezervacije */}
       {((user?.role === 'owner' && (r.status === 'pending' || r.status === 'confirmed')) ||
@@ -361,6 +459,54 @@ function ReservationCard({ r }: { r: Reservation }) {
         </div>
       )}
 
+      {/* Review prompt — owner, completed, no review yet */}
+      {user?.role === 'owner' && r.status === 'completed' && !r.has_review && !showReview && (
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => setShowReview(true)}
+            className="w-full py-2.5 rounded-xl text-sm font-bold border-2 transition-all hover:bg-amber-50 active:scale-95"
+            style={{ color: '#92400e', borderColor: '#fcd34d', backgroundColor: '#fffbeb' }}>
+            ⭐ Ostavi recenziju za ovu šetnju
+          </button>
+        </div>
+      )}
+
+      {/* Review form — inline, outside expanded */}
+      {user?.role === 'owner' && r.status === 'completed' && showReview && (
+        <div className="px-4 pb-4">
+          <ReviewForm r={r} onDone={() => setShowReview(false)} />
+        </div>
+      )}
+
+      {/* Review sent confirmation */}
+      {user?.role === 'owner' && r.status === 'completed' && r.has_review && (
+        <div className="mx-4 mb-2 px-3 py-2 rounded-xl flex items-center gap-1.5 text-xs font-semibold"
+          style={{ backgroundColor: '#f0fdf9', color: '#065f46' }}>
+          ✓ Recenzija je poslata
+        </div>
+      )}
+
+      {/* GPS status bar for walker in_progress */}
+      {user?.role === 'walker' && isInProgress && (
+        <div className="mx-4 mb-2 px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-semibold"
+          style={{ backgroundColor: '#f0fdf9', color: '#065f46' }}>
+          <span className="animate-pulse">📡</span>
+          <span>Lokacija se šalje vlasniku · {walkDuration(r.walk_started_at)}</span>
+        </div>
+      )}
+
+      {/* Live map preview for owner in_progress (collapsed) */}
+      {user?.role === 'owner' && isInProgress && !expanded && (
+        <div className="mx-4 mb-2 px-3 py-2.5 rounded-xl flex items-center justify-between cursor-pointer"
+          style={{ backgroundColor: '#f0fdf9', border: '1px solid #bbf7d0' }}
+          onClick={() => setExpanded(true)}>
+          <span className="text-xs font-bold text-green-800">🐾 Šetnja je u toku — prikaži mapu ▼</span>
+          {r.walk_started_at && (
+            <span className="text-xs text-green-600">{walkDuration(r.walk_started_at)}</span>
+          )}
+        </div>
+      )}
+
       {/* Expandable details */}
       <button onClick={() => setExpanded(o => !o)}
         className="w-full flex items-center justify-center gap-1.5 py-2.5 border-t border-gray-100 text-xs font-semibold text-gray-400 hover:bg-gray-50 transition-colors">
@@ -369,6 +515,11 @@ function ReservationCard({ r }: { r: Reservation }) {
 
       {expanded && (
         <div className="px-4 pb-4 space-y-4 border-t border-gray-100">
+
+          {/* Live mapa — samo za vlasnika kada je in_progress */}
+          {user?.role === 'owner' && r.status === 'in_progress' && (
+            <WalkLiveMap reservationId={r.id} walkerName={`${r.walker_info?.first_name ?? ''}`} />
+          )}
 
           {/* Walker info — samo za vlasnika */}
           {user?.role === 'owner' && r.walker_info && (
@@ -436,22 +587,7 @@ function ReservationCard({ r }: { r: Reservation }) {
             </div>
           )}
 
-          {/* Action buttons inside expanded */}
-          <div className="flex flex-wrap gap-2 pt-1">
-            {user?.role === 'owner' && r.status === 'completed' && !r.has_review && !showReview && (
-              <button onClick={() => setShowReview(true)}
-                className="text-sm font-semibold px-4 py-2 rounded-xl border-2 transition-all hover:bg-amber-50"
-                style={{ color: '#92400e', borderColor: '#fcd34d' }}>
-                ⭐ Ostavi recenziju
-              </button>
-            )}
-            {user?.role === 'owner' && r.status === 'completed' && r.has_review && (
-              <span className="text-xs text-gray-400 flex items-center gap-1">✓ Recenzija poslata</span>
-            )}
-          </div>
-
           {cancelError && <p className="text-xs text-red-500">{cancelError}</p>}
-          {showReview && <ReviewForm r={r} onDone={() => setShowReview(false)} />}
         </div>
       )}
     </div>
@@ -467,7 +603,7 @@ export default function RezervacijePage() {
 
   const all: Reservation[]       = reservations ?? []
   const pending: Reservation[]   = all.filter(r => r.status === 'pending')
-  const upcoming: Reservation[]  = all.filter(r => r.status === 'confirmed')
+  const upcoming: Reservation[]  = all.filter(r => r.status === 'confirmed' || r.status === 'in_progress')
   const completed: Reservation[] = all.filter(r => r.status === 'completed')
   const past: Reservation[]      = all.filter(r => r.status === 'rejected' || r.status === 'cancelled')
 

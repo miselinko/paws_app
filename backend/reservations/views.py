@@ -224,6 +224,77 @@ class WalkerReservationRespondView(APIView):
         return Response({'status': new_status})
 
 
+class WalkStartView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            reservation = Reservation.objects.get(pk=pk, walker=request.user)
+        except Reservation.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if reservation.status != Reservation.CONFIRMED:
+            return Response({'detail': 'Rezervacija mora biti potvrđena.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Allow starting up to 30 minutes early
+        if timezone.now() < reservation.start_time - timedelta(minutes=30):
+            return Response({'detail': 'Šetnja još nije počela.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reservation.status = Reservation.IN_PROGRESS
+        reservation.walk_started_at = timezone.now()
+        reservation.last_lat = None
+        reservation.last_lng = None
+        reservation.save()
+
+        dog_names = ', '.join(d.name for d in reservation.dogs.all())
+        from users.views import send_push_notification
+        threading.Thread(
+            target=send_push_notification,
+            args=([reservation.owner], '🐾 Šetnja je počela!',
+                  f'{reservation.walker.first_name} je krenuo/la na šetnju sa {dog_names}.'),
+            daemon=True,
+        ).start()
+        return Response({'status': 'in_progress'})
+
+
+class WalkLocationView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            reservation = Reservation.objects.get(pk=pk, walker=request.user)
+        except Reservation.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if reservation.status != Reservation.IN_PROGRESS:
+            return Response({'detail': 'Šetnja nije aktivna.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        lat = request.data.get('lat')
+        lng = request.data.get('lng')
+        if lat is None or lng is None:
+            return Response({'detail': 'lat i lng su obavezni.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reservation.last_lat = lat
+        reservation.last_lng = lng
+        reservation.save(update_fields=['last_lat', 'last_lng'])
+        return Response({'ok': True})
+
+    def get(self, request, pk):
+        try:
+            reservation = Reservation.objects.get(
+                Q(walker=request.user) | Q(owner=request.user), pk=pk
+            )
+        except Reservation.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            'lat': str(reservation.last_lat) if reservation.last_lat is not None else None,
+            'lng': str(reservation.last_lng) if reservation.last_lng is not None else None,
+            'walk_started_at': reservation.walk_started_at,
+            'status': reservation.status,
+        })
+
+
 class WalkerCompleteReservationView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -236,19 +307,30 @@ class WalkerCompleteReservationView(APIView):
         except Reservation.DoesNotExist:
             return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        if reservation.status != Reservation.CONFIRMED:
+        if reservation.status not in [Reservation.CONFIRMED, Reservation.IN_PROGRESS]:
             return Response({'detail': 'Samo potvrđene rezervacije mogu biti završene.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Walker može da završi tek nakon start_time
-        if reservation.walker == user and timezone.now() < reservation.start_time:
+        # Walker može da završi tek nakon start_time (ako nije već in_progress)
+        if reservation.walker == user and reservation.status == Reservation.CONFIRMED and timezone.now() < reservation.start_time:
             return Response({'detail': 'Šetnja još nije počela.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Owner može da završi tek nakon end_time
-        if reservation.owner == user and timezone.now() < reservation.end_time:
+        if reservation.owner == user and reservation.status == Reservation.CONFIRMED and timezone.now() < reservation.end_time:
             return Response({'detail': 'Šetnja još nije završena.'}, status=status.HTTP_400_BAD_REQUEST)
 
         reservation.status = Reservation.COMPLETED
+        reservation.last_lat = None
+        reservation.last_lng = None
         reservation.save()
+
+        if reservation.walker == user:
+            from users.views import send_push_notification
+            threading.Thread(
+                target=send_push_notification,
+                args=([reservation.owner], '🏁 Šetnja je završena!',
+                      f'{reservation.walker.first_name} je završio/la šetnju i vratio/la psa.'),
+                daemon=True,
+            ).start()
         return Response({'status': 'completed'})
 
 

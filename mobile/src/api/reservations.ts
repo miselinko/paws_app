@@ -33,3 +33,24 @@ export async function completeReservation(id: number): Promise<Reservation> {
   const { data } = await client.post(`/reservations/${id}/complete/`)
   return data
 }
+
+export async function startWalk(id: number): Promise<{ status: string }> {
+  const { data } = await client.post(`/reservations/${id}/start/`)
+  return data
+}
+
+export interface WalkLocation {
+  lat: string | null
+  lng: string | null
+  walk_started_at: string | null
+  status: string
+}
+
+export async function updateWalkLocation(id: number, lat: number, lng: number): Promise<void> {
+  await client.post(`/reservations/${id}/location/`, { lat, lng })
+}
+
+export async function getWalkLocation(id: number): Promise<WalkLocation> {
+  const { data } = await client.get(`/reservations/${id}/location/`)
+  return data
+}

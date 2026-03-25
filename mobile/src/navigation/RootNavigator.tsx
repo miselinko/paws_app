@@ -1,6 +1,6 @@
 import React from 'react'
 import { ActivityIndicator, View } from 'react-native'
-import { NavigationContainer } from '@react-navigation/native'
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useAuth } from '../context/AuthContext'
 import LoginScreen from '../screens/LoginScreen'
@@ -15,6 +15,24 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ['paws://', 'https://paws.rs'],
+  config: {
+    screens: {
+      Main: {
+        screens: {
+          Reservations: 'rezervacije',
+          Chat: 'poruke',
+          Profile: 'profil',
+          Walkers: 'setaci',
+        },
+      },
+      Login: 'prijava',
+      Register: 'registracija',
+    },
+  },
+}
+
 export default function RootNavigator() {
   const { isLoggedIn, isLoading } = useAuth()
 
@@ -27,7 +45,7 @@ export default function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
           <Stack.Screen name="Main" component={MainTabs} />

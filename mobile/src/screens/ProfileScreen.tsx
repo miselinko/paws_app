@@ -10,9 +10,10 @@ import {
   getProfile, updateMyProfile, updateWalkerProfile,
   uploadProfileImage, deleteProfileImage, deleteAccount,
 } from '../api/users'
+import { getWalkerReviews } from '../api/reviews'
 import { imgUrl } from '../api/config'
 import { useAuth } from '../context/AuthContext'
-import { User, DaySchedule } from '../types'
+import { User, DaySchedule, Review } from '../types'
 
 const GREEN = '#00BF8F'
 const GOLD  = '#FAAB43'
@@ -157,6 +158,12 @@ export default function ProfileScreen() {
   })
 
   const { data: profile, isLoading } = useQuery<User>({ queryKey: ['profile'], queryFn: getProfile })
+
+  const { data: myReviews = [] } = useQuery<Review[]>({
+    queryKey: ['my-reviews', profile?.id],
+    queryFn: () => getWalkerReviews(profile!.id),
+    enabled: !!profile && profile.role === 'walker',
+  })
 
   useEffect(() => {
     if (!profile) return
@@ -596,6 +603,36 @@ export default function ProfileScreen() {
         </SectionCard>
       )}
 
+      {/* ── Recenzije šetača ── */}
+      {profile.role === 'walker' && (
+        <SectionCard
+          title={`⭐ Recenzije (${myReviews.length})`}
+          sub={myReviews.length > 0 ? `Prosek: ${(myReviews.reduce((s, r) => s + r.rating, 0) / myReviews.length).toFixed(1)} / 5` : undefined}
+        >
+          <View style={s.cardBody}>
+            {myReviews.length === 0 ? (
+              <Text style={s.emptyReviews}>Još nema recenzija.</Text>
+            ) : (
+              myReviews.map(r => (
+                <View key={r.id} style={s.reviewItem}>
+                  <View style={s.reviewHeader}>
+                    <View style={s.reviewAvatar}>
+                      <Text style={s.reviewAvatarText}>{r.reviewer.first_name[0]}{r.reviewer.last_name[0]}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.reviewerName}>{r.reviewer.first_name} {r.reviewer.last_name}</Text>
+                      <Text style={s.reviewDate}>{new Date(r.created_at).toLocaleDateString('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
+                    </View>
+                    <Text style={s.reviewStars}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</Text>
+                  </View>
+                  {r.comment ? <Text style={s.reviewComment}>{r.comment}</Text> : null}
+                </View>
+              ))
+            )}
+          </View>
+        </SectionCard>
+      )}
+
       {/* ── Upravljanje nalogom ── */}
       <SectionCard title="Upravljanje nalogom">
         <View style={s.cardBody}>
@@ -801,4 +838,15 @@ const s = StyleSheet.create({
   timePickerItem: { paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
   timePickerItemActive: { backgroundColor: '#f0fdf9' },
   timePickerItemText: { fontSize: 16, color: '#374151' },
+
+  // Reviews
+  emptyReviews: { color: '#9ca3af', fontSize: 13, textAlign: 'center', paddingVertical: 8 },
+  reviewItem: { borderBottomWidth: 1, borderBottomColor: '#f3f4f6', paddingBottom: 12, gap: 6 },
+  reviewHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  reviewAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: GREEN, justifyContent: 'center', alignItems: 'center' },
+  reviewAvatarText: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  reviewerName: { fontSize: 13, fontWeight: '700', color: '#111' },
+  reviewDate: { fontSize: 11, color: '#9ca3af', marginTop: 1 },
+  reviewStars: { fontSize: 13, color: GOLD },
+  reviewComment: { fontSize: 13, color: '#374151', lineHeight: 19, marginLeft: 46 },
 })

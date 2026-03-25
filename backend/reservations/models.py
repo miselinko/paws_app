@@ -13,6 +13,7 @@ class Reservation(models.Model):
 
     PENDING = 'pending'
     CONFIRMED = 'confirmed'
+    IN_PROGRESS = 'in_progress'
     REJECTED = 'rejected'
     COMPLETED = 'completed'
     CANCELLED = 'cancelled'
@@ -20,6 +21,7 @@ class Reservation(models.Model):
     STATUS_CHOICES = [
         (PENDING, 'Pending'),
         (CONFIRMED, 'Confirmed'),
+        (IN_PROGRESS, 'In Progress'),
         (REJECTED, 'Rejected'),
         (COMPLETED, 'Completed'),
         (CANCELLED, 'Cancelled'),
@@ -40,7 +42,7 @@ class Reservation(models.Model):
     duration = models.PositiveIntegerField(null=True, blank=True, help_text='Duration in minutes (20, 30, 60)')
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=PENDING)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default=PENDING, db_index=True)
     notes = models.TextField(blank=True)
     cancelled_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -48,6 +50,9 @@ class Reservation(models.Model):
         null=True, blank=True,
         related_name='cancelled_reservations'
     )
+    last_lat = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    last_lng = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    walk_started_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -12,6 +12,9 @@ Funkcionalan MVP sa:
 - Groq AI chat bot
 - Autentifikacija (JWT)
 - Rezervacije, šetači, psi, poruke, recenzije
+- Live GPS praćenje šetnje (polling, 5s interval)
+- Admin panel (web + mobilni)
+- Push notifikacije (Expo)
 
 ----------------------------------------------------
 ## KRITIČNO — pre produkcije
@@ -60,10 +63,11 @@ Funkcionalan MVP sa:
 ## VAŽNO — narednih mesec dana
 ----------------------------------------------------
 
-6. PUSH NOTIFIKACIJE (mobilni)
-   - Korisnik ne zna kad mu je rezervacija potvrđena/odbijena
-   - Tehnologija: Expo Push Notifications
-   - Backend: slanje notifikacije pri promeni statusa
+6. PUSH NOTIFIKACIJE (mobilni) ✅ ZAVRŠENO
+   — PushToken model + PushTokenView
+   — send_push_notification() helper u users/views.py
+   — Notifikacije se šalju pri: potvrdi/odbijanju rezervacije,
+     početku šetnje, završetku šetnje
    - Procena: 1 dan
 
 7. DOSTUPNOST ŠETAČA SE NE PROVERAVA
@@ -82,72 +86,95 @@ Funkcionalan MVP sa:
    - Fajl: backend/chat/views.py ConversationView
    - Procena: 2h
 
-10. SLIKE — NEMA SIZE LIMIT NI MIME VALIDACIJE
-    - Može se uploadovati bilo šta
-    - Fix: provera content_type + max velicina
+10. SLIKE — NEMA SIZE LIMIT NI MIME VALIDACIJE ✅ ZAVRŠENO
+    — validate_image_file() u users/views.py
+    — Max 5MB, dozvoljeni tipovi: JPEG, PNG, WebP, GIF
     - Procena: 1h
 
 ----------------------------------------------------
 ## POBOLJŠANJA — kad bude vremena
 ----------------------------------------------------
 
-11. WALKER DASHBOARD (mobilni)
-    - Prihvatanje/odbijanje rezervacija iz mobilne app
-    - Upravljanje rasporedom
+11. WALKER DASHBOARD (mobilni) ✅ ZAVRŠENO
+    — Prihvatanje/odbijanje rezervacija iz mobilne app
+    — Upravljanje rasporedom (availability u ProfileScreen)
+    — ReservationDetailScreen sa svim akcijama
     - Procena: 2-3 dana
 
-12. RECENZIJE NA ŠETAČEVOM PROFILU (mobilni)
-    - Web ih prikazuje, mobilni ne
+12. RECENZIJE NA ŠETAČEVOM PROFILU (mobilni) ✅ ZAVRŠENO
+    — ProfileScreen prikazuje sekciju "⭐ Recenzije (N)"
+    — Prikazuje prosek, reviewer avatar, ime, datum, zvezdice, komentar
+    — Fetchuje getWalkerReviews(profile.id) kad je role=walker
     - Procena: 2-3h
 
-13. DEEP LINKING (mobilni)
-    - Link koji otvara profil šetača direktno u app-u
-    - Expo Linking + React Navigation
+13. DEEP LINKING (mobilni) ✅ ZAVRŠENO
+    — scheme: "paws" dodat u app.json
+    — LinkingOptions config u RootNavigator.tsx
+    — Prefixes: paws:// i https://paws.rs
+    — Rute: /rezervacije, /poruke, /profil, /setaci
     - Procena: 1 dan
 
-14. SOFT DELETE KORISNIKA
-    - Trenutno user.delete() briše sve
-    - Fix: is_active = False, čuvanje istorije
+14. SOFT DELETE KORISNIKA ✅ ZAVRŠENO
+    — DeleteAccountView: is_active=False umesto user.delete()
+    — AdminUserDetailView.delete: isto, sa AuditLog zapisom
+    — Istorija se čuva, nalog se može reaktivirati
     - Procena: 2h
 
-15. DATABASE INDEXI
-    - Nema indexa na: Reservation.status, Message.recipient, User.role
-    - Fix: db_index=True u modelima
+15. DATABASE INDEXI ✅ ZAVRŠENO
+    — Reservation.status: db_index=True
+    — User.role: db_index=True
+    — Message.read: db_index=True
+    — Migracije: chat.0002, reservations.0004, users.0009
     - Procena: 1h
 
-16. HAVERSINE NA BAZI (PostGIS)
-    - Trenutno: uzima sve walkere iz DB, filtrira u Pythonu
-    - Fix: PostGIS + ST_DWithin za skalabilnost
+16. HAVERSINE NA BAZI (PostGIS) — PRESKOČENO
+    - Odluka: Python-side Haversine dovoljno za MVP
+    - PostGIS overkill za trenutni obim podataka
+    - Revisit kad broj šetača pređe nekoliko stotina
+    - Fajl: backend/users/views.py haversine()
+
+17. ADMIN AUDIT LOG ✅ ZAVRŠENO
+    — AuditLog model: admin, target_user, action, note, created_at
+    — Akcije: ban, unban, feature, unfeature, delete
+    — Loguje se automatski u AdminUserDetailView.patch/delete
+    — Migracija: users.0009
     - Procena: 1 dan
 
-17. ADMIN AUDIT LOG
-    - Admin može da banuje/briše korisnike bez traga
-    - Fix: AuditLog model za sve admin akcije
-    - Procena: 1 dan
+18. LIVE GPS PRAĆENJE ŠETNJE ✅ ZAVRŠENO
+    — IN_PROGRESS status dodat (između confirmed i completed)
+    — Polja: last_lat, last_lng, walk_started_at na Reservation
+    — WalkStartView: šetač pokreće šetnju (30 min ranog starta)
+    — WalkLocationView: GET (čita poziciju) + POST (ažurira poziciju)
+    — Mobilni: GPS polling svakih 5s via expo-location
+    — Web: Leaflet mapa u ReservationCard, polling svakih 5s
+    — Vlasnik vidi poziciju uživo, može otvoriti native Maps
+    — Migracija: reservations.0003
+
+19. ADMIN PANEL (mobilni) ✅ ZAVRŠENO
+    — AdminScreen sa 5 tabova: Dashboard, Korisnici, Rezervacije, Recenzije, Psi
+    — Statistike, pretraga, paginacija, ban/unban, is_featured toggle
+    — Vidljiv samo admin korisnicima (🛡️ tab u navigaciji)
+
+20. RECENZIJE — WEB UX FIX ✅ ZAVRŠENO
+    — Dugme "⭐ Ostavi recenziju" vidljivo odmah (nije u collapse sekciji)
+    — ReviewForm inline u kartici
+    — "✓ Recenzija je poslata" badge za kompletiranu recenziju
 
 ----------------------------------------------------
-## PREDLOG REDOSLEDA
+## PREDLOG SLEDEĆEG RADA
 ----------------------------------------------------
 
-Sprint 1 (odmah):
-  → CORS fix (30 min)
-  → Walker is_featured zaštita (30 min)
-  → Rate limiting na auth (1h)
-  → Slike MIME + size validacija (1h)
+Prioritet 1 (bitno za MVP):
+  → Dostupnost šetača — validacija pri rezervaciji (3h)
+  → Overlap provera rezervacija (2h)
+  → CORS fix (30 min, kad je domena poznata)
+  → Plaćanje — Stripe integracija (3-5 dana)
 
-Sprint 2 (ova nedelja):
-  → Dostupnost + overlap provera (3h)
+Prioritet 2 (skalabilnost):
   → Paginacija poruka (2h)
-  → Email verifikacija (1 dan)
 
-Sprint 3 (sledeća nedelja):
-  → Push notifikacije (1 dan)
-  → Walker dashboard mobilni (2-3 dana)
-
-Sprint 4 (kad bude vremena):
-  → Stripe plaćanje (3-5 dana)
-  → Deep linking (1 dan)
-  → PostGIS geolokacija (1 dan)
+Prioritet 3 (nice to have):
+  → PostGIS geolokacija (1 dan, kad baza naraste)
 
 ----------------------------------------------------
 ## TEHNICKE NAPOMENE
@@ -160,5 +187,8 @@ Sprint 4 (kad bude vremena):
 - Bot zaštita: INJECTION_PATTERNS lista u backend/chat/views.py
 - Cloudinary: slike idu u profiles/ i dogs/ foldere
 - Nominatim: countrycodes=rs, User-Agent header obavezan
+- Deep linking: paws://rezervacije, paws://poruke, paws://profil, paws://setaci
+- Soft delete: is_active=False, nalog ostaje u bazi, može se reaktivirati
+- AuditLog: backend/users/models.py, loguje ban/unban/feature/delete
 
 ====================================================

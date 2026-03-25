@@ -11,6 +11,8 @@ A platform connecting dog owners with walkers and sitters. Serbian market.
 | **Mobile app** | React Native + Expo SDK 55 (Android) |
 | **Images** | Cloudinary |
 | **Chat bot** | Groq API (Llama 4) |
+| **Maps (web)** | Leaflet + react-leaflet |
+| **GPS (mobile)** | expo-location |
 | **Hosting** | Render (backend) · Vercel (frontend) · Neon (database) |
 
 ## Project structure
@@ -94,30 +96,50 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 
 ## Features
 
-- **Authentication** — JWT login/registration, roles: owner / walker / admin
-- **Walkers** — search by location (haversine), service type and price; featured walkers
-- **Reservations** — create, accept/reject, cancel with rules (blocked within 3h of start)
-- **Dogs** — CRUD with photo upload, breeds, temperament tags
-- **Chat** — messaging between owners and walkers + AI bot (Paws topics only)
-- **Reviews** — rate walkers after a completed reservation
-- **Admin panel** — manage users, reservations, reviews
-- **Email verification** — confirm email address on registration
+- **Authentication** — JWT login/registration, roles: owner / walker / admin; email verification on registration
+- **Walkers** — search by location (haversine), service type and price; featured walkers highlighted
+- **Reservations** — create, accept/reject, cancel (blocked within 3h of start); statuses: pending → confirmed → in_progress → completed
+- **Live GPS tracking** — walker shares location every 5s during a walk; owner watches live on a Leaflet map (web) or opens native Maps (mobile)
+- **Dogs** — CRUD with photo upload, breeds, size, temperament notes
+- **Chat** — real-time messaging between owners and walkers + AI assistant (Paws topics only, Groq/Llama 4)
+- **Reviews** — owner rates walker after a completed reservation; displayed on walker profiles (web + mobile)
+- **Push notifications** — Expo push notifications on reservation changes and walk start/end
+- **Admin panel** — available on web and mobile; manage users (ban/unban, feature toggle), reservations, reviews, dogs; all actions logged to AuditLog
+- **Deep linking** — `paws://` scheme + `https://paws.rs` for direct navigation into the mobile app
+- **Soft delete** — deactivating accounts instead of hard-deleting; history preserved
 
 ## Key API endpoints
 
 ```
-POST       /api/auth/login/                 JWT login
-POST       /api/users/register/             Registration
-GET        /api/users/verify-email/         Email verification (?token=)
-GET        /api/users/walkers/              Walker list (?lat, ?lng, ?radius, ?usluga)
-GET        /api/users/walkers/:id/          Walker profile
-GET/PATCH  /api/users/profile/             My profile
-PATCH      /api/users/profile/image/        Upload profile photo
-GET/POST   /api/reservations/              Reservations
-POST       /api/reservations/:id/respond/   Accept/reject (walker)
-POST       /api/reservations/:id/cancel/    Cancel
-GET/POST   /api/dogs/                      My dogs
-GET/POST   /api/chat/:user_id/             Messages
+POST       /api/auth/login/                   JWT login
+POST       /api/users/register/               Registration
+GET        /api/users/verify-email/           Email verification (?token=)
+POST       /api/users/resend-verification/    Resend verification email
+GET        /api/users/walkers/               Walker list (?lat, ?lng, ?radius, ?usluga, ?cena_max, ?istaknuti)
+GET        /api/users/walkers/:id/           Walker profile
+GET/PATCH  /api/users/profile/              My profile
+PATCH      /api/users/profile/image/         Upload profile photo
+DELETE     /api/users/profile/image/         Remove profile photo
+DELETE     /api/users/profile/delete/        Deactivate account (soft delete)
+POST       /api/users/push-token/            Register Expo push token
+GET/POST   /api/reservations/               Reservations list / create
+POST       /api/reservations/:id/respond/    Accept or reject (walker)
+POST       /api/reservations/:id/cancel/     Cancel reservation
+POST       /api/reservations/:id/complete/   Mark as completed (walker)
+POST       /api/reservations/:id/start/      Start walk → in_progress (walker)
+GET/POST   /api/reservations/:id/location/   Read or update live GPS location
+GET        /api/reservations/pending-count/  Unread pending count (badge)
+GET/POST   /api/dogs/                       My dogs
+GET/POST   /api/chat/:user_id/              Conversation messages
+GET        /api/reviews/walker/:id/         Reviews for a walker
+POST       /api/reviews/                    Submit a review
+GET        /api/users/admin/stats/          Admin dashboard stats
+GET        /api/users/admin/users/          Admin user list (search, filter)
+GET/PATCH  /api/users/admin/users/:id/     Admin user detail, ban/unban, is_featured
+DELETE     /api/users/admin/users/:id/     Admin deactivate user
+GET        /api/users/admin/reservations/  Admin reservation list
+GET        /api/users/admin/reviews/       Admin review list
+GET        /api/users/admin/dogs/          Admin dog list
 ```
 
 ## Deploy

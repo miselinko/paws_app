@@ -52,11 +52,14 @@ export interface Reservation {
   duration: number | null
   start_time: string
   end_time: string
-  status: 'pending' | 'confirmed' | 'rejected' | 'completed' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'in_progress' | 'rejected' | 'completed' | 'cancelled'
   notes: string
   cancelled_by: number | null
   created_at: string
   has_review: boolean
+  walk_started_at: string | null
+  last_lat: string | null
+  last_lng: string | null
 }
 
 export interface Review {

@@ -7,6 +7,7 @@ import ReservationsNavigator from './ReservationsNavigator'
 import ProfileNavigator from './ProfileNavigator'
 import MojiPsiScreen from '../screens/MojiPsiScreen'
 import PorukeScreen from '../screens/PorukeScreen'
+import AdminScreen from '../screens/AdminScreen'
 import { useAuth } from '../context/AuthContext'
 
 const Tab = createBottomTabNavigator()
@@ -41,6 +42,7 @@ export default function MainTabs() {
   const { user } = useAuth()
   const insets = useSafeAreaInsets()
   const isOwner = user?.role === 'owner'
+  const isAdmin = user?.role === 'admin'
 
   // Visina tab bara: fiksna + sistem navigation bar inset
   // Math.max osigurava minimum padding čak i kad insets.bottom = 0
@@ -97,6 +99,17 @@ export default function MainTabs() {
           headerShown: false,
         }}
       />
+      {isAdmin && (
+        <Tab.Screen
+          name="AdminTab"
+          component={AdminScreen}
+          options={{
+            tabBarLabel: 'Admin',
+            tabBarIcon: ({ focused }) => <TabIcon icon="🛡️" focused={focused} />,
+            headerShown: false,
+          }}
+        />
+      )}
       <Tab.Screen
         name="ProfileTab"
         component={ProfileNavigator}
