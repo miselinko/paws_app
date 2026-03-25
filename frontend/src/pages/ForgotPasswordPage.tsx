@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { forgotPassword } from '../api/users'
+import logoImg from '../assets/logo.png'
 
 const inp = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors bg-white"
 
@@ -28,9 +29,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-5">
       <div className="w-full max-w-sm">
         <Link to="/" className="flex items-center gap-2 mb-8 justify-center">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#00BF8F' }}>
-            <span className="text-white font-black text-lg">P</span>
-          </div>
+          <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
           <span className="text-xl font-black text-gray-900">Paws</span>
         </Link>
 

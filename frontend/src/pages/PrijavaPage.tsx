@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import logoImg from '../assets/logo.png'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -72,9 +73,7 @@ export default function PrijavaPage() {
 
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#00BF8F' }}>
-              <span className="text-white font-black text-lg">P</span>
-            </div>
+            <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
             <span className="text-xl font-black text-gray-900">Paws</span>
           </Link>
 

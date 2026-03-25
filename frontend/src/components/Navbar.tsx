@@ -1,5 +1,6 @@
 import { imgUrl } from '../config'
 import { useState } from 'react'
+import logoImg from '../assets/logo.png'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
@@ -38,9 +39,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#00BF8F' }}>
-            <span className="text-white font-black text-lg">P</span>
-          </div>
+          <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
           <span className="text-xl font-black text-gray-900">Paws</span>
         </Link>
 
