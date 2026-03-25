@@ -243,7 +243,7 @@ function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
   return null
 }
 
-function WalkLiveMap({ reservationId, walkerName }: { reservationId: number; walkerName: string }) {
+function WalkLiveMap({ reservationId }: { reservationId: number }) {
   const { data: loc } = useQuery({
     queryKey: ['walk-location', reservationId],
     queryFn: () => getWalkLocation(reservationId),
@@ -518,7 +518,7 @@ function ReservationCard({ r }: { r: Reservation }) {
 
           {/* Live mapa — samo za vlasnika kada je in_progress */}
           {user?.role === 'owner' && r.status === 'in_progress' && (
-            <WalkLiveMap reservationId={r.id} walkerName={`${r.walker_info?.first_name ?? ''}`} />
+            <WalkLiveMap reservationId={r.id} />
           )}
 
           {/* Walker info — samo za vlasnika */}
