@@ -12,6 +12,7 @@ from reservations.models import Reservation
 from dogs.models import Dog
 from groq import Groq
 import json
+import threading
 
 User = get_user_model()
 
@@ -302,6 +303,14 @@ class ConversationView(APIView):
             recipient=recipient,
             text=text,
         )
+        from users.views import send_push_notification
+        sender_name = f'{request.user.first_name} {request.user.last_name}'
+        preview = text if len(text) <= 80 else text[:77] + '...'
+        threading.Thread(
+            target=send_push_notification,
+            args=([recipient], sender_name, preview),
+            daemon=True,
+        ).start()
         serializer = MessageSerializer(message)
         return Response(serializer.data, status=201)
 
