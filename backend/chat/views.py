@@ -267,16 +267,25 @@ class ConversationView(APIView):
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=404)
 
-        messages = Message.objects.filter(
+        qs = Message.objects.filter(
             Q(sender=request.user, recipient=other) |
             Q(sender=other, recipient=request.user)
-        ).select_related('sender')
+        ).select_related('sender').order_by('-id')
 
         # Mark incoming as read
-        messages.filter(recipient=request.user, read=False).update(read=True)
+        qs.filter(recipient=request.user, read=False).update(read=True)
 
-        serializer = MessageSerializer(messages, many=True)
-        return Response(serializer.data)
+        limit = min(int(request.query_params.get('limit', 50)), 100)
+        before_id = request.query_params.get('before')
+        if before_id:
+            qs = qs.filter(id__lt=int(before_id))
+
+        page = list(qs[:limit + 1])
+        has_more = len(page) > limit
+        page = page[:limit]
+        page.reverse()
+
+        return Response({'results': MessageSerializer(page, many=True).data, 'has_more': has_more})
 
     def post(self, request, user_id):
         try:

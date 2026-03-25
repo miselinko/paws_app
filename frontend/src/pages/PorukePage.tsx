@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getConversations, getMessages, sendMessage, sendBotMessage, deleteConversation } from '../api/chat'
-import type { Conversation, Message, ChatUser } from '../api/chat'
+import type { Conversation, Message, ChatUser, MessagesResponse } from '../api/chat'
 import { useAuth } from '../context/AuthContext'
 
 const BOT_ID = 'bot'
@@ -223,12 +223,38 @@ export default function PorukePage() {
     refetchInterval: 5000,
   })
 
-  const { data: messages } = useQuery<Message[]>({
+  const [olderMessages, setOlderMessages] = useState<Message[]>([])
+  const [hasMoreOlder, setHasMoreOlder] = useState(false)
+
+  const { data: messagesData } = useQuery<MessagesResponse>({
     queryKey: ['messages', activeId],
     queryFn: () => getMessages(activeId!),
     enabled: !!activeId,
     refetchInterval: 3000,
   })
+
+  const latestMessages = messagesData?.results ?? []
+  const messages = [...olderMessages, ...latestMessages]
+
+  useEffect(() => {
+    setOlderMessages([])
+    setHasMoreOlder(false)
+  }, [activeId])
+
+  useEffect(() => {
+    if (messagesData?.has_more && olderMessages.length === 0) {
+      setHasMoreOlder(true)
+    }
+  }, [messagesData?.has_more])
+
+  async function loadOlderMessages() {
+    if (!activeId || !latestMessages.length) return
+    const oldest = olderMessages.length > 0 ? olderMessages[0].id : latestMessages[0]?.id
+    if (!oldest) return
+    const res = await getMessages(activeId, oldest)
+    setOlderMessages(prev => [...res.results, ...prev])
+    setHasMoreOlder(res.has_more)
+  }
 
   const mutation = useMutation({
     mutationFn: (t: string) => sendMessage(activeId!, t),
@@ -241,7 +267,7 @@ export default function PorukePage() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [latestMessages])
 
   const activeUser: ChatUser | undefined = !isBot
     ? conversations?.find((c: Conversation) => c.user.id === activeId)?.user
@@ -342,12 +368,20 @@ export default function PorukePage() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3 bg-gray-50">
-                {messages?.length === 0 && (
+                {hasMoreOlder && (
+                  <div className="text-center pt-1 pb-2">
+                    <button onClick={loadOlderMessages}
+                      className="text-xs font-medium px-4 py-1.5 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors text-gray-500">
+                      Učitaj starije poruke
+                    </button>
+                  </div>
+                )}
+                {messages.length === 0 && (
                   <div className="text-center py-8">
                     <p className="text-sm text-gray-400">Započni razgovor</p>
                   </div>
                 )}
-                {messages?.map((m) => {
+                {messages.map((m) => {
                   const isMine = m.sender.id === user?.id
                   return (
                     <div key={m.id} className={`flex gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
@@ -365,6 +399,7 @@ export default function PorukePage() {
                   )
                 })}
                 <div ref={bottomRef} />
+
               </div>
 
               {/* Input */}

@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { login as apiLogin } from '../api/auth'
 import { getProfile } from '../api/users'
 import { User } from '../types'
+import { registerPushToken } from '../utils/notifications'
 
 interface AuthContextType {
   isLoggedIn: boolean
@@ -26,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const profile = await getProfile()
           setUser(profile)
+          registerPushToken()
         } catch {
           // token expired, will refresh on next request
         }
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoggedIn(true)
     const profile = await getProfile()
     setUser(profile)
+    registerPushToken()
   }
 
   async function logout() {

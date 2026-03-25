@@ -61,3 +61,7 @@ export async function getWalker(id: number): Promise<User> {
   const { data } = await client.get(`/users/walkers/${id}/`)
   return data
 }
+
+export async function savePushToken(token: string): Promise<void> {
+  await client.post('/users/push-token/', { token })
+}

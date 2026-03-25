@@ -13,8 +13,21 @@ from .serializers import (
     WalkerProfileSerializer, AdminUserListSerializer, AdminUserDetailSerializer,
 )
 from .permissions import IsAdmin
-from .models import PasswordResetToken, EmailVerificationToken
-import math, threading
+from .models import PasswordResetToken, EmailVerificationToken, PushToken
+import math, threading, urllib.request, json as json_lib
+
+
+ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+def validate_image_file(file):
+    """Returns error string or None."""
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        return 'Dozvoljeni formati: JPEG, PNG, WebP, GIF.'
+    if file.size > MAX_IMAGE_SIZE:
+        return 'Slika ne sme biti veća od 5 MB.'
+    return None
 
 
 class LoginRateThrottle(AnonRateThrottle):
@@ -37,6 +50,25 @@ def haversine(lat1, lng1, lat2, lng2):
     return R * 2 * math.asin(math.sqrt(a))
 
 User = get_user_model()
+
+
+def send_push_notification(users, title, body):
+    """Send Expo push notification to a list of users."""
+    tokens = list(PushToken.objects.filter(user__in=users).values_list('token', flat=True))
+    if not tokens:
+        return
+    messages = [{'to': t, 'title': title, 'body': body, 'sound': 'default'} for t in tokens]
+    payload = json_lib.dumps(messages).encode('utf-8')
+    req = urllib.request.Request(
+        'https://exp.host/--/api/v2/push/send',
+        data=payload,
+        headers={'Content-Type': 'application/json', 'Accept': 'application/json'},
+        method='POST',
+    )
+    try:
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
 
 
 def send_verification_email(user):
@@ -96,6 +128,17 @@ class ResendVerificationView(APIView):
         return Response({'detail': 'Verifikacioni email je poslat.'})
 
 
+class PushTokenView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        token = request.data.get('token', '').strip()
+        if not token:
+            return Response({'detail': 'Token je obavezan.'}, status=400)
+        PushToken.objects.update_or_create(user=request.user, defaults={'token': token})
+        return Response({'detail': 'Token sačuvan.'})
+
+
 class MyProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -115,6 +158,9 @@ class ProfileImageView(APIView):
         image = request.FILES.get('profile_image')
         if not image:
             return Response({'detail': 'No file provided.'}, status=400)
+        error = validate_image_file(image)
+        if error:
+            return Response({'detail': error}, status=400)
         user = request.user
         user.profile_image = image
         user.save(update_fields=['profile_image'])

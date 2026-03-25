@@ -27,8 +27,10 @@ export async function getConversations(): Promise<Conversation[]> {
   return data
 }
 
-export async function getMessages(userId: number): Promise<Message[]> {
-  const { data } = await client.get(`/chat/${userId}/`)
+export interface MessagesResponse { results: Message[]; has_more: boolean }
+
+export async function getMessages(userId: number, before?: number): Promise<MessagesResponse> {
+  const { data } = await client.get(`/chat/${userId}/`, { params: before ? { before } : {} })
   return data
 }
 

@@ -4,13 +4,14 @@ from .views import (
     WalkerListView, WalkerDetailView, ForgotPasswordView, ResetPasswordView,
     DeleteAccountView, AdminDashboardView, AdminUserListView, AdminUserDetailView,
     AdminReservationListView, AdminReviewListView, AdminDogListView,
-    VerifyEmailView, ResendVerificationView,
+    VerifyEmailView, ResendVerificationView, PushTokenView,
 )
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('verify-email/', VerifyEmailView.as_view(), name='verify-email'),
     path('resend-verification/', ResendVerificationView.as_view(), name='resend-verification'),
+    path('push-token/', PushTokenView.as_view(), name='push-token'),
     path('profile/', MyProfileView.as_view(), name='my-profile'),
     path('profile/delete/', DeleteAccountView.as_view(), name='delete-account'),
     path('profile/image/', ProfileImageView.as_view(), name='profile-image'),

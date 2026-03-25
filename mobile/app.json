@@ -22,7 +22,10 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE"
       ]
     },
     "web": {
@@ -39,6 +42,14 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Aplikacija koristi lokaciju za pronalazak šetača u blizini."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo.png",
+          "color": "#00BF8F",
+          "defaultChannel": "default"
         }
       ]
     ],

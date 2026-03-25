@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import {
   getConversations, getMessages, sendMessage, sendBotMessage, deleteConversation,
-  Conversation, Message,
+  Conversation, Message, MessagesResponse,
 } from '../api/chat'
 import { imgUrl } from '../api/config'
 import { useAuth } from '../context/AuthContext'
@@ -190,11 +190,43 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
     queryFn: getConversations,
   })
 
-  const { data: messages = [], isLoading } = useQuery<Message[]>({
+  const [olderMessages, setOlderMessages] = useState<Message[]>([])
+  const [hasMoreOlder, setHasMoreOlder] = useState(false)
+  const [loadingOlder, setLoadingOlder] = useState(false)
+
+  const { data: messagesData, isLoading } = useQuery<MessagesResponse>({
     queryKey: ['messages', userId],
     queryFn: () => getMessages(userId),
     refetchInterval: 3000,
   })
+
+  const latestMessages = messagesData?.results ?? []
+  const messages = [...olderMessages, ...latestMessages]
+
+  useEffect(() => {
+    setOlderMessages([])
+    setHasMoreOlder(false)
+  }, [userId])
+
+  useEffect(() => {
+    if (messagesData?.has_more && olderMessages.length === 0) {
+      setHasMoreOlder(true)
+    }
+  }, [messagesData?.has_more])
+
+  async function loadOlderMessages() {
+    if (loadingOlder) return
+    const oldest = olderMessages.length > 0 ? olderMessages[0].id : latestMessages[0]?.id
+    if (!oldest) return
+    setLoadingOlder(true)
+    try {
+      const res = await getMessages(userId, oldest)
+      setOlderMessages(prev => [...res.results, ...prev])
+      setHasMoreOlder(res.has_more)
+    } finally {
+      setLoadingOlder(false)
+    }
+  }
 
   const mutation = useMutation({
     mutationFn: (t: string) => sendMessage(userId, t),
@@ -246,6 +278,15 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
           data={messages}
           keyExtractor={m => String(m.id)}
           contentContainerStyle={styles.messageList}
+          ListHeaderComponent={hasMoreOlder ? (
+            <TouchableOpacity onPress={loadOlderMessages} disabled={loadingOlder}
+              style={{ alignSelf: 'center', marginBottom: 12, paddingHorizontal: 16, paddingVertical: 6,
+                borderRadius: 20, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff' }}>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>
+                {loadingOlder ? 'Učitavam...' : 'Učitaj starije poruke'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
           ListEmptyComponent={
             <View style={styles.center}>
               <Text style={styles.emptyText}>Započni razgovor</Text>

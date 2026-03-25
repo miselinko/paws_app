@@ -125,6 +125,13 @@ class ReservationListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         reservation = serializer.save(owner=self.request.user)
         send_new_reservation_email(reservation)
+        from users.views import send_push_notification
+        service = 'šetanje' if reservation.service_type == 'walking' else 'čuvanje'
+        threading.Thread(
+            target=send_push_notification,
+            args=([reservation.walker], '🐾 Nova rezervacija', f'{reservation.owner.first_name} je zakazao/la {service}.'),
+            daemon=True,
+        ).start()
 
 
 class ReservationDetailView(generics.RetrieveAPIView):
@@ -171,6 +178,14 @@ class ReservationCancelView(APIView):
         reservation.status = Reservation.CANCELLED
         reservation.cancelled_by = user
         reservation.save()
+        from users.views import send_push_notification
+        other = reservation.walker if is_owner else reservation.owner
+        service = 'šetanje' if reservation.service_type == 'walking' else 'čuvanje'
+        threading.Thread(
+            target=send_push_notification,
+            args=([other], '❌ Rezervacija otkazana', f'Rezervacija za {service} je otkazana.'),
+            daemon=True,
+        ).start()
         return Response({'status': 'cancelled'})
 
 
@@ -193,6 +208,19 @@ class WalkerReservationRespondView(APIView):
         reservation.status = new_status
         reservation.save()
         send_reservation_email(reservation, new_status)
+        from users.views import send_push_notification
+        if new_status == Reservation.CONFIRMED:
+            threading.Thread(
+                target=send_push_notification,
+                args=([reservation.owner], '✅ Rezervacija prihvaćena', f'{reservation.walker.first_name} je prihvatio/la tvoju rezervaciju.'),
+                daemon=True,
+            ).start()
+        elif new_status == Reservation.REJECTED:
+            threading.Thread(
+                target=send_push_notification,
+                args=([reservation.owner], '❌ Rezervacija odbijena', f'{reservation.walker.first_name} nije mogao/la da prihvati rezervaciju.'),
+                daemon=True,
+            ).start()
         return Response({'status': new_status})
 
 

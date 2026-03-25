@@ -11,7 +11,9 @@ export interface Message {
 }
 
 export const getConversations = () => api.get('/chat/').then(r => r.data)
-export const getMessages = (userId: number) => api.get(`/chat/${userId}/`).then(r => r.data)
+export interface MessagesResponse { results: Message[]; has_more: boolean }
+export const getMessages = (userId: number, before?: number): Promise<MessagesResponse> =>
+  api.get(`/chat/${userId}/`, { params: before ? { before } : {} }).then(r => r.data)
 export const sendMessage = (userId: number, text: string) =>
   api.post(`/chat/${userId}/`, { text }).then(r => r.data)
 export const getUnreadCount = () => api.get('/chat/unread/').then(r => r.data)

@@ -107,6 +107,15 @@ class EmailVerificationToken(models.Model):
         return f'Verification token for {self.user.email}'
 
 
+class PushToken(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='push_token')
+    token = models.CharField(max_length=255)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'Push token for {self.user.email}'
+
+
 class PasswordResetToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reset_tokens')
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
