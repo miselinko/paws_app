@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet,
+  View, Text, FlatList, TouchableOpacity, Pressable, StyleSheet,
   Image, ActivityIndicator, Modal, TextInput, ScrollView,
   Alert, Animated,
 } from 'react-native'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import * as Location from 'expo-location'
-import { getWalkers } from '../api/users'
+import { getWalkers, toggleFavorite } from '../api/users'
 import { imgUrl } from '../api/config'
 import { User } from '../types'
 import { WalkersStackParamList } from '../navigation/WalkersNavigator'
@@ -71,7 +71,7 @@ function StaggerItem({ index, children }: { index: number; children: React.React
       tension: 80,
       friction: 9,
     }).start()
-  }, [])
+  }, [index, anim])
   return (
     <Animated.View style={{
       opacity: anim,
@@ -84,7 +84,7 @@ function StaggerItem({ index, children }: { index: number; children: React.React
 
 // ─── Walker kartica ──────────────────────────────────────────────────────────
 
-function WalkerCard({ walker, onPress }: { walker: User; onPress: () => void }) {
+function WalkerCard({ walker, onPress, onFavorite, isLoggedIn }: { walker: User; onPress: () => void; onFavorite?: () => void; isLoggedIn: boolean }) {
   const wp = walker.walker_profile
   const photo = imgUrl(walker.profile_image)
   const scale = useRef(new Animated.Value(1)).current
@@ -106,12 +106,11 @@ function WalkerCard({ walker, onPress }: { walker: User; onPress: () => void }) 
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
-      <TouchableOpacity
+      <Pressable
         style={[styles.card, isFeatured && styles.cardFeatured]}
         onPress={onPress}
         onPressIn={pressIn}
         onPressOut={pressOut}
-        activeOpacity={1}
       >
         {isFeatured && (
           <View style={styles.featuredBadge}>
@@ -173,8 +172,18 @@ function WalkerCard({ walker, onPress }: { walker: User; onPress: () => void }) 
           </View>
         </View>
 
+        {isLoggedIn && (
+          <TouchableOpacity
+            onPress={() => { onFavorite?.() }}
+            style={[styles.heartBtn, walker.is_favorited && styles.heartBtnActive]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.heartText}>{walker.is_favorited ? '❤️' : '🖤'}</Text>
+          </TouchableOpacity>
+        )}
+
         <Text style={styles.arrow}>›</Text>
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   )
 }
@@ -184,20 +193,29 @@ function WalkerCard({ walker, onPress }: { walker: User; onPress: () => void }) 
 export default function WalkersScreen() {
   const navigation = useNavigation<Nav>()
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const headerAnim = useRef(new Animated.Value(0)).current
 
   const [service, setService] = useState('')
   const [size, setSize] = useState('')
   const [maxRate, setMaxRate] = useState('')
   const [sort, setSort] = useState('rating')
+  const [search, setSearch] = useState('')
+  const [showFavOnly, setShowFavOnly] = useState(false)
   const [location, setLocation] = useState<{ lat: string; lng: string } | null>(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const [filterVisible, setFilterVisible] = useState(false)
+
+  const favMutation = useMutation({
+    mutationFn: toggleFavorite,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['walkers'] }),
+  })
 
   const filters = {
     ...(service ? { usluga: service } : {}),
     ...(size ? { velicina: size } : {}),
     ...(maxRate ? { cena_max: maxRate } : {}),
+    ...(search.trim() ? { search: search.trim() } : {}),
     ...(location ? { lat: location.lat, lng: location.lng, radius: '25' } : {}),
   }
 
@@ -206,7 +224,8 @@ export default function WalkersScreen() {
     queryFn: () => getWalkers(filters),
   })
 
-  const sorted = sortWalkers(walkers, sort)
+  const filtered = showFavOnly ? walkers.filter((w: any) => w.is_favorited) : walkers
+  const sorted = sortWalkers(filtered, sort)
   const activeFilterCount = [size, maxRate, sort !== 'rating' ? sort : ''].filter(Boolean).length
 
   const isOwner = user?.role === 'owner'
@@ -254,6 +273,24 @@ export default function WalkersScreen() {
         </Animated.View>
       )}
 
+      {/* ── Search bar ── */}
+      <View style={styles.searchBar}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Pretraži šetače po imenu..."
+          placeholderTextColor="#9ca3af"
+          returnKeyType="search"
+        />
+        {search.length > 0 && (
+          <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text style={styles.searchClear}>✕</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* ── Service chips + lokacija + filter ── */}
       <View style={styles.filtersBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
@@ -268,7 +305,7 @@ export default function WalkersScreen() {
             </TouchableOpacity>
           ))}
 
-          {/* Blizu mene — u redu sa chipovima */}
+          {/* Blizu mene */}
           <TouchableOpacity
             style={[styles.chip, location && styles.chipActive]}
             onPress={handleLocation}
@@ -284,7 +321,18 @@ export default function WalkersScreen() {
                 </>
             }
           </TouchableOpacity>
-          {/* Spacer da poslednji chip ne ide ispod apsolutnog dugmeta */}
+
+          {/* Omiljeni */}
+          {user && (
+            <TouchableOpacity
+              style={[styles.chip, showFavOnly && styles.chipFav]}
+              onPress={() => setShowFavOnly(v => !v)}
+            >
+              <Text style={styles.chipIcon}>{showFavOnly ? '❤️' : '🤍'}</Text>
+              <Text style={[styles.chipText, showFavOnly && { color: '#fff' }]}>Omiljeni</Text>
+            </TouchableOpacity>
+          )}
+
           <View style={{ width: 58 }} />
         </ScrollView>
 
@@ -322,6 +370,8 @@ export default function WalkersScreen() {
               <WalkerCard
                 walker={item}
                 onPress={() => navigation.navigate('WalkerDetail', { walkerId: item.id })}
+                onFavorite={() => favMutation.mutate(item.id)}
+                isLoggedIn={!!user}
               />
             </StaggerItem>
           )}
@@ -431,7 +481,17 @@ const styles = StyleSheet.create({
   heroGreeting: { fontSize: 14, fontWeight: '600', color: '#9ca3af', marginBottom: 4 },
   heroTitle: { fontSize: 24, fontWeight: '900', color: '#111', letterSpacing: -0.5 },
 
-  // Filters bar — ScrollView zauzima punu širinu, dugme je apsolutno
+  // Search bar
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f3f4f6',
+    paddingHorizontal: 14, paddingVertical: 8, gap: 8,
+  },
+  searchIcon: { fontSize: 14 },
+  searchInput: { flex: 1, fontSize: 14, color: '#111', paddingVertical: 6 },
+  searchClear: { fontSize: 14, color: '#9ca3af', fontWeight: '700', padding: 4 },
+
+  // Filters bar
   filtersBar: {
     backgroundColor: '#fff',
     borderBottomWidth: 1,
@@ -444,6 +504,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 7, backgroundColor: '#fff',
   },
   chipActive: { backgroundColor: GREEN, borderColor: GREEN },
+  chipFav: { backgroundColor: '#ef4444', borderColor: '#ef4444' },
   chipIcon: { fontSize: 13 },
   chipText: { fontSize: 12, fontWeight: '700', color: '#6b7280' },
   chipTextActive: { color: '#fff' },
@@ -500,6 +561,13 @@ const styles = StyleSheet.create({
   cardPriceUnit: { fontSize: 11, fontWeight: '600', color: '#9ca3af' },
   svcPill: { borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4, alignSelf: 'flex-start' },
   svcPillText: { fontSize: 11, fontWeight: '700' },
+  heartBtn: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: '#f3f4f6', justifyContent: 'center', alignItems: 'center',
+    marginLeft: 4,
+  },
+  heartBtnActive: { backgroundColor: 'rgba(255,255,255,0.85)' },
+  heartText: { fontSize: 14 },
   arrow: { fontSize: 24, color: '#d1d5db', marginLeft: 6 },
 
   // Bottom sheet

@@ -4,3 +4,4 @@ export const createDog = (data: FormData) => api.post('/dogs/', data).then(r => 
 export const updateDog = (id: number, data: FormData) => api.patch(`/dogs/${id}/`, data).then(r => r.data)
 export const deleteDog = (id: number) => api.delete(`/dogs/${id}/`).then(r => r.data)
 export const deleteDogImage = (id: number) => api.delete(`/dogs/${id}/image/`).then(r => r.data)
+export const getDogProfile = (id: number) => api.get(`/dogs/${id}/profile/`).then(r => r.data)

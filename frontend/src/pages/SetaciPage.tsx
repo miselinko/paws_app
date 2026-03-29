@@ -1,8 +1,9 @@
 import { imgUrl } from '../config'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { getWalkers } from '../api/users'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getWalkers, toggleFavorite } from '../api/users'
+import { useAuth } from '../context/AuthContext'
 import type { Walker } from '../types'
 import Reveal from '../components/Reveal'
 
@@ -51,15 +52,24 @@ function Stars({ rating, count }: { rating: number; count: number }) {
 }
 
 export default function SetaciPage() {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [params] = useSearchParams()
   const [service, setService] = useState(params.get('usluga') || '')
   const [size, setSize] = useState('')
   const [maxRate, setMaxRate] = useState('')
   const [sort, setSort] = useState('rating')
+  const [search, setSearch] = useState('')
+  const [showFavOnly, setShowFavOnly] = useState(false)
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const filterRef = useRef<HTMLDivElement>(null)
+
+  const favMutation = useMutation({
+    mutationFn: toggleFavorite,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['walkers'] }),
+  })
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -75,6 +85,7 @@ export default function SetaciPage() {
   if (service) queryParams.usluga = service
   if (size) queryParams.velicina = size
   if (maxRate) queryParams.cena_max = maxRate
+  if (search.trim()) queryParams.search = search.trim()
   if (myLocation) {
     queryParams.lat = String(myLocation.lat)
     queryParams.lng = String(myLocation.lng)
@@ -86,16 +97,19 @@ export default function SetaciPage() {
     queryFn: () => getWalkers(queryParams),
   })
 
+  const [locationError, setLocationError] = useState('')
+
   const findNearMe = () => {
-    if (myLocation) { setMyLocation(null); return }
+    if (myLocation) { setMyLocation(null); setLocationError(''); return }
     setLocationLoading(true)
+    setLocationError('')
     navigator.geolocation.getCurrentPosition(
       pos => {
         setMyLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
         setLocationLoading(false)
       },
       () => {
-        alert('Nije moguće dobiti lokaciju. Proverite dozvole u browseru.')
+        setLocationError('Nije moguće dobiti lokaciju. Proverite dozvole u browseru.')
         setLocationLoading(false)
       }
     )
@@ -111,8 +125,30 @@ export default function SetaciPage() {
       <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-4">
-            {isLoading ? 'Učitavam šetače...' : `${walkers?.length ?? 0} šetača`}
+            {isLoading ? 'Učitavam šetače...' : `${(showFavOnly ? walkers?.filter(w => w.is_favorited) : walkers)?.length ?? 0} šetača`}
           </h1>
+
+          {/* Search */}
+          <div className="relative mb-3">
+            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Pretraži šetače po imenu..."
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#00BF8F] focus:ring-1 focus:ring-[#00BF8F]/20 bg-white"
+            />
+            {search && (
+              <button onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2 flex-wrap">
 
@@ -155,6 +191,26 @@ export default function SetaciPage() {
                 {myLocation ? '✕' : ''}
               </span>
             </button>
+
+            {locationError && (
+              <span className="text-xs text-red-500 font-semibold flex items-center gap-1">
+                ⚠️ {locationError}
+                <button onClick={() => setLocationError('')} className="ml-1 text-red-400 hover:text-red-600">✕</button>
+              </span>
+            )}
+
+            {/* Favorites */}
+            {user && (
+              <button
+                onClick={() => setShowFavOnly(v => !v)}
+                className="px-4 py-2 rounded-full text-sm font-bold transition-all border flex items-center gap-1.5"
+                style={showFavOnly
+                  ? { backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }
+                  : { backgroundColor: 'white', color: '#4b5563', borderColor: '#e5e7eb' }}
+              >
+                {showFavOnly ? '❤️' : '🤍'} Omiljeni
+              </button>
+            )}
 
             {/* Filter button */}
             <div className="relative" ref={filterRef}>
@@ -300,19 +356,21 @@ export default function SetaciPage() {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[...(walkers ?? [])].sort((a, b) => {
-            const featuredDiff = (b.walker_profile?.is_featured ? 1 : 0) - (a.walker_profile?.is_featured ? 1 : 0)
-            if (featuredDiff !== 0) return featuredDiff
+          {useMemo(() => {
             const priceOf = (w: WalkerWithDistance) => {
               const wp = w.walker_profile
               if (service === 'boarding' || wp.services === 'boarding') return Number(wp.daily_rate) || Number(wp.hourly_rate)
               return Number(wp.hourly_rate)
             }
-            if (sort === 'rating') return (b.walker_profile?.average_rating ?? 0) - (a.walker_profile?.average_rating ?? 0)
-            if (sort === 'price_asc') return priceOf(a) - priceOf(b)
-            if (sort === 'price_desc') return priceOf(b) - priceOf(a)
-            return 0
-          }).map((w, idx) => {
+            return [...(walkers ?? [])].filter(w => !showFavOnly || w.is_favorited).sort((a, b) => {
+              const featuredDiff = (b.walker_profile?.is_featured ? 1 : 0) - (a.walker_profile?.is_featured ? 1 : 0)
+              if (featuredDiff !== 0) return featuredDiff
+              if (sort === 'rating') return (b.walker_profile?.average_rating ?? 0) - (a.walker_profile?.average_rating ?? 0)
+              if (sort === 'price_asc') return priceOf(a) - priceOf(b)
+              if (sort === 'price_desc') return priceOf(b) - priceOf(a)
+              return 0
+            })
+          }, [walkers, showFavOnly, sort, service]).map((w, idx) => {
             const wp = w.walker_profile
             const gradColor = GRAD_COLORS[w.id % GRAD_COLORS.length]
 
@@ -346,6 +404,21 @@ export default function SetaciPage() {
                   )}
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+                  {/* Favorite heart */}
+                  {user && (
+                    <button
+                      onClick={e => { e.preventDefault(); e.stopPropagation(); favMutation.mutate(w.id) }}
+                      className="absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center transition-all z-10"
+                      style={{
+                        backgroundColor: w.is_favorited ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.6)',
+                        backdropFilter: 'blur(4px)',
+                      }}
+                    >
+                      <span className="text-base">{w.is_favorited ? '❤️' : '🖤'}</span>
+                    </button>
+                  )}
+
                   {(showHourly || showDaily) && (
                     <div className="absolute top-3 right-3 bg-white rounded-lg px-2.5 py-1.5 flex flex-col items-end gap-0.5" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
                       {showHourly && (

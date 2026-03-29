@@ -94,6 +94,19 @@ class WalkerProfile(models.Model):
         return f'Walker profile: {self.user.full_name}'
 
 
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
+    walker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'walker')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user.full_name} → {self.walker.full_name}'
+
+
 class EmailVerificationToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='verification_tokens')
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)

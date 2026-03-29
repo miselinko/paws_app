@@ -13,3 +13,5 @@ export const forgotPassword = (email: string) => api.post('/users/forgot-passwor
 export const resetPassword = (token: string, password: string) => api.post('/users/reset-password/', { token, password }).then(r => r.data)
 export const deleteAccount = () => api.delete('/users/profile/delete/')
 export const deleteProfileImage = () => api.delete('/users/profile/image/').then(r => r.data)
+export const toggleFavorite = (walkerId: number) => api.post(`/users/favorites/${walkerId}/toggle/`).then(r => r.data)
+export const getFavoriteIds = () => api.get('/users/favorites/').then(r => r.data)

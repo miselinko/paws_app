@@ -424,7 +424,7 @@ export default function ProfilPage() {
                 {(walkerForm.services === 'walking' || walkerForm.services === 'both') && (
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Cena po satu / šetanje (RSD)</label>
-                    <input type="number" min="0" value={walkerForm.hourly_rate}
+                    <input type="number" min="0" step="1" value={walkerForm.hourly_rate}
                       onChange={e => setWalkerForm({ ...walkerForm, hourly_rate: e.target.value === '' ? '' : Number(e.target.value) })}
                       placeholder="npr. 1500" className={inp}
                       onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
@@ -434,7 +434,7 @@ export default function ProfilPage() {
                 {(walkerForm.services === 'boarding' || walkerForm.services === 'both') && (
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Cena po danu / čuvanje (RSD)</label>
-                    <input type="number" min="0" value={walkerForm.daily_rate}
+                    <input type="number" min="0" step="1" value={walkerForm.daily_rate}
                       onChange={e => setWalkerForm({ ...walkerForm, daily_rate: e.target.value === '' ? '' : Number(e.target.value) })}
                       placeholder="npr. 2000" className={inp}
                       onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
@@ -444,9 +444,11 @@ export default function ProfilPage() {
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">O meni</label>
                   <textarea value={walkerForm.bio} onChange={e => setWalkerForm({ ...walkerForm, bio: e.target.value })}
+                    maxLength={500}
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none"
                     rows={4} placeholder="Kratko se predstavi, iskustvo sa psima..."
                     onFocus={e => Object.assign(e.target.style, inpFocus)} onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                  <p className="text-xs text-gray-400 text-right mt-1">{walkerForm.bio.length}/500</p>
                 </div>
 
                 {/* Availability */}

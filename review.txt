@@ -1,0 +1,263 @@
+====================================================
+  PAWS APP GIT — CODE REVIEW (2026-03-26)
+====================================================
+
+Pregled celokupnog koda: backend, frontend (web), mobile (React Native).
+Nalazi su organizovani po prioritetu. Duplikati uklonjeni.
+
+====================================================
+## KRITIČNO (mora pre produkcije)
+====================================================
+
+#1  LOZINKE I KLJUČEVI U .env FAJLU                          ❌ NIJE RAĐENO
+    Fajl: backend/.env
+    Problem: GROQ_API_KEY, CLOUDINARY_API_SECRET, EMAIL_HOST_PASSWORD
+    komitovani u git. Svako sa pristupom repo-u ima pristup servisima.
+    Fix: Dodati .env u .gitignore, rotirati SVE ključeve odmah.
+    Prioritet: ODMAH
+
+#2  CORS_ALLOW_ALL_ORIGINS = True                             ❌ NIJE RAĐENO
+    Fajl: backend/config/settings.py:105
+    Problem: Bilo koji sajt može slati autentifikovane zahteve na API.
+    Sa CORS_ALLOW_CREDENTIALS=True, ovo je ozbiljan CSRF rizik.
+    Fix: CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS',
+         default='http://localhost:5173').split(',')
+    Prioritet: Pre deploya
+
+#3  DEBUG = True KAO DEFAULT                                  ❌ NIJE RAĐENO
+    Fajl: backend/config/settings.py:9
+    Problem: Ako env var DEBUG nije postavljen, Django prikazuje
+    detaljan stack trace sa izvornim kodom i varijablama.
+    Fix: DEBUG = config('DEBUG', default=False, cast=bool)
+    Prioritet: Pre deploya
+
+#4  RACE CONDITION: Password Reset Token                      ✅ URAĐENO
+    Fajl: backend/users/views.py
+    Fix: transaction.atomic() + select_for_update()
+
+#5  RACE CONDITION: Email Verification Token                  ✅ URAĐENO
+    Fajl: backend/users/views.py
+    Fix: transaction.atomic() + select_for_update()
+
+#6  RACE CONDITION: Reservation Status Update                 ✅ URAĐENO
+    Fajl: backend/reservations/views.py
+    Fix: filter(pk=pk, status=PENDING).update(status=new_status) + updated count check
+
+#7  LAT/LNG BEZ VALIDACIJE (WalkLocationView)                ✅ URAĐENO
+    Fajl: backend/reservations/views.py
+    Fix: Decimal konverzija + opseg validacija (-90..90 / -180..180)
+
+====================================================
+## BAGOVI
+====================================================
+
+#8  N+1 QUERY: WalkerListView                                ✅ URAĐENO
+    Fajl: backend/users/views.py
+    Fix: annotate(avg_rating=Avg(...), review_count=Count(...))
+
+#9  N+1 QUERY: ConversationsListView                         ✅ URAĐENO
+    Fajl: backend/chat/views.py
+    Fix: Batch user loading sa dict comprehension
+
+#10 N+1 QUERY: get_average_rating() x5 serializer-a          ✅ URAĐENO
+    Fajl: backend/users/serializers.py
+    Fix: WalkerRatingMixin klasa sa annotation-aware metodama
+
+#11 TIHI CATCH U GPS TRACKINGU (mobile)                      ✅ URAĐENO
+    Fajl: mobile/src/screens/ReservationDetailScreen.tsx
+    Fix: Error counting (failCount), alert korisnika posle 3 neuspela pokušaja
+
+#12 TIHI CATCH U GPS TRACKINGU (web)                         ✅ URAĐENO
+    Fajl: frontend/src/pages/RezervacijePage.tsx
+    Fix: GPS error state + inline warning banner
+
+#13 LOCATION INTERVAL CLEANUP (mobile)                       ✅ URAĐENO
+    Fajl: mobile/src/screens/ReservationDetailScreen.tsx
+    Fix: useEffect uvek vraća cleanup funkciju nezavisno od uslova
+
+#14 NEISKORIŠĆENA PAGINATION STANJA (mobile)                 ❌ NIJE RAĐENO
+    Fajl: mobile/src/screens/PorukeScreen.tsx
+    Problem: olderMessages, hasMoreOlder, loadingOlder postoje ali se ne koriste.
+    Prioritet: Nizak
+
+#15 DEAD CODE: ReservationStatusSerializer                   ✅ URAĐENO
+    Fajl: backend/reservations/serializers.py
+    Fix: Uklonjen nekorišćeni serializer
+
+====================================================
+## SIGURNOST
+====================================================
+
+#16 TOKEN REFRESH RACE CONDITION (mobile)                    ✅ URAĐENO
+    Fajl: mobile/src/api/client.ts
+    Fix: Promise-based mutex — isRefreshing flag + refreshSubscribers queue
+
+#17 OSETLJIVI PODACI U EMAIL-U ŠETAČU                       ✅ URAĐENO
+    Fajl: backend/reservations/views.py
+    Fix: Uklonjeni adresa, GPS koordinate, telefon, email iz emaila šetaču
+
+#18 AI PROMPT INJECTION ZAOBILAŽENJE                         ✅ URAĐENO
+    Fajl: backend/chat/views.py
+    Fix: Unicode normalizacija (unicodedata.normalize) + leetspeak zamena
+
+#19 NEDOSTAJE TRANSACTION ATOMICITY (chat tool)              ✅ URAĐENO
+    Fajl: backend/chat/views.py
+    Fix: transaction.atomic() oko kreiranja rezervacije u chat tool-u
+
+#20 TOKEN U localStorage (web)                               ❌ NIJE RAĐENO
+    Problem: JWT u localStorage — standard za SPA, httpOnly cookies zahteva
+    značajne backend promene. Nepraktično za MVP.
+    Prioritet: Nizak
+
+====================================================
+## VALIDACIJE
+====================================================
+
+#21 NEMA VALIDACIJE TRAJANJA REZERVACIJE                     ✅ URAĐENO
+    Fajl: backend/reservations/serializers.py
+    Fix: Walking mora biti 20/30/60 min, min 15 min trajanje
+
+#22 SLABA VREMENSKA VALIDACIJA                               ✅ URAĐENO
+    Fajl: backend/reservations/serializers.py
+    Fix: start < end, nije u prošlosti, max 90 dana unapred, min 15 min
+
+#23 SLABA EMAIL VALIDACIJA (mobile)                          ✅ URAĐENO
+    Fajl: mobile/src/screens/LoginScreen.tsx, RegisterScreen.tsx
+    Fix: Regex validacija umesto samo '@' provere
+
+#24 NEMA MIN ATRIBUTA NA CENE (web)                          ✅ URAĐENO
+    Fajl: frontend/src/pages/ProfilPage.tsx
+    Fix: min="0" step="1" na number inputima
+
+#25 BIO BEZ MAKSIMALNE DUŽINE (web)                          ✅ URAĐENO
+    Fajl: frontend/src/pages/ProfilPage.tsx
+    Fix: maxLength={500} na textarea
+
+#26 PAS FORMA BEZ VALIDACIJE (web + mobile)                  ✅ URAĐENO
+    Fajl: frontend/src/pages/MojiPsiPage.tsx, mobile/src/screens/MojiPsiScreen.tsx
+    Fix: Validacija ime (max 50), rasa (max 50), starost (0-30), težina (0.1-150)
+
+#27 BEFORE_ID BEZ VALIDACIJE (chat)                          ✅ URAĐENO
+    Fajl: backend/chat/views.py
+    Fix: try-except oko int(before_id) konverzije
+
+====================================================
+## PERFORMANSE
+====================================================
+
+#28 NEDOSTAJU INDEKSI NA FOREIGN KEY POLJIMA                 ❌ NIJE RAĐENO
+    Fajl: backend/reservations/models.py
+    Problem: Django automatski dodaje indekse na ForeignKey polja,
+    pa ovo nije pravi problem — Django ORM to radi po defaultu.
+    Prioritet: N/A (nije potrebno)
+
+#29 NEMA PAGINACIJE KAD SE KORISTI DISTANCE FILTER           ✅ URAĐENO
+    Fajl: backend/users/views.py
+    Fix: Ručna paginacija na filtriranom rezultatu
+
+#30 NEMA REQUEST SIZE LIMITA                                  ✅ URAĐENO
+    Fajl: backend/config/settings.py
+    Fix: DATA_UPLOAD_MAX_MEMORY_SIZE = 5MB, FILE_UPLOAD_MAX_MEMORY_SIZE = 5MB
+
+#31 SORTIRANJE U RENDERU BEZ MEMOIZACIJE (web)               ✅ URAĐENO
+    Fajl: frontend/src/pages/SetaciPage.tsx
+    Fix: useMemo sa deps [walkers, showFavOnly, sort, service]
+
+#32 NEMA TIMEOUT-A NA AXIOS KLIJENTU (mobile)                ✅ URAĐENO
+    Fajl: mobile/src/api/client.ts
+    Fix: timeout: 15000 u axios.create konfiguraciji
+
+====================================================
+## UX PROBLEMI
+====================================================
+
+#33 window.confirm() UMESTO MODALA (web)                      ✅ URAĐENO
+    Fajl: frontend/src/pages/MojiPsiPage.tsx
+    Fix: Custom confirmation modal overlay sa deleteConfirm state-om
+
+#34 NEMA KEYBOARD DISMISS U CHATU (mobile)                    ✅ URAĐENO
+    Fajl: mobile/src/screens/PorukeScreen.tsx
+    Fix: Keyboard.dismiss() posle slanja poruke
+
+#35 GENERIČKE PORUKE GREŠAKA (mobile)                        ✅ URAĐENO
+    Fajl: mobile/src/api/dogs.ts
+    Fix: Parsiranje response body-ja za konkretne greške
+
+#36 NEMA OFFLINE INDIKATORA (mobile)                          ✅ URAĐENO
+    Fajl: mobile/src/components/OfflineBanner.tsx (nov fajl)
+    Fix: Connectivity check (fetch google.com/generate_204 svakih 10s) + žuti banner
+
+#37 alert() ZA LOKACIJU (web)                                 ✅ URAĐENO
+    Fajl: frontend/src/pages/SetaciPage.tsx
+    Fix: locationError state + inline dismissible error poruka
+
+====================================================
+## CODE QUALITY
+====================================================
+
+#38 DAEMON THREAD ZA EMAIL/PUSH                               ✅ URAĐENO
+    Fajl: backend/reservations/views.py, backend/users/views.py
+    Fix: _safe_send_mail() wrapper sa error logging-om
+
+#39 EXCEPTION: except Exception: pass (push notif)            ✅ URAĐENO
+    Fajl: backend/users/views.py
+    Fix: Specifični exception handling + logovanje grešaka
+
+#40 DUPLIRANI KOD: WalkingBooking/BoardingBooking (mobile)   ❌ NIJE RAĐENO
+    Fajl: mobile/src/screens/WalkerDetailScreen.tsx
+    Problem: Dve booking komponente sa ~250 linija svaka. Preskočeno jer je
+    nizak prioritet a refaktoring nosi visok rizik regresije.
+    Prioritet: Nizak
+
+#41 HARDCODED BOJE (mobile)                                   ✅ URAĐENO
+    Fajl: mobile/src/constants/colors.ts (nov fajl)
+    Fix: Centralizovane boje (green, gold, grays, itd.)
+
+#42 NAVIGATION as any (mobile)                                ✅ URAĐENO
+    Fajl: mobile/src/screens/WalkerDetailScreen.tsx
+    Fix: navigation.getParent()?.navigate('ReservationsTab' as never)
+
+#43 is_favorited KAO (walker as any) (mobile)                 ✅ URAĐENO
+    Fajl: mobile/src/screens/WalkersScreen.tsx, WalkerDetailScreen.tsx, types/index.ts
+    Fix: Dodat is_favorited?: boolean u User interface
+
+#44 NEMA TESTOVA                                              ✅ URAĐENO
+    Fajl: backend/users/tests.py, reservations/tests.py, dogs/tests.py
+    Fix: 17 testova — auth, profil, šetači, favoriti, rezervacije CRUD, psi CRUD
+
+#45 NEMA LOGOVANJA                                            ✅ URAĐENO
+    Fajl: backend/users/views.py, reservations/views.py, chat/views.py
+    Fix: import logging + logger na svim viewovima
+
+#46 NEKONZISTENTAN FORMAT GREŠAKA                             ✅ URAĐENO
+    Fajl: backend/reservations/views.py, chat/views.py
+    Fix: Standardizovano na {'detail': ...} (DRF konvencija)
+
+====================================================
+## DODATNI BUGFIXEVI (van review-a)
+====================================================
+
+#B1 respondReservation PATCH vs POST (mobile)                 ✅ URAĐENO
+    Fajl: mobile/src/api/reservations.ts
+    Problem: Mobile slao PATCH na /respond/ ali backend prima samo POST
+    Fix: client.patch → client.post
+
+#B2 GPS tracking — in-app mapa umesto Google Maps (mobile)    ✅ URAĐENO
+    Fajl: mobile/src/screens/ReservationDetailScreen.tsx
+    Problem: Klik na mapu otvarao Google Maps umesto prikaza u aplikaciji
+    Fix: react-native-maps MapView sa Marker-om za live tracking
+
+====================================================
+## SUMARNO
+====================================================
+
+  Ukupno stavki:  46 + 2 bugfix-a
+  ✅ Urađeno:     39
+  ❌ Nije rađeno:  5  (#1, #2, #3 — po zahtevu korisnika)
+                      (#14 — nizak prioritet)
+                      (#20 — nepraktično za MVP)
+                      (#40 — nizak prioritet, visok rizik)
+  N/A:             1  (#28 — Django već radi automatski)
+  Bugfix-evi:      2  (#B1, #B2 — pronađeni tokom testiranja)
+
+====================================================

@@ -26,6 +26,7 @@ export interface User {
   walker_profile?: WalkerProfile
   average_rating: number | null
   review_count: number
+  is_favorited?: boolean
 }
 
 export interface Dog {
@@ -66,6 +67,7 @@ export interface Review {
   id: number
   rating: number
   comment: string
-  reviewer: User
+  owner_name: string
+  owner_image: string | null
   created_at: string
 }

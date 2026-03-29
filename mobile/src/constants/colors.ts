@@ -1,0 +1,18 @@
+export const COLORS = {
+  green: '#00BF8F',
+  greenDark: '#065f46',
+  greenLight: '#f0fdf9',
+  gold: '#FAAB43',
+  red: '#ef4444',
+  redDark: '#991b1b',
+  redLight: '#fef2f2',
+  gray50: '#f9fafb',
+  gray100: '#f5f5f5',
+  gray200: '#e5e7eb',
+  gray400: '#9ca3af',
+  gray500: '#6b7280',
+  gray700: '#374151',
+  gray900: '#111',
+  white: '#fff',
+  bg: '#f5f7fa',
+} as const

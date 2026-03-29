@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
@@ -69,50 +70,16 @@ function Avatar({ firstName, lastName, image, size = 10 }: { firstName: string; 
 }
 
 function DogChip({ dog }: { dog: Dog }) {
-  const [open, setOpen] = useState(false)
   return (
-    <div className="rounded-2xl border overflow-hidden" style={{ borderColor: open ? '#00BF8F' : '#e5e7eb' }}>
-      <button onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors"
-        style={{ backgroundColor: open ? '#f0fdf9' : '#f9fafb' }}>
-        <span className="text-base">🐕</span>
-        <div className="flex-1 min-w-0">
-          <span className="text-sm font-semibold text-gray-900">{dog.name}</span>
-          <span className="text-xs text-gray-400 ml-1.5">{dog.breed}</span>
-        </div>
-        <span className="text-gray-400 text-xs transition-transform" style={{ transform: open ? 'rotate(180deg)' : 'none' }}>▼</span>
-      </button>
-      {open && (
-        <div className="px-3.5 pb-3 pt-1 bg-white space-y-2">
-          <div className="grid grid-cols-3 gap-2 text-xs">
-            {[
-              ['Starost', `${dog.age} god.`],
-              ['Težina', `${dog.weight} kg`],
-              ['Veličina', SIZE_SR[dog.size] ?? dog.size],
-              ['Pol', GENDER_SR[dog.gender] ?? dog.gender],
-              ['Kastriran', dog.neutered ? 'Da' : 'Ne'],
-            ].map(([k, v]) => (
-              <div key={k} className="bg-gray-50 rounded-xl px-2.5 py-2 border border-gray-100">
-                <div className="text-gray-400 font-medium mb-0.5">{k}</div>
-                <div className="font-semibold text-gray-800">{v}</div>
-              </div>
-            ))}
-          </div>
-          {dog.temperament && (
-            <div className="text-xs bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-              <span className="font-semibold text-amber-700">Karakter: </span>
-              <span className="text-amber-800">{dog.temperament}</span>
-            </div>
-          )}
-          {dog.notes && (
-            <div className="text-xs bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
-              <span className="font-semibold text-blue-700">Napomene: </span>
-              <span className="text-blue-800">{dog.notes}</span>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    <Link to={`/dogs/${dog.id}`}
+      className="rounded-2xl border border-gray-200 overflow-hidden flex items-center gap-2.5 px-3.5 py-2.5 transition-colors hover:border-[#00BF8F] hover:bg-[#f0fdf9] no-underline">
+      <span className="text-base">🐕</span>
+      <div className="flex-1 min-w-0">
+        <span className="text-sm font-semibold text-gray-900">{dog.name}</span>
+        <span className="text-xs text-gray-400 ml-1.5">{dog.breed}</span>
+      </div>
+      <span className="text-gray-400 text-xs">→</span>
+    </Link>
   )
 }
 
@@ -289,6 +256,8 @@ function ReservationCard({ r }: { r: Reservation }) {
   const [showReview, setShowReview] = useState(false)
   const [cancelError, setCancelError] = useState('')
   const [respondError, setRespondError] = useState('')
+  const [gpsError, setGpsError] = useState(false)
+  const gpsFailCountRef = useRef(0)
   const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const st = STATUS[r.status as keyof typeof STATUS] ?? STATUS.cancelled
   const svc = SVC[r.service_type as keyof typeof SVC] ?? { icon: '📅', label: r.service_type }
@@ -335,8 +304,18 @@ function ReservationCard({ r }: { r: Reservation }) {
     if (!navigator.geolocation) return
 
     const send = () => navigator.geolocation.getCurrentPosition(
-      pos => updateWalkLocation(r.id, pos.coords.latitude, pos.coords.longitude).catch(() => {}),
-      () => {}
+      pos => {
+        updateWalkLocation(r.id, pos.coords.latitude, pos.coords.longitude)
+          .then(() => { gpsFailCountRef.current = 0; setGpsError(false) })
+          .catch(() => {
+            gpsFailCountRef.current += 1
+            if (gpsFailCountRef.current >= 3) setGpsError(true)
+          })
+      },
+      () => {
+        gpsFailCountRef.current += 1
+        if (gpsFailCountRef.current >= 3) setGpsError(true)
+      }
     )
     send()
     locationIntervalRef.current = setInterval(send, 5000)
@@ -392,10 +371,11 @@ function ReservationCard({ r }: { r: Reservation }) {
           {r.dogs.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {r.dogs.map(d => (
-                <span key={d.id} className="text-xs font-medium px-2.5 py-1 rounded-full border"
+                <Link key={d.id} to={`/dogs/${d.id}`}
+                  className="text-xs font-medium px-2.5 py-1 rounded-full border transition-all hover:shadow-sm hover:opacity-80"
                   style={{ backgroundColor: '#f0fdf9', color: '#059669', borderColor: '#bbf7d0' }}>
                   🐕 {d.name}
-                </span>
+                </Link>
               ))}
             </div>
           )}
@@ -492,6 +472,18 @@ function ReservationCard({ r }: { r: Reservation }) {
           style={{ backgroundColor: '#f0fdf9', color: '#065f46' }}>
           <span className="animate-pulse">📡</span>
           <span>Lokacija se šalje vlasniku · {walkDuration(r.walk_started_at)}</span>
+        </div>
+      )}
+
+      {/* GPS error warning */}
+      {user?.role === 'walker' && isInProgress && gpsError && (
+        <div className="mx-4 mb-2 px-3 py-2 rounded-xl flex items-center justify-between text-xs font-semibold"
+          style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #f59e0b' }}>
+          <span>GPS signal nije dostupan. Lokacija se ne šalje vlasniku.</span>
+          <button onClick={() => { gpsFailCountRef.current = 0; setGpsError(false) }}
+            className="ml-2 text-xs font-bold hover:underline" style={{ color: '#92400e' }}>
+            Zatvori
+          </button>
         </div>
       )}
 

@@ -7,11 +7,21 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
+import logging
 import threading
 from .models import Reservation
 from .serializers import ReservationSerializer
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
+
+
+def _safe_send_mail(*args, **kwargs):
+    try:
+        send_mail(*args, **kwargs)
+    except Exception as e:
+        logger.error('Failed to send email: %s', e)
 
 
 def send_reservation_email(reservation, new_status):
@@ -46,7 +56,7 @@ def send_reservation_email(reservation, new_status):
         return
 
     threading.Thread(
-        target=send_mail,
+        target=_safe_send_mail,
         args=(subject, body, settings.DEFAULT_FROM_EMAIL, recipients),
         kwargs={'fail_silently': True},
         daemon=True,
@@ -63,36 +73,21 @@ def send_new_reservation_email(reservation):
     dog_lines = []
     for d in reservation.dogs.all():
         size_map = {'small': 'mali', 'medium': 'srednji', 'large': 'veliki'}
-        gender_map = {'male': 'muški', 'female': 'ženski'}
-        line = f"  • {d.name} ({d.breed}, {d.age} god, {size_map.get(d.size, d.size)}, {gender_map.get(d.gender, d.gender)}, {d.weight}kg)"
-        if d.temperament:
-            line += f"\n    Karakter: {d.temperament}"
-        if d.notes:
-            line += f"\n    Napomene: {d.notes}"
+        line = f"  • {d.name} ({d.breed}, {size_map.get(d.size, d.size)}, {d.weight}kg)"
         dog_lines.append(line)
     dogs_section = '\n'.join(dog_lines)
-
-    location = owner.address if owner.address else '(adresa nije uneta)'
-    maps_link = ''
-    if owner.lat and owner.lng:
-        maps_link = f"\n    Google Maps: https://www.google.com/maps?q={owner.lat},{owner.lng}"
 
     subject = '🐾 Nova rezervacija – Paws'
     body = (
         f"Zdravo {walker.first_name},\n\n"
-        f"Stigla ti je nova rezervacija! Pogledaj detalje ispod i prihvati ili odbij je na platformi.\n\n"
+        f"Stigla ti je nova rezervacija!\n\n"
         f"{'='*40}\n"
         f"DETALJI REZERVACIJE\n"
         f"{'='*40}\n"
         f"Usluga:  {service}\n"
         f"Datum:   {date_str}\n"
-        f"Vreme:   {time_str}\n"
-        f"{'='*40}\n\n"
-        f"VLASNIK\n"
-        f"Ime:     {owner.first_name} {owner.last_name}\n"
-        f"Telefon: {owner.phone if owner.phone else '(nije unet)'}\n"
-        f"Email:   {owner.email}\n"
-        f"Adresa:  {location}{maps_link}\n\n"
+        f"Vreme:   {time_str}\n\n"
+        f"VLASNIK: {owner.first_name} {owner.last_name}\n\n"
         f"PAS/PSI\n"
         f"{dogs_section}\n\n"
     )
@@ -100,10 +95,10 @@ def send_new_reservation_email(reservation):
     if reservation.notes:
         body += f"NAPOMENA VLASNIKA\n{reservation.notes}\n\n"
 
-    body += "Prijavi se na Paws platformu da prihvatiš ili odbiješ rezervaciju.\n\nPaws tim 🐾"
+    body += "Prijavi se na Paws platformu za kontakt podatke vlasnika i da prihvatiš ili odbiješ rezervaciju.\n\nPaws tim 🐾"
 
     threading.Thread(
-        target=send_mail,
+        target=_safe_send_mail,
         args=(subject, body, settings.DEFAULT_FROM_EMAIL, [walker.email]),
         kwargs={'fail_silently': True},
         daemon=True,
@@ -186,27 +181,27 @@ class ReservationCancelView(APIView):
             args=([other], '❌ Rezervacija otkazana', f'Rezervacija za {service} je otkazana.'),
             daemon=True,
         ).start()
-        return Response({'status': 'cancelled'})
+        logger.info('Reservation %s cancelled by user %s', pk, user.id)
+        return Response({'detail': 'cancelled', 'status': 'cancelled'})
 
 
 class WalkerReservationRespondView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
-        try:
-            reservation = Reservation.objects.get(pk=pk, walker=request.user)
-        except Reservation.DoesNotExist:
-            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        if reservation.status != Reservation.PENDING:
-            return Response({'detail': 'Reservation has already been processed.'}, status=status.HTTP_400_BAD_REQUEST)
-
         new_status = request.data.get('status')
         if new_status not in [Reservation.CONFIRMED, Reservation.REJECTED]:
             return Response({'detail': 'Invalid status.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        reservation.status = new_status
-        reservation.save()
+        updated = Reservation.objects.filter(
+            pk=pk, walker=request.user, status=Reservation.PENDING
+        ).update(status=new_status)
+
+        if not updated:
+            return Response({'detail': 'Rezervacija je već obrađena ili ne postoji.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reservation = Reservation.objects.select_related('owner', 'walker').get(pk=pk)
+        logger.info('Reservation %s responded: %s by walker %s', pk, new_status, request.user.id)
         send_reservation_email(reservation, new_status)
         from users.views import send_push_notification
         if new_status == Reservation.CONFIRMED:
@@ -221,7 +216,7 @@ class WalkerReservationRespondView(APIView):
                 args=([reservation.owner], '❌ Rezervacija odbijena', f'{reservation.walker.first_name} nije mogao/la da prihvati rezervaciju.'),
                 daemon=True,
             ).start()
-        return Response({'status': new_status})
+        return Response({'detail': 'ok', 'status': new_status})
 
 
 class WalkStartView(APIView):
@@ -254,7 +249,8 @@ class WalkStartView(APIView):
                   f'{reservation.walker.first_name} je krenuo/la na šetnju sa {dog_names}.'),
             daemon=True,
         ).start()
-        return Response({'status': 'in_progress'})
+        logger.info('Walk started for reservation %s', pk)
+        return Response({'detail': 'ok', 'status': 'in_progress'})
 
 
 class WalkLocationView(APIView):
@@ -269,10 +265,19 @@ class WalkLocationView(APIView):
         if reservation.status != Reservation.IN_PROGRESS:
             return Response({'detail': 'Šetnja nije aktivna.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        lat = request.data.get('lat')
-        lng = request.data.get('lng')
-        if lat is None or lng is None:
+        raw_lat = request.data.get('lat')
+        raw_lng = request.data.get('lng')
+        if raw_lat is None or raw_lng is None:
             return Response({'detail': 'lat i lng su obavezni.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            lat = Decimal(str(raw_lat))
+            lng = Decimal(str(raw_lng))
+        except (InvalidOperation, ValueError, TypeError):
+            return Response({'detail': 'lat i lng moraju biti validni brojevi.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+            return Response({'detail': 'lat mora biti -90..90, lng -180..180.'}, status=status.HTTP_400_BAD_REQUEST)
 
         reservation.last_lat = lat
         reservation.last_lng = lng
@@ -331,7 +336,8 @@ class WalkerCompleteReservationView(APIView):
                       f'{reservation.walker.first_name} je završio/la šetnju i vratio/la psa.'),
                 daemon=True,
             ).start()
-        return Response({'status': 'completed'})
+        logger.info('Reservation %s completed', pk)
+        return Response({'detail': 'ok', 'status': 'completed'})
 
 
 class ReservationPendingCountView(APIView):

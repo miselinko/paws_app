@@ -20,7 +20,11 @@ export async function createDog(formData: FormData): Promise<Dog> {
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
   })
-  if (!res.ok) throw new Error('Create dog failed')
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    const msg = body?.detail || (body ? Object.values(body).flat().join(', ') : '') || 'Greška pri kreiranju psa'
+    throw new Error(msg)
+  }
   return res.json()
 }
 
@@ -31,7 +35,11 @@ export async function updateDog(id: number, formData: FormData): Promise<Dog> {
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
   })
-  if (!res.ok) throw new Error('Update dog failed')
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    const msg = body?.detail || (body ? Object.values(body).flat().join(', ') : '') || 'Greška pri ažuriranju psa'
+    throw new Error(msg)
+  }
   return res.json()
 }
 
@@ -41,4 +49,9 @@ export async function deleteDog(id: number): Promise<void> {
 
 export async function deleteDogImage(id: number): Promise<void> {
   await client.delete(`/dogs/${id}/image/`)
+}
+
+export async function getDogProfile(id: number): Promise<Dog> {
+  const { data } = await client.get(`/dogs/${id}/profile/`)
+  return data
 }

@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
-import { getWalker } from '../api/users'
+import { getWalker, toggleFavorite } from '../api/users'
 import { getDogs } from '../api/dogs'
 import { createReservation } from '../api/reservations'
 import { getWalkerReviews } from '../api/reviews'
@@ -305,7 +305,7 @@ function WalkingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
       <Text style={s.successEmoji}>🎉</Text>
       <Text style={s.successTitle}>Rezervacija poslata!</Text>
       <Text style={s.successSub}>Šetač će te uskoro kontaktirati.</Text>
-      <TouchableOpacity style={s.greenBtn} onPress={() => (navigation as any).navigate('ReservationsTab')}>
+      <TouchableOpacity style={s.greenBtn} onPress={() => navigation.getParent()?.navigate('ReservationsTab' as never)}>
         <Text style={s.greenBtnText}>Pogledaj rezervacije</Text>
       </TouchableOpacity>
     </View>
@@ -515,7 +515,7 @@ function BoardingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
       <Text style={s.successEmoji}>🎉</Text>
       <Text style={s.successTitle}>Rezervacija poslata!</Text>
       <Text style={s.successSub}>Šetač će te uskoro kontaktirati.</Text>
-      <TouchableOpacity style={s.greenBtn} onPress={() => (navigation as any).navigate('ReservationsTab')}>
+      <TouchableOpacity style={s.greenBtn} onPress={() => navigation.getParent()?.navigate('ReservationsTab' as never)}>
         <Text style={s.greenBtnText}>Pogledaj rezervacije</Text>
       </TouchableOpacity>
     </View>
@@ -730,6 +730,7 @@ function BookingWidget({ walker, dogs }: { walker: User; dogs: Dog[] }) {
 export default function WalkerDetailScreen() {
   const route = useRoute<Route>()
   const navigation = useNavigation()
+  const queryClient = useQueryClient()
   const { walkerId } = route.params
   const { user } = useAuth()
 
@@ -747,6 +748,14 @@ export default function WalkerDetailScreen() {
   const { data: reviews = [] } = useQuery({
     queryKey: ['reviews', walkerId],
     queryFn: () => getWalkerReviews(walkerId),
+  })
+
+  const favMutation = useMutation({
+    mutationFn: () => toggleFavorite(walkerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['walker', walkerId] })
+      queryClient.invalidateQueries({ queryKey: ['walkers'] })
+    },
   })
 
   if (isLoading || !walker) {
@@ -777,6 +786,28 @@ export default function WalkerDetailScreen() {
         </View>
 
         <Text style={s.address}>📍 {walker.address}</Text>
+
+        {user && (
+          <TouchableOpacity
+            onPress={() => favMutation.mutate()}
+            style={{
+              marginTop: 10,
+              flexDirection: 'row', alignItems: 'center', gap: 6,
+              backgroundColor: walker.is_favorited ? '#fef2f2' : '#f3f4f6',
+              borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8,
+              borderWidth: 1.5,
+              borderColor: walker.is_favorited ? '#fca5a5' : '#e5e7eb',
+            }}
+          >
+            <Text style={{ fontSize: 14 }}>{walker.is_favorited ? '❤️' : '🖤'}</Text>
+            <Text style={{
+              fontSize: 13, fontWeight: '700',
+              color: walker.is_favorited ? '#ef4444' : '#374151',
+            }}>
+              {walker.is_favorited ? 'Omiljeni' : 'Dodaj u omiljene'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Cene */}
@@ -855,7 +886,7 @@ export default function WalkerDetailScreen() {
         ) : reviews.map(r => (
           <View key={r.id} style={s.reviewCard}>
             <View style={s.reviewTop}>
-              <Text style={s.reviewName}>{r.reviewer.first_name} {r.reviewer.last_name}</Text>
+              <Text style={s.reviewName}>{r.owner_name}</Text>
               <View style={{ flexDirection: 'row' }}>
                 {[1,2,3,4,5].map(n => (
                   <Text key={n} style={{ fontSize: 12, color: n <= r.rating ? GOLD : '#e5e7eb' }}>★</Text>

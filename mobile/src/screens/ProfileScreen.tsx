@@ -617,10 +617,10 @@ export default function ProfileScreen() {
                 <View key={r.id} style={s.reviewItem}>
                   <View style={s.reviewHeader}>
                     <View style={s.reviewAvatar}>
-                      <Text style={s.reviewAvatarText}>{r.reviewer.first_name[0]}{r.reviewer.last_name[0]}</Text>
+                      <Text style={s.reviewAvatarText}>{r.owner_name?.split(' ').map((n: string) => n[0]).join('') || '?'}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={s.reviewerName}>{r.reviewer.first_name} {r.reviewer.last_name}</Text>
+                      <Text style={s.reviewerName}>{r.owner_name}</Text>
                       <Text style={s.reviewDate}>{new Date(r.created_at).toLocaleDateString('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
                     </View>
                     <Text style={s.reviewStars}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</Text>

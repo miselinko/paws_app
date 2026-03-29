@@ -2,10 +2,12 @@ import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import ReservationsScreen from '../screens/ReservationsScreen'
 import ReservationDetailScreen from '../screens/ReservationDetailScreen'
+import DogProfileScreen from '../screens/DogProfileScreen'
 
 export type ReservationsStackParamList = {
   Reservations: undefined
   ReservationDetail: { reservationId: number }
+  DogProfile: { dogId: number }
 }
 
 const Stack = createNativeStackNavigator<ReservationsStackParamList>()
@@ -24,6 +26,7 @@ export default function ReservationsNavigator() {
     <Stack.Navigator screenOptions={HEADER_OPTS}>
       <Stack.Screen name="Reservations" component={ReservationsScreen} options={{ title: 'Moje rezervacije 📅' }} />
       <Stack.Screen name="ReservationDetail" component={ReservationDetailScreen} options={{ title: 'Detalji rezervacije' }} />
+      <Stack.Screen name="DogProfile" component={DogProfileScreen} options={{ title: 'Profil psa' }} />
     </Stack.Navigator>
   )
 }

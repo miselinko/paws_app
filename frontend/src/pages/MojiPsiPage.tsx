@@ -182,6 +182,8 @@ export default function MojiPsiPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [breedOpen, setBreedOpen]   = useState(false)
   const [tempTags, setTempTags]     = useState<string[]>([])
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string; type: 'dog' | 'image' } | null>(null)
 
   const { data: dogs, isLoading } = useQuery<Dog[]>({ queryKey: ['myDogs'], queryFn: getMyDogs })
 
@@ -251,6 +253,26 @@ export default function MojiPsiPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['myDogs'] }),
   })
 
+  function validateForm(): boolean {
+    const errors: Record<string, string> = {}
+    if (!form.name.trim()) errors.name = 'Ime je obavezno'
+    else if (form.name.trim().length > 50) errors.name = 'Ime ne sme imati više od 50 karaktera'
+    if (!form.breed.trim()) errors.breed = 'Rasa je obavezna'
+    else if (form.breed.trim().length > 50) errors.breed = 'Rasa ne sme imati više od 50 karaktera'
+    if (!form.age) errors.age = 'Starost je obavezna'
+    else if (Number(form.age) < 0 || Number(form.age) > 30) errors.age = 'Starost mora biti između 0 i 30'
+    if (!form.weight) errors.weight = 'Težina je obavezna'
+    else if (Number(form.weight) < 0.1 || Number(form.weight) > 150) errors.weight = 'Težina mora biti između 0.1 i 150 kg'
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  function handleSubmit() {
+    if (!validateForm()) return
+    if (editingDog) updateM.mutate()
+    else createM.mutate()
+  }
+
   const isPending = createM.isPending || updateM.isPending
 
   return (
@@ -307,42 +329,62 @@ export default function MojiPsiPage() {
             <div className="p-6 space-y-5">
               {/* Name, age */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {([['name', 'Ime psa', 'Maks', 'text'], ['age', 'Starost (god.)', '3', 'number']] as const).map(([key, label, ph, type]) => (
-                  <div key={key}>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{label}</label>
-                    <input type={type} value={String(form[key as keyof typeof form])}
-                      onChange={e => setForm({ ...form, [key]: e.target.value })}
-                      placeholder={ph} className={inp}
-                      onFocus={e => Object.assign(e.target.style, inpFocus)}
-                      onBlur={e => Object.assign(e.target.style, inpBlur)} />
-                  </div>
-                ))}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Ime psa</label>
+                  <input type="text" value={form.name} maxLength={50}
+                    onChange={e => { setForm({ ...form, name: e.target.value }); setFormErrors(err => { const { name, ...rest } = err; return rest }) }}
+                    placeholder="Maks" className={inp}
+                    onFocus={e => Object.assign(e.target.style, inpFocus)}
+                    onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                  {formErrors.name && <p className="text-xs text-red-500 mt-1">{formErrors.name}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Starost (god.)</label>
+                  <input type="number" value={form.age} min={0} max={30} step={1}
+                    onChange={e => { setForm({ ...form, age: e.target.value }); setFormErrors(err => { const { age, ...rest } = err; return rest }) }}
+                    placeholder="3" className={inp}
+                    onFocus={e => Object.assign(e.target.style, inpFocus)}
+                    onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                  {formErrors.age && <p className="text-xs text-red-500 mt-1">{formErrors.age}</p>}
+                </div>
               </div>
 
-              {/* Breed */}
-              <div className="relative">
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Rasa</label>
-                <input
-                  type="text" value={form.breed} autoComplete="off" className={inp}
-                  onChange={e => { setForm({ ...form, breed: e.target.value }); setBreedOpen(true) }}
-                  onFocus={e => { setBreedOpen(true); Object.assign(e.target.style, inpFocus) }}
-                  onBlur={e => { setTimeout(() => setBreedOpen(false), 150); Object.assign(e.target.style, inpBlur) }}
-                  placeholder="Pretraži rasu..."
-                />
-                {breedOpen && (
-                  <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                    {PASMINE.filter(p => p.toLowerCase().includes(form.breed.toLowerCase())).map(p => (
-                      <button key={p} type="button"
-                        onMouseDown={() => { setForm({ ...form, breed: p }); setBreedOpen(false) }}
-                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors">
-                        {p}
-                      </button>
-                    ))}
-                    {PASMINE.filter(p => p.toLowerCase().includes(form.breed.toLowerCase())).length === 0 && (
-                      <div className="px-4 py-3 text-sm text-gray-400">Nema rezultata</div>
-                    )}
-                  </div>
-                )}
+              {/* Breed & Weight */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="relative">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Rasa</label>
+                  <input
+                    type="text" value={form.breed} autoComplete="off" maxLength={50} className={inp}
+                    onChange={e => { setForm({ ...form, breed: e.target.value }); setBreedOpen(true); setFormErrors(err => { const { breed, ...rest } = err; return rest }) }}
+                    onFocus={e => { setBreedOpen(true); Object.assign(e.target.style, inpFocus) }}
+                    onBlur={e => { setTimeout(() => setBreedOpen(false), 150); Object.assign(e.target.style, inpBlur) }}
+                    placeholder="Pretraži rasu..."
+                  />
+                  {formErrors.breed && <p className="text-xs text-red-500 mt-1">{formErrors.breed}</p>}
+                  {breedOpen && (
+                    <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                      {PASMINE.filter(p => p.toLowerCase().includes(form.breed.toLowerCase())).map(p => (
+                        <button key={p} type="button"
+                          onMouseDown={() => { setForm({ ...form, breed: p }); setBreedOpen(false) }}
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors">
+                          {p}
+                        </button>
+                      ))}
+                      {PASMINE.filter(p => p.toLowerCase().includes(form.breed.toLowerCase())).length === 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-400">Nema rezultata</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Težina (kg)</label>
+                  <input type="number" value={form.weight} min={0.1} max={150} step={0.1}
+                    onChange={e => { setForm({ ...form, weight: e.target.value }); setFormErrors(err => { const { weight, ...rest } = err; return rest }) }}
+                    placeholder="25" className={inp}
+                    onFocus={e => Object.assign(e.target.style, inpFocus)}
+                    onBlur={e => Object.assign(e.target.style, inpBlur)} />
+                  {formErrors.weight && <p className="text-xs text-red-500 mt-1">{formErrors.weight}</p>}
+                </div>
               </div>
 
               {/* Size & gender */}
@@ -446,7 +488,7 @@ export default function MojiPsiPage() {
               </div>
 
               <button
-                onClick={() => editingDog ? updateM.mutate() : createM.mutate()}
+                onClick={handleSubmit}
                 disabled={isPending}
                 className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all hover:opacity-90 active:scale-98 disabled:opacity-40"
                 style={{ backgroundColor: '#00BF8F' }}>
@@ -494,13 +536,49 @@ export default function MojiPsiPage() {
                 dog={dog}
                 editing={editingDog?.id === dog.id}
                 onEdit={() => editingDog?.id === dog.id ? closeForm() : openEdit(dog)}
-                onDelete={() => { if (confirm(`Obriši ${dog.name}?`)) deleteM.mutate(dog.id) }}
-                onDeleteImage={() => { if (confirm(`Ukloni sliku za ${dog.name}?`)) deleteImageM.mutate(dog.id) }}
+                onDelete={() => setDeleteConfirm({ id: dog.id, name: dog.name, type: 'dog' })}
+                onDeleteImage={() => setDeleteConfirm({ id: dog.id, name: dog.name, type: 'image' })}
               />
             </Reveal>
           ))}
         </div>
       </div>
+
+      {/* Confirmation modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+          onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl"
+            onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              {deleteConfirm.type === 'dog' ? 'Obriši psa?' : 'Ukloni sliku?'}
+            </h3>
+            <p className="text-sm text-gray-500 mb-5">
+              {deleteConfirm.type === 'dog'
+                ? `Da li si siguran/na da želiš da obrišeš ${deleteConfirm.name}? Ova akcija se ne može poništiti.`
+                : `Da li si siguran/na da želiš da ukloniš sliku za ${deleteConfirm.name}?`}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold border border-gray-200 text-gray-600 hover:bg-gray-50">
+                Otkaži
+              </button>
+              <button
+                onClick={() => {
+                  if (deleteConfirm.type === 'dog') deleteM.mutate(deleteConfirm.id)
+                  else deleteImageM.mutate(deleteConfirm.id)
+                  setDeleteConfirm(null)
+                }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white"
+                style={{ backgroundColor: '#ef4444' }}>
+                {deleteConfirm.type === 'dog' ? 'Obriši' : 'Ukloni'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -5,6 +5,7 @@ from .views import (
     DeleteAccountView, AdminDashboardView, AdminUserListView, AdminUserDetailView,
     AdminReservationListView, AdminReviewListView, AdminDogListView,
     VerifyEmailView, ResendVerificationView, PushTokenView,
+    ToggleFavoriteView, FavoritesListView,
 )
 
 urlpatterns = [
@@ -18,6 +19,8 @@ urlpatterns = [
     path('profile/walker/', WalkerProfileUpdateView.as_view(), name='walker-profile'),
     path('walkers/', WalkerListView.as_view(), name='walker-list'),
     path('walkers/<int:pk>/', WalkerDetailView.as_view(), name='walker-detail'),
+    path('favorites/', FavoritesListView.as_view(), name='favorites-list'),
+    path('favorites/<int:walker_id>/toggle/', ToggleFavoriteView.as_view(), name='toggle-favorite'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     # Admin

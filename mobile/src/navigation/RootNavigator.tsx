@@ -5,11 +5,17 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useAuth } from '../context/AuthContext'
 import LoginScreen from '../screens/LoginScreen'
 import RegisterScreen from '../screens/RegisterScreen'
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen'
+import ResetPasswordScreen from '../screens/ResetPasswordScreen'
+import VerifyEmailScreen from '../screens/VerifyEmailScreen'
 import MainTabs from './MainTabs'
 
 export type RootStackParamList = {
   Login: undefined
   Register: undefined
+  ForgotPassword: undefined
+  ResetPassword: { token: string }
+  VerifyEmail: { token: string }
   Main: undefined
 }
 
@@ -29,6 +35,9 @@ const linking: LinkingOptions<RootStackParamList> = {
       },
       Login: 'prijava',
       Register: 'registracija',
+      ForgotPassword: 'zaboravljena-lozinka',
+      ResetPassword: 'reset-lozinka',
+      VerifyEmail: 'verify-email',
     },
   },
 }
@@ -53,6 +62,9 @@ export default function RootNavigator() {
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+            <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
           </>
         )}
       </Stack.Navigator>

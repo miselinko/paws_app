@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AuthProvider } from './src/context/AuthContext'
 import { queryClient } from './src/context/queryClient'
 import RootNavigator from './src/navigation/RootNavigator'
+import OfflineBanner from './src/components/OfflineBanner'
 import * as Notifications from 'expo-notifications'
 
 Notifications.setNotificationHandler({
@@ -22,6 +23,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <StatusBar hidden />
+          <OfflineBanner />
           <RootNavigator />
         </AuthProvider>
       </QueryClientProvider>

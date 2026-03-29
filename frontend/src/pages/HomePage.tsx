@@ -115,7 +115,6 @@ export default function HomePage() {
               <Reveal key={svc.title} delay={i * 100}>
               <Link
                 to={`/walkers?usluga=${svc.service}`}
-                key={svc.title}
                 className="group rounded-2xl overflow-hidden border border-gray-100 hover:border-transparent transition-all hover:-translate-y-1"
                 style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.1)' }}
                 onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 8px 24px rgba(71,71,71,0.18)')}

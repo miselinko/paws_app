@@ -44,7 +44,7 @@ function StaggerItem({ index, children }: { index: number; children: React.React
       tension: 80,
       friction: 9,
     }).start()
-  }, [])
+  }, [index, anim])
   return (
     <Animated.View style={{
       opacity: anim,

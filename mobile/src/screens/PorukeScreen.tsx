@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   TextInput, KeyboardAvoidingView, Platform, ActivityIndicator,
-  Image, Alert, ScrollView,
+  Image, Alert, ScrollView, Keyboard,
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRoute } from '@react-navigation/native'
@@ -74,6 +74,7 @@ function BotChatView({ onBack }: { onBack: () => void }) {
   async function send(msg?: string) {
     const t = (msg ?? text).trim()
     if (!t || loading) return
+    Keyboard.dismiss()
     const userMsg: BotMessage = { id: Date.now(), role: 'user', content: t }
     setHistory(h => [...h, userMsg])
     setText('')
@@ -248,6 +249,7 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
   function doSend() {
     const t = text.trim()
     if (!t || mutation.isPending) return
+    Keyboard.dismiss()
     mutation.mutate(t)
   }
 

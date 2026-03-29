@@ -7,6 +7,7 @@ export interface WalkerFilters {
   usluga?: string
   velicina?: string
   cena_max?: string
+  search?: string
   lat?: string
   lng?: string
   radius?: string
@@ -64,4 +65,27 @@ export async function getWalker(id: number): Promise<User> {
 
 export async function savePushToken(token: string): Promise<void> {
   await client.post('/users/push-token/', { token })
+}
+
+export async function toggleFavorite(walkerId: number): Promise<{ is_favorited: boolean }> {
+  const { data } = await client.post(`/users/favorites/${walkerId}/toggle/`)
+  return data
+}
+
+export async function getFavoriteIds(): Promise<number[]> {
+  const { data } = await client.get('/users/favorites/')
+  return data
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  await client.post('/users/forgot-password/', { email })
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  await client.post('/users/reset-password/', { token, password })
+}
+
+export async function verifyEmail(token: string): Promise<{ detail: string }> {
+  const { data } = await client.get('/users/verify-email/', { params: { token } })
+  return data
 }

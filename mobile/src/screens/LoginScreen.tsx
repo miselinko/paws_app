@@ -26,7 +26,7 @@ export default function LoginScreen() {
   async function handleLogin() {
     const e = email.trim()
     if (!e || !password) { setError('Unesite email i lozinku.'); return }
-    if (!e.includes('@')) { setError('Unesite validan email.'); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setError('Unesite validan email.'); return }
     setError('')
     setLoading(true)
     try {
@@ -109,6 +109,10 @@ export default function LoginScreen() {
           </View>
         </View>
 
+        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword' as never)} style={styles.forgotLink}>
+          <Text style={styles.forgotLinkText}>Zaboravljena lozinka?</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.btn, loading && styles.btnDisabled]}
           onPress={handleLogin}
@@ -167,6 +171,8 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.55 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 
+  forgotLink: { alignItems: 'flex-end', marginTop: 4, marginBottom: 8 },
+  forgotLinkText: { fontSize: 13, color: GREEN, fontWeight: '600' },
   registerLink: { marginTop: 20, alignItems: 'center' },
   registerLinkText: { fontSize: 13, color: '#9ca3af' },
 })

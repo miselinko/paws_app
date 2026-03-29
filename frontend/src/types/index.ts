@@ -42,6 +42,7 @@ export interface Walker {
   lng: number | null
   walker_profile: WalkerProfile
   distance?: number | null
+  is_favorited?: boolean
 }
 
 export interface Dog {

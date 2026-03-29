@@ -258,16 +258,36 @@ export default function MojiPsiScreen() {
     return fd
   }
 
+  function validateDogForm(): string | null {
+    if (!form.name.trim() || form.name.trim().length > 50) return 'Ime je obavezno (maks. 50 karaktera).'
+    if (!form.breed.trim() || form.breed.trim().length > 50) return 'Rasa je obavezna (maks. 50 karaktera).'
+    const age = Number(form.age)
+    if (!form.age || isNaN(age) || age < 0 || age > 30) return 'Starost mora biti 0–30 godina.'
+    if (form.weight) {
+      const w = Number(form.weight)
+      if (isNaN(w) || w < 0.1 || w > 150) return 'Težina mora biti 0.1–150 kg.'
+    }
+    return null
+  }
+
   const createM = useMutation({
-    mutationFn: () => createDog(buildFormData()),
+    mutationFn: () => {
+      const err = validateDogForm()
+      if (err) return Promise.reject(new Error(err))
+      return createDog(buildFormData())
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['myDogs'] }); closeForm() },
-    onError: () => Alert.alert('Greška', 'Nije moguće dodati psa.'),
+    onError: (e: Error) => Alert.alert('Greška', e.message || 'Nije moguće dodati psa.'),
   })
 
   const updateM = useMutation({
-    mutationFn: () => updateDog(editingDog!.id, buildFormData()),
+    mutationFn: () => {
+      const err = validateDogForm()
+      if (err) return Promise.reject(new Error(err))
+      return updateDog(editingDog!.id, buildFormData())
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['myDogs'] }); closeForm() },
-    onError: () => Alert.alert('Greška', 'Nije moguće sačuvati izmene.'),
+    onError: (e: Error) => Alert.alert('Greška', e.message || 'Nije moguće sačuvati izmene.'),
   })
 
   const deleteM = useMutation({

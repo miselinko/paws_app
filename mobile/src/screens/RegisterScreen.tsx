@@ -139,7 +139,7 @@ export default function RegisterScreen() {
     const errs: Record<string, string> = {}
     if (firstName.trim().length < 2) errs.firstName = 'Obavezno (min. 2 karaktera)'
     if (lastName.trim().length < 2) errs.lastName = 'Obavezno (min. 2 karaktera)'
-    if (!email.trim().includes('@')) errs.email = 'Unesi validan email'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errs.email = 'Unesi validan email'
     if (address.trim().length < 5) errs.address = 'Adresa je obavezna'
     if (password.length < 8) errs.password = 'Minimum 8 karaktera'
     if (password !== password2) errs.password2 = 'Lozinke se ne poklapaju'

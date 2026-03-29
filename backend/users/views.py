@@ -7,14 +7,18 @@ from rest_framework.throttling import AnonRateThrottle
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
-from django.db.models import Count, Q
+from django.db import transaction
+from django.db.models import Avg, Count, Q
 from .serializers import (
     RegisterSerializer, UserSerializer, WalkerListSerializer,
     WalkerProfileSerializer, AdminUserListSerializer, AdminUserDetailSerializer,
 )
 from .permissions import IsAdmin
-from .models import PasswordResetToken, EmailVerificationToken, PushToken, AuditLog
-import math, threading, urllib.request, json as json_lib
+from .models import PasswordResetToken, EmailVerificationToken, PushToken, AuditLog, Favorite
+import logging
+import math, threading, urllib.request, urllib.error, json as json_lib
+
+logger = logging.getLogger(__name__)
 
 
 ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
@@ -67,14 +71,24 @@ def send_push_notification(users, title, body):
     )
     try:
         urllib.request.urlopen(req, timeout=5)
-    except Exception:
-        pass
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError) as e:
+        logger.warning('Push notification failed: %s', e)
+    except Exception as e:
+        logger.error('Unexpected push notification error: %s', e)
+
+
+def _safe_send_mail(*args, **kwargs):
+    """Wrapper for send_mail that logs errors instead of silently failing."""
+    try:
+        send_mail(*args, **kwargs)
+    except Exception as e:
+        logger.error('Failed to send email: %s', e)
 
 
 def send_verification_email(user):
     token = EmailVerificationToken.objects.create(user=user)
     verify_url = f"{settings.FRONTEND_URL}/verify-email?token={token.token}"
-    send_mail(
+    _safe_send_mail(
         subject='Potvrdi svoju email adresu — Paws',
         message=f'Zdravo {user.first_name},\n\nKlikni na link da potvrdiš email adresu:\n{verify_url}\n\nLink važi 24 sata.\n\nTim Paws 🐾',
         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -100,15 +114,17 @@ class VerifyEmailView(APIView):
         if not token_str:
             return Response({'detail': 'Token nije prosleđen.'}, status=400)
         try:
-            token = EmailVerificationToken.objects.select_related('user').get(token=token_str)
+            with transaction.atomic():
+                token = EmailVerificationToken.objects.select_for_update().select_related('user').get(token=token_str)
+                if not token.is_valid():
+                    return Response({'detail': 'Token je istekao. Zatraži novi.'}, status=400)
+                token.user.is_email_verified = True
+                token.user.save(update_fields=['is_email_verified'])
+                token.used = True
+                token.save(update_fields=['used'])
         except (EmailVerificationToken.DoesNotExist, ValueError):
             return Response({'detail': 'Nevažeći token.'}, status=400)
-        if not token.is_valid():
-            return Response({'detail': 'Token je istekao. Zatraži novi.'}, status=400)
-        token.user.is_email_verified = True
-        token.user.save(update_fields=['is_email_verified'])
-        token.used = True
-        token.save(update_fields=['used'])
+        logger.info('Email verified for user %s', token.user.email)
         return Response({'detail': 'Email adresa je potvrđena. Možeš se prijaviti.'})
 
 
@@ -196,7 +212,24 @@ class WalkerListView(generics.ListAPIView):
         qs = User.objects.filter(
             role=User.WALKER,
             walker_profile__active=True
-        ).select_related('walker_profile').prefetch_related('received_reviews')
+        ).select_related('walker_profile').prefetch_related('received_reviews').annotate(
+            avg_rating=Avg('received_reviews__rating'),
+            review_count=Count('received_reviews'),
+        )
+
+        # Pre-fetch favorites for logged-in user
+        fav_ids = set()
+        if self.request.user.is_authenticated:
+            fav_ids = set(
+                Favorite.objects.filter(user=self.request.user).values_list('walker_id', flat=True)
+            )
+
+        # Name search: ?search=marko
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(
+                Q(first_name__icontains=search) | Q(last_name__icontains=search)
+            )
 
         service = self.request.query_params.get('usluga')
         if service:
@@ -219,17 +252,49 @@ class WalkerListView(generics.ListAPIView):
                 lat_f, lng_f, radius_f = float(lat), float(lng), float(radius)
                 results = []
                 for w in qs:
+                    w._is_favorited = w.id in fav_ids
                     if w.lat and w.lng:
                         d = haversine(lat_f, lng_f, float(w.lat), float(w.lng))
                         if d <= radius_f:
                             w.distance = round(d, 1)
                             results.append(w)
                 results.sort(key=lambda w: (not w.walker_profile.is_featured, w.distance))
+                # Store for manual pagination in list()
+                self._distance_results = results
+                self._fav_ids = fav_ids
                 return results
             except (ValueError, TypeError):
                 pass
 
-        return sorted(qs, key=lambda w: not w.walker_profile.is_featured)
+        walkers = list(qs)
+        for w in walkers:
+            w._is_favorited = w.id in fav_ids
+        return sorted(walkers, key=lambda w: not w.walker_profile.is_featured)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        # If distance filter returned a Python list, paginate manually
+        if isinstance(queryset, list):
+            try:
+                page = int(request.query_params.get('page', 1))
+            except (ValueError, TypeError):
+                page = 1
+            try:
+                page_size = min(int(request.query_params.get('page_size', 20)), 100)
+            except (ValueError, TypeError):
+                page_size = 20
+            total = len(queryset)
+            start = (page - 1) * page_size
+            end = start + page_size
+            page_items = queryset[start:end]
+            serializer = self.get_serializer(page_items, many=True)
+            return Response({
+                'count': total,
+                'next': None if end >= total else f'?page={page + 1}&page_size={page_size}',
+                'previous': None if page <= 1 else f'?page={page - 1}&page_size={page_size}',
+                'results': serializer.data,
+            })
+        return super().list(request, *args, **kwargs)
 
 
 class WalkerDetailView(generics.RetrieveAPIView):
@@ -238,6 +303,31 @@ class WalkerDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return User.objects.filter(role=User.WALKER)
+
+
+class ToggleFavoriteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, walker_id):
+        try:
+            walker = User.objects.get(pk=walker_id, role=User.WALKER)
+        except User.DoesNotExist:
+            return Response({'detail': 'Walker not found.'}, status=drf_status.HTTP_404_NOT_FOUND)
+        fav, created = Favorite.objects.get_or_create(user=request.user, walker=walker)
+        if not created:
+            fav.delete()
+            return Response({'is_favorited': False})
+        return Response({'is_favorited': True}, status=drf_status.HTTP_201_CREATED)
+
+
+class FavoritesListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        fav_ids = list(
+            Favorite.objects.filter(user=request.user).values_list('walker_id', flat=True)
+        )
+        return Response(fav_ids)
 
 
 class ForgotPasswordView(APIView):
@@ -260,11 +350,12 @@ class ForgotPasswordView(APIView):
                 f"Ako nisi ti tražio/la reset, ignoriši ovaj email.\n\nPaws tim 🐾"
             )
             threading.Thread(
-                target=send_mail,
+                target=_safe_send_mail,
                 args=(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email]),
                 kwargs={'fail_silently': True},
                 daemon=True,
             ).start()
+            logger.info('Password reset requested for %s', email)
         except User.DoesNotExist:
             pass
         return Response({'detail': 'Ako email postoji u sistemu, poslaćemo ti link za resetovanje.'})
@@ -289,21 +380,22 @@ class ResetPasswordView(APIView):
         token_str = request.data.get('token', '').strip()
         password = request.data.get('password', '')
 
-        try:
-            token = PasswordResetToken.objects.get(token=token_str)
-        except (PasswordResetToken.DoesNotExist, Exception):
-            return Response({'detail': 'Nevažeći ili istekao link.'}, status=400)
-
-        if not token.is_valid():
-            return Response({'detail': 'Link je istekao. Zatraži novi reset lozinke.'}, status=400)
-
         if len(password) < 8:
             return Response({'detail': 'Lozinka mora imati najmanje 8 karaktera.'}, status=400)
 
-        token.user.set_password(password)
-        token.user.save()
-        token.used = True
-        token.save()
+        try:
+            with transaction.atomic():
+                token = PasswordResetToken.objects.select_for_update().get(token=token_str)
+                if not token.is_valid():
+                    return Response({'detail': 'Link je istekao. Zatraži novi reset lozinke.'}, status=400)
+                token.user.set_password(password)
+                token.user.save(update_fields=['password'])
+                token.used = True
+                token.save(update_fields=['used'])
+        except (PasswordResetToken.DoesNotExist, ValueError):
+            return Response({'detail': 'Nevažeći ili istekao link.'}, status=400)
+
+        logger.info('Password reset completed for user %s', token.user.email)
         return Response({'detail': 'Lozinka je uspešno promenjena. Možeš se prijaviti.'})
 
 

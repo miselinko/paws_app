@@ -4,6 +4,8 @@ from dogs.serializers import DogSerializer
 from dogs.models import Dog
 from users.serializers import WalkerReservationInfoSerializer, OwnerInfoSerializer
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -35,8 +37,23 @@ class ReservationSerializer(serializers.ModelSerializer):
                             'last_lat', 'last_lng', 'walk_started_at']
 
     def validate(self, data):
-        if data['start_time'] >= data['end_time']:
-            raise serializers.ValidationError('Start time must be before end time.')
+        start = data['start_time']
+        end = data['end_time']
+        now = timezone.now()
+
+        if start >= end:
+            raise serializers.ValidationError('Početak mora biti pre kraja.')
+        if start < now - timedelta(minutes=5):
+            raise serializers.ValidationError('Početak ne može biti u prošlosti.')
+        if start > now + timedelta(days=90):
+            raise serializers.ValidationError('Rezervacija ne može biti više od 90 dana unapred.')
+        if (end - start) < timedelta(minutes=15):
+            raise serializers.ValidationError('Minimalno trajanje je 15 minuta.')
+
+        duration = data.get('duration')
+        if data.get('service_type') == 'walking' and duration and duration not in [20, 30, 60]:
+            raise serializers.ValidationError('Trajanje šetnje mora biti 20, 30 ili 60 minuta.')
+
         return data
 
     def create(self, validated_data):
@@ -46,7 +63,3 @@ class ReservationSerializer(serializers.ModelSerializer):
         return reservation
 
 
-class ReservationStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reservation
-        fields = ['status']

@@ -4,8 +4,10 @@ import {
   TouchableOpacity, Alert, ActivityIndicator, TextInput, Linking, Platform,
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
+import { useRoute, RouteProp, useNavigation, CompositeNavigationProp } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import * as Location from 'expo-location'
+import MapView, { Marker } from 'react-native-maps'
 import {
   getReservations, cancelReservation, respondReservation,
   completeReservation, startWalk, updateWalkLocation, getWalkLocation,
@@ -15,6 +17,7 @@ import { useAuth } from '../context/AuthContext'
 import { ReservationsStackParamList } from '../navigation/ReservationsNavigator'
 
 type Route = RouteProp<ReservationsStackParamList, 'ReservationDetail'>
+type Nav = NativeStackNavigationProp<ReservationsStackParamList, 'ReservationDetail'>
 
 const GREEN = '#00BF8F'
 const GOLD  = '#FAAB43'
@@ -64,7 +67,7 @@ function walkDuration(startedAt: string | null): string {
 
 export default function ReservationDetailScreen() {
   const route = useRoute<Route>()
-  const navigation = useNavigation()
+  const navigation = useNavigation<Nav>()
   const { reservationId } = route.params
   const { user } = useAuth()
   const qc = useQueryClient()
@@ -92,14 +95,24 @@ export default function ReservationDetailScreen() {
   })
 
   // ── Walker: send GPS every 5s when in_progress ────────────────────────────
+  const [gpsError, setGpsError] = useState(false)
+
   useEffect(() => {
     if (!isInProgress || !isWalker) {
       if (locationIntervalRef.current) {
         clearInterval(locationIntervalRef.current)
         locationIntervalRef.current = null
       }
-      return
+      setGpsError(false)
+      return () => {
+        if (locationIntervalRef.current) {
+          clearInterval(locationIntervalRef.current)
+          locationIntervalRef.current = null
+        }
+      }
     }
+
+    let failCount = 0
 
     const sendLocation = async () => {
       try {
@@ -107,12 +120,22 @@ export default function ReservationDetailScreen() {
           accuracy: Location.Accuracy.Balanced,
         })
         await updateWalkLocation(reservationId, loc.coords.latitude, loc.coords.longitude)
-      } catch {}
+        failCount = 0
+        setGpsError(false)
+      } catch (e) {
+        failCount++
+        if (failCount >= 3) setGpsError(true)
+        console.warn('GPS update failed:', e)
+      }
     }
 
     const start = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') return
+      if (status !== 'granted') {
+        setGpsError(true)
+        Alert.alert('Lokacija', 'Dozvola za lokaciju je potrebna za praćenje šetnje.')
+        return
+      }
       await sendLocation()
       locationIntervalRef.current = setInterval(sendLocation, 5000)
     }
@@ -230,12 +253,38 @@ export default function ReservationDetailScreen() {
           </View>
 
           {walkLocation?.lat ? (
-            <TouchableOpacity
-              style={styles.openMapsBtn}
-              onPress={() => openInMaps(walkLocation.lat!, walkLocation.lng!)}
-            >
-              <Text style={styles.openMapsBtnText}>📍  Prati šetača na mapi</Text>
-            </TouchableOpacity>
+            <>
+              <View style={styles.mapContainer}>
+                <MapView
+                  style={styles.map}
+                  region={{
+                    latitude: parseFloat(walkLocation.lat!),
+                    longitude: parseFloat(walkLocation.lng!),
+                    latitudeDelta: 0.006,
+                    longitudeDelta: 0.006,
+                  }}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  rotateEnabled={false}
+                  pitchEnabled={false}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: parseFloat(walkLocation.lat!),
+                      longitude: parseFloat(walkLocation.lng!),
+                    }}
+                    title={reservation.walker_info.first_name}
+                    description="Trenutna lokacija šetača"
+                  />
+                </MapView>
+              </View>
+              <TouchableOpacity
+                style={styles.openMapsBtn}
+                onPress={() => openInMaps(walkLocation.lat!, walkLocation.lng!)}
+              >
+                <Text style={styles.openMapsBtnText}>🗺️  Otvori u Maps aplikaciji</Text>
+              </TouchableOpacity>
+            </>
           ) : (
             <View style={styles.locatingRow}>
               <ActivityIndicator size="small" color={GREEN} />
@@ -247,15 +296,19 @@ export default function ReservationDetailScreen() {
 
       {/* ── WALKER: GPS tracking status when in_progress ─────────────────── */}
       {isWalker && reservation.status === 'in_progress' && (
-        <View style={styles.gpsActiveCard}>
-          <Text style={styles.gpsActiveIcon}>📡</Text>
+        <View style={[styles.gpsActiveCard, gpsError && { borderColor: '#fca5a5' }]}>
+          <Text style={styles.gpsActiveIcon}>{gpsError ? '⚠️' : '📡'}</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.gpsActiveTitle}>Lokacija se šalje vlasniku</Text>
-            {reservation.walk_started_at ? (
+            <Text style={[styles.gpsActiveTitle, gpsError && { color: '#dc2626' }]}>
+              {gpsError ? 'Problem sa GPS-om' : 'Lokacija se šalje vlasniku'}
+            </Text>
+            {gpsError ? (
+              <Text style={[styles.gpsActiveSubtitle, { color: '#ef4444' }]}>Proveri dozvole za lokaciju</Text>
+            ) : reservation.walk_started_at ? (
               <Text style={styles.gpsActiveSubtitle}>{walkDuration(reservation.walk_started_at)}</Text>
             ) : null}
           </View>
-          <ActivityIndicator size="small" color={GREEN} />
+          {gpsError ? null : <ActivityIndicator size="small" color={GREEN} />}
         </View>
       )}
 
@@ -308,21 +361,15 @@ export default function ReservationDetailScreen() {
       {/* Psi */}
       <Section title="PSI">
         {reservation.dogs.map(dog => (
-          <View key={dog.id} style={styles.dogCard}>
+          <TouchableOpacity key={dog.id} style={styles.dogCard}
+            onPress={() => navigation.navigate('DogProfile', { dogId: dog.id })}
+            activeOpacity={0.7}>
             <View style={styles.dogHeader}>
               <Text style={styles.dogName}>🐕 {dog.name}</Text>
-              <Text style={styles.dogBreed}>{dog.breed}</Text>
+              <Text style={styles.dogArrow}>→</Text>
             </View>
-            <View style={styles.dogMeta}>
-              {dog.age ? <Text style={styles.dogTag}>{dog.age} god.</Text> : null}
-              <Text style={styles.dogTag}>{DOG_SIZE[dog.size] ?? dog.size}</Text>
-              {dog.weight ? <Text style={styles.dogTag}>{dog.weight} kg</Text> : null}
-              <Text style={styles.dogTag}>{dog.gender === 'male' ? '♂ Mužjak' : '♀ Ženka'}</Text>
-              {dog.neutered ? <Text style={[styles.dogTag, { backgroundColor: '#f0fdf9', color: '#065f46' }]}>Kastriran</Text> : null}
-            </View>
-            {dog.temperament ? <Text style={styles.dogNotes}>💬 {dog.temperament}</Text> : null}
-            {dog.notes ? <Text style={styles.dogNotes}>📝 {dog.notes}</Text> : null}
-          </View>
+            <Text style={styles.dogBreed}>{dog.breed}</Text>
+          </TouchableOpacity>
         ))}
       </Section>
 
@@ -480,6 +527,15 @@ const styles = StyleSheet.create({
   },
   liveCardTitle: { fontSize: 15, fontWeight: '800', color: '#065f46' },
   liveCardDuration: { fontSize: 12, fontWeight: '600', color: GREEN },
+  mapContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  map: {
+    width: '100%',
+    height: 200,
+  },
   openMapsBtn: {
     backgroundColor: GREEN,
     borderRadius: 12,
@@ -519,17 +575,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8, marginBottom: 6,
   },
 
-  dogCard: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },
-  dogHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  dogName: { fontSize: 15, fontWeight: '800', color: '#111' },
-  dogBreed: { fontSize: 12, color: '#9ca3af', fontWeight: '500' },
-  dogMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 },
-  dogTag: {
-    fontSize: 11, fontWeight: '700', color: '#6b7280',
-    backgroundColor: '#f3f4f6', borderRadius: 8,
-    paddingHorizontal: 8, paddingVertical: 3,
+  dogCard: {
+    paddingVertical: 12, paddingHorizontal: 4,
+    borderBottomWidth: 1, borderBottomColor: '#f5f5f5',
   },
-  dogNotes: { fontSize: 12, color: '#6b7280', marginTop: 3 },
+  dogHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  dogName: { fontSize: 15, fontWeight: '800', color: '#111' },
+  dogArrow: { fontSize: 16, color: '#9ca3af' },
+  dogBreed: { fontSize: 12, color: '#9ca3af', fontWeight: '500', marginTop: 2 },
 
   reviewSub: { fontSize: 14, color: '#374151', fontWeight: '600', marginBottom: 12 },
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 14 },

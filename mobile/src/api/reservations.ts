@@ -25,7 +25,7 @@ export async function cancelReservation(id: number): Promise<Reservation> {
 }
 
 export async function respondReservation(id: number, status: 'confirmed' | 'rejected'): Promise<Reservation> {
-  const { data } = await client.patch(`/reservations/${id}/respond/`, { status })
+  const { data } = await client.post(`/reservations/${id}/respond/`, { status })
   return data
 }
 

@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Q
 from django.conf import settings
 from django.utils import timezone
@@ -12,8 +13,12 @@ from reservations.models import Reservation
 from dogs.models import Dog
 from groq import Groq
 import json
+import logging
+import re
 import threading
+import unicodedata
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 BOT_SYSTEM_PROMPT = """Ti si Paws Asistent 🐾 — specijalizovani pomoćnik isključivo za Paws platformu za šetanje i čuvanje pasa u Srbiji.
@@ -157,18 +162,21 @@ def execute_tool(name, args, user):
             dogs = Dog.objects.filter(pk__in=dog_ids, owner=user)
             if not dogs.exists():
                 return {'greska': 'Nisu pronađeni psi.'}
-            reservation = Reservation.objects.create(
-                owner=user,
-                walker=walker,
-                service_type=args['service_type'],
-                start_time=args['start_time'],
-                end_time=args['end_time'],
-                notes=args.get('notes', ''),
-                status=Reservation.PENDING,
-            )
-            reservation.dogs.set(dogs)
+            with transaction.atomic():
+                reservation = Reservation.objects.create(
+                    owner=user,
+                    walker=walker,
+                    service_type=args['service_type'],
+                    start_time=args['start_time'],
+                    end_time=args['end_time'],
+                    notes=args.get('notes', ''),
+                    status=Reservation.PENDING,
+                )
+                reservation.dogs.set(dogs)
+            logger.info('Reservation %s created via chat bot for user %s', reservation.id, user.id)
             return {'uspeh': True, 'rezervacija_id': reservation.id, 'status': 'na čekanju'}
         except Exception as e:
+            logger.warning('Chat bot reservation creation failed: %s', e)
             return {'greska': str(e)}
 
     return {'greska': f'Nepoznat alat: {name}'}
@@ -178,13 +186,25 @@ INJECTION_PATTERNS = [
     'ignore previous', 'ignore all', 'forget previous', 'forget all',
     'you are now', 'act as', 'pretend you', 'pretend to be',
     'zaboravi instrukcije', 'zaboravi prethodne', 'ti si sada', 'pretvaraj se',
-    'pokaži instrukcije', 'pokaži prompt', 'prikaži prompt', 'system prompt',
+    'pokazi instrukcije', 'pokazi prompt', 'prikazi prompt', 'system prompt',
     'ignore instructions', 'new instructions', 'override', 'jailbreak',
     'do anything now', 'dan mode', 'developer mode',
 ]
 
 MAX_MESSAGE_LENGTH = 500
 MAX_HISTORY_MESSAGES = 14
+
+
+def _normalize_for_injection(text):
+    """Normalize text to catch injection attempts with unicode, leetspeak, mixed case."""
+    text = unicodedata.normalize('NFKD', text)
+    text = ''.join(c for c in text if not unicodedata.combining(c))
+    text = text.lower()
+    leet = {'0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '@': 'a'}
+    text = ''.join(leet.get(c, c) for c in text)
+    text = re.sub(r'[^a-z0-9\s]', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 
 class BotChatView(APIView):
@@ -201,8 +221,9 @@ class BotChatView(APIView):
             return Response({'reply': 'Poruka je previše dugačka. Molim te skrati pitanje.'})
 
         # Prompt injection detekcija
-        msg_lower = message.lower()
-        if any(pattern in msg_lower for pattern in INJECTION_PATTERNS):
+        normalized = _normalize_for_injection(message)
+        if any(pattern in normalized for pattern in INJECTION_PATTERNS):
+            logger.warning('Injection attempt detected from user %s: %s', request.user.id, message[:100])
             return Response({'reply': 'Ne mogu da pomognem sa tim zahtevom.'})
 
         # Validacija historije — samo dozvoljeni roleovi, bez system poruka
@@ -235,7 +256,8 @@ class BotChatView(APIView):
                     temperature=0.6,
                 )
             except Exception as e:
-                return Response({'reply': f'Greška pri komunikaciji sa AI servisom: {e}'})
+                logger.error('Groq API error: %s', e)
+                return Response({'reply': 'Došlo je do greške. Pokušaj ponovo.'})
 
             msg = completion.choices[0].message
 
@@ -254,8 +276,6 @@ class BotChatView(APIView):
                 })
 
         return Response({'reply': 'Nisam uspeo da završim zahtev. Pokušaj ponovo.'})
-
-User = get_user_model()
 
 
 class ConversationView(APIView):
@@ -279,7 +299,10 @@ class ConversationView(APIView):
         limit = min(int(request.query_params.get('limit', 50)), 100)
         before_id = request.query_params.get('before')
         if before_id:
-            qs = qs.filter(id__lt=int(before_id))
+            try:
+                qs = qs.filter(id__lt=int(before_id))
+            except (ValueError, TypeError):
+                return Response({'detail': 'Nevažeći before parametar.'}, status=400)
 
         page = list(qs[:limit + 1])
         has_more = len(page) > limit
@@ -327,11 +350,13 @@ class ConversationsListView(APIView):
         received = Message.objects.filter(recipient=user).values_list('sender_id', flat=True)
         user_ids = set(list(sent) + list(received))
 
+        # Batch-load all users at once (#9 N+1 fix)
+        users_map = {u.id: u for u in User.objects.filter(pk__in=user_ids)}
+
         result = []
         for uid in user_ids:
-            try:
-                other = User.objects.get(pk=uid)
-            except User.DoesNotExist:
+            other = users_map.get(uid)
+            if not other:
                 continue
 
             messages = Message.objects.filter(

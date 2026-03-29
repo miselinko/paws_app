@@ -2,8 +2,8 @@ import { imgUrl } from '../config'
 import { useState, lazy, Suspense, useRef, useEffect } from 'react'
 import Reveal from '../components/Reveal'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useQuery, useMutation } from '@tanstack/react-query'
-import { getWalker } from '../api/users'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getWalker, toggleFavorite } from '../api/users'
 import { getMyDogs } from '../api/dogs'
 import { createReservation } from '../api/reservations'
 import api from '../api/client'
@@ -977,6 +977,8 @@ function ReviewsSection({ walkerId }: { walkerId: number }) {
 export default function SetacProfilPage() {
   const { id } = useParams<{ id: string }>()
   const walkerId = Number(id)
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   const { data: walker, isLoading } = useQuery<Walker>({
     queryKey: ['walker', id],
@@ -986,6 +988,14 @@ export default function SetacProfilPage() {
     queryKey: ['myDogs'],
     queryFn: getMyDogs,
     enabled: true,
+  })
+
+  const favMutation = useMutation({
+    mutationFn: toggleFavorite,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['walker', id] })
+      queryClient.invalidateQueries({ queryKey: ['walkers'] })
+    },
   })
 
   if (isLoading) return (
@@ -1020,6 +1030,19 @@ export default function SetacProfilPage() {
           </svg>
           Nazad
         </Link>
+
+        {user && walker && (
+          <button
+            onClick={() => favMutation.mutate(walker.id)}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 w-11 h-11 rounded-full flex items-center justify-center transition-all"
+            style={{
+              backgroundColor: walker.is_favorited ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.6)',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            <span className="text-xl">{walker.is_favorited ? '❤️' : '🖤'}</span>
+          </button>
+        )}
 
         <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-6">
           <div className="max-w-5xl mx-auto">
@@ -1090,14 +1113,22 @@ export default function SetacProfilPage() {
           </Reveal>
 
           {/* Map */}
-          {walker.lat && walker.lng && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
-              <h2 className="font-black text-gray-900 text-xl mb-4">Lokacija</h2>
+          <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+            <h2 className="font-black text-gray-900 text-xl mb-4">Lokacija</h2>
+            {walker.lat && walker.lng ? (
               <Suspense fallback={<div className="h-64 bg-gray-100 rounded-xl animate-pulse" />}>
                 <MapaSetac lat={Number(walker.lat)} lng={Number(walker.lng)} name={`${walker.first_name} ${walker.last_name}`} address={walker.address} />
               </Suspense>
-            </div>
-          )}
+            ) : (
+              <div className="h-48 bg-gray-50 rounded-xl flex flex-col items-center justify-center gap-2">
+                <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+                <p className="text-sm text-gray-400">Šetač još nije postavio lokaciju</p>
+              </div>
+            )}
+          </div>
 
           {/* Reviews */}
           <ReviewsSection walkerId={walkerId} />
