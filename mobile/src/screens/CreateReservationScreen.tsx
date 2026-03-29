@@ -19,7 +19,13 @@ function formatLocal(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`
 }
 
-const DURATIONS = [20, 30, 60]
+const DURATIONS = [
+  { label: '30 min', mins: 30 },
+  { label: '1 h', mins: 60 },
+  { label: '1.5 h', mins: 90 },
+  { label: '2 h', mins: 120 },
+  { label: '3 h', mins: 180 },
+]
 
 export default function CreateReservationScreen() {
   const route = useRoute<Route>()
@@ -120,14 +126,14 @@ export default function CreateReservationScreen() {
       {serviceType === 'walking' && (
         <View style={styles.section}>
           <Text style={styles.label}>Trajanje</Text>
-          <View style={styles.row}>
+          <View style={[styles.row, { flexWrap: 'wrap' }]}>
             {DURATIONS.map((d) => (
               <TouchableOpacity
-                key={d}
-                style={[styles.optBtn, duration === d && styles.optBtnActive]}
-                onPress={() => setDuration(d)}
+                key={d.mins}
+                style={[styles.optBtn, duration === d.mins && styles.optBtnActive]}
+                onPress={() => setDuration(d.mins)}
               >
-                <Text style={[styles.optBtnText, duration === d && styles.optBtnTextActive]}>{d} min</Text>
+                <Text style={[styles.optBtnText, duration === d.mins && styles.optBtnTextActive]}>{d.label}</Text>
               </TouchableOpacity>
             ))}
           </View>

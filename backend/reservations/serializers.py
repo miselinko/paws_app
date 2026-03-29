@@ -51,8 +51,8 @@ class ReservationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Minimalno trajanje je 15 minuta.')
 
         duration = data.get('duration')
-        if data.get('service_type') == 'walking' and duration and duration not in [20, 30, 60]:
-            raise serializers.ValidationError('Trajanje šetnje mora biti 20, 30 ili 60 minuta.')
+        if data.get('service_type') == 'walking' and duration and duration not in [30, 60, 90, 120, 180]:
+            raise serializers.ValidationError('Trajanje šetnje mora biti 30, 60, 90, 120 ili 180 minuta.')
 
         return data
 

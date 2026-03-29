@@ -299,7 +299,7 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
             return (
               <View style={[styles.msgRow, isMine ? styles.msgRowRight : styles.msgRowLeft]}>
                 {!isMine && <Avatar {...item.sender} id={item.sender.id} size={30} />}
-                <View style={{ flexShrink: 1, gap: 3, alignItems: isMine ? 'flex-end' : 'flex-start' }}>
+                <View style={{ flex: 1, gap: 3, alignItems: isMine ? 'flex-end' : 'flex-start' }}>
                   <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
                     <Text style={[styles.bubbleText, isMine && { color: '#fff' }]}>{item.text}</Text>
                   </View>

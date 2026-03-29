@@ -4,6 +4,7 @@ import { login as apiLogin } from '../api/auth'
 import { getProfile } from '../api/users'
 import { User } from '../types'
 import { registerPushToken } from '../utils/notifications'
+import { queryClient } from './queryClient'
 
 interface AuthContextType {
   isLoggedIn: boolean
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function logout() {
     await AsyncStorage.multiRemove(['access_token', 'refresh_token'])
+    queryClient.clear()
     setIsLoggedIn(false)
     setUser(null)
   }

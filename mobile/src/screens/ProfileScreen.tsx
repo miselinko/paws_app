@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
+import * as Location from 'expo-location'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   getProfile, updateMyProfile, updateWalkerProfile,
@@ -18,8 +19,7 @@ import { User, DaySchedule, Review } from '../types'
 const GREEN = '#00BF8F'
 const GOLD  = '#FAAB43'
 const DAYS  = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
-const PHOTON_URL = 'https://photon.komoot.io/api/'
-const SERBIA_BBOX = '18.8,42.2,23.0,46.2'
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'
 
 const SCHED_TIMES = Array.from({ length: 30 }, (_, i) => {
   const h = Math.floor(i / 2) + 7
@@ -27,13 +27,26 @@ const SCHED_TIMES = Array.from({ length: 30 }, (_, i) => {
   return `${String(h).padStart(2, '0')}:${m}`
 })
 
-interface PhotonFeature {
-  geometry: { coordinates: [number, number] }
-  properties: { name?: string; street?: string; housenumber?: string; city?: string; county?: string; state?: string; country?: string }
+interface NominatimResult {
+  lat: string; lon: string; display_name: string
+  address: { road?: string; house_number?: string; city?: string; town?: string; village?: string; state?: string }
 }
-function fmtAddr(p: PhotonFeature['properties']): string {
-  const street = p.street ? (p.housenumber ? `${p.street} ${p.housenumber}` : p.street) : p.name ?? ''
-  return [street, p.city || p.county].filter(Boolean).join(', ')
+function fmtAddress(r: NominatimResult): string {
+  const { road, house_number, city, town, village } = r.address
+  const street = road ? (house_number ? `${road} ${house_number}` : road) : ''
+  const place = city || town || village || ''
+  return [street, place].filter(Boolean).join(', ') || r.display_name.split(',').slice(0, 2).join(',').trim()
+}
+
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=sr`
+  const res = await fetch(url, { headers: { 'User-Agent': 'PawsApp/1.0' } })
+  const data = await res.json()
+  const a = data.address
+  if (!a) return data.display_name || ''
+  const street = a.road ? `${a.road}${a.house_number ? ` ${a.house_number}` : ''}` : ''
+  const city = a.city || a.town || a.village || a.county || ''
+  return [street, city].filter(Boolean).join(', ') || data.display_name || ''
 }
 
 const defaultAvailability = (): Record<string, DaySchedule> =>
@@ -45,16 +58,40 @@ const SVC_OPTIONS = [
   { val: 'both' as const, icon: '🐾', label: 'Sve' },
 ]
 
-// ─── Address autocomplete ────────────────────────────────────────────────────
+// ─── Address autocomplete with GPS ───────────────────────────────────────────
 
-function AdresaInput({ value, onChange }: {
+function AdresaInput({ value, coords, onChange }: {
   value: string
+  coords?: { lat: number | null; lng: number | null }
   onChange: (addr: string, lat?: number, lng?: number) => void
 }) {
-  const [results, setResults] = useState<PhotonFeature[]>([])
+  const [results, setResults] = useState<NominatimResult[]>([])
   const [loading, setLoading] = useState(false)
+  const [isLocating, setIsLocating] = useState(false)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abort = useRef<AbortController | null>(null)
+
+  async function handleGpsLocate() {
+    setIsLocating(true)
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        Alert.alert('Dozvola odbijena', 'Omogući pristup lokaciji u podešavanjima.')
+        return
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+      const lat = parseFloat(pos.coords.latitude.toFixed(6))
+      const lng = parseFloat(pos.coords.longitude.toFixed(6))
+      const addr = await reverseGeocode(lat, lng)
+      if (!addr) { Alert.alert('Greška', 'Nije moguće očitati adresu sa lokacije.'); return }
+      onChange(addr, lat, lng)
+      setResults([])
+    } catch {
+      Alert.alert('Greška', 'Nije moguće dobiti lokaciju.')
+    } finally {
+      setIsLocating(false)
+    }
+  }
 
   function search(q: string) {
     onChange(q)
@@ -65,44 +102,58 @@ function AdresaInput({ value, onChange }: {
       abort.current = new AbortController()
       setLoading(true)
       try {
-        const url = `${PHOTON_URL}?q=${encodeURIComponent(q)}&limit=8&lang=sr&bbox=${SERBIA_BBOX}`
-        const res = await fetch(url, { signal: abort.current.signal })
-        const data: { features: PhotonFeature[] } = await res.json()
-        const all = data.features || []
-        const sr = all.filter(f => f.properties.country === 'Serbia')
-        setResults((sr.length > 0 ? sr : all).slice(0, 5))
-      } catch { /* ignore */ } finally { setLoading(false) }
+        const url = `${NOMINATIM_URL}?q=${encodeURIComponent(q)}&format=json&limit=5&countrycodes=rs&addressdetails=1`
+        const res = await fetch(url, {
+          signal: abort.current.signal,
+          headers: { 'Accept-Language': 'sr', 'User-Agent': 'PawsApp/1.0' },
+        })
+        const data: NominatimResult[] = await res.json()
+        setResults(data.slice(0, 5))
+      } catch { /* ignore abort */ } finally { setLoading(false) }
     }, 450)
   }
 
-  function select(f: PhotonFeature) {
-    const [lng, lat] = f.geometry.coordinates
-    onChange(fmtAddr(f.properties), lat, lng)
+  function select(r: NominatimResult) {
+    onChange(fmtAddress(r), parseFloat(r.lat), parseFloat(r.lon))
     setResults([])
   }
 
+  const hasCoords = coords?.lat != null && coords?.lng != null
+
   return (
     <View>
-      <View style={{ position: 'relative' }}>
+      <View style={s.addrWrap}>
         <TextInput
-          style={s.input}
+          style={[s.input, { paddingRight: 48 }]}
           value={value}
           onChangeText={search}
           placeholder="npr. Bulevar Oslobođenja 12, Novi Sad"
           placeholderTextColor="#9ca3af"
           autoCorrect={false}
         />
-        {loading && <ActivityIndicator size="small" color={GREEN} style={{ position: 'absolute', right: 12, top: 14 }} />}
+        <TouchableOpacity
+          style={s.gpsBtn}
+          onPress={handleGpsLocate}
+          disabled={isLocating || loading}
+        >
+          {isLocating
+            ? <ActivityIndicator size="small" color={GREEN} />
+            : hasCoords
+              ? <Text style={{ fontSize: 16, color: GREEN }}>✓</Text>
+              : <Text style={{ fontSize: 16 }}>📍</Text>
+          }
+        </TouchableOpacity>
       </View>
       {results.length > 0 && (
         <View style={s.addrDropdown}>
-          {results.map((f, i) => (
+          {results.map((r, i) => (
             <TouchableOpacity
               key={i}
               style={[s.addrItem, i < results.length - 1 && { borderBottomWidth: 1, borderBottomColor: '#f5f5f5' }]}
-              onPress={() => select(f)}
+              onPress={() => select(r)}
             >
-              <Text style={s.addrItemMain}>📍 {fmtAddr(f.properties)}</Text>
+              <Text style={s.addrItemMain}>{fmtAddress(r)}</Text>
+              {r.address.state && <Text style={s.addrItemSub}>{r.address.state}</Text>}
             </TouchableOpacity>
           ))}
         </View>
@@ -377,9 +428,9 @@ export default function ProfileScreen() {
               <Text style={s.label}>ADRESA</Text>
               <AdresaInput
                 value={form.address}
+                coords={{ lat: form.lat, lng: form.lng }}
                 onChange={(addr, lat, lng) => setForm(f => ({ ...f, address: addr, lat: lat ?? f.lat, lng: lng ?? f.lng }))}
               />
-              {form.lat && form.lng && <Text style={s.coordsOk}>✓ Lokacija potvrđena</Text>}
             </View>
             <View style={s.btnRow}>
               <TouchableOpacity style={s.cancelBtn} onPress={() => {
@@ -823,9 +874,15 @@ const s = StyleSheet.create({
   dangerBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
   // Address autocomplete
+  addrWrap: { position: 'relative' },
+  gpsBtn: {
+    position: 'absolute', right: 10, top: 0, bottom: 0,
+    justifyContent: 'center', alignItems: 'center', width: 36,
+  },
   addrDropdown: { borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 12, backgroundColor: '#fff', marginTop: 4, elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
   addrItem: { paddingHorizontal: 14, paddingVertical: 12 },
   addrItemMain: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  addrItemSub: { fontSize: 11, color: '#9ca3af', marginTop: 2 },
 
   // Time picker modal
   modal: { flex: 1, backgroundColor: '#fff' },
