@@ -27,9 +27,6 @@ const walkerIcon = new L.Icon({
   iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
 })
 
-const SIZE_SR: Record<string, string> = { small: 'Mali', medium: 'Srednji', large: 'Veliki' }
-const GENDER_SR: Record<string, string> = { male: '♂ Muški', female: '♀ Ženski' }
-
 const STATUS = {
   pending:     { label: 'Na čekanju', color: '#92400e', bg: '#fef3c7', border: '#f59e0b' },
   confirmed:   { label: 'Potvrđeno',  color: '#065f46', bg: '#d1fae5', border: '#00BF8F' },
