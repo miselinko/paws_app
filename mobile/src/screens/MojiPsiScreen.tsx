@@ -304,6 +304,7 @@ export default function MojiPsiScreen() {
   const filteredBreeds = PASMINE.filter(p => p.toLowerCase().includes(breedSearch.toLowerCase()))
 
   function handleSubmit() {
+    if (isPending) return
     if (!form.name.trim()) { Alert.alert('Greška', 'Unesite ime psa.'); return }
     if (!form.breed.trim()) { Alert.alert('Greška', 'Izaberi rasu.'); return }
     if (!form.age.trim()) { Alert.alert('Greška', 'Unesite starost psa.'); return }

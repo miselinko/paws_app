@@ -20,12 +20,12 @@ export async function createDog(formData: FormData): Promise<Dog> {
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
   })
+  const body = await res.json().catch(() => null)
   if (!res.ok) {
-    const body = await res.json().catch(() => null)
     const msg = body?.detail || (body ? Object.values(body).flat().join(', ') : '') || 'Greška pri kreiranju psa'
     throw new Error(msg)
   }
-  return res.json()
+  return body
 }
 
 export async function updateDog(id: number, formData: FormData): Promise<Dog> {
@@ -35,12 +35,12 @@ export async function updateDog(id: number, formData: FormData): Promise<Dog> {
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
   })
+  const body = await res.json().catch(() => null)
   if (!res.ok) {
-    const body = await res.json().catch(() => null)
     const msg = body?.detail || (body ? Object.values(body).flat().join(', ') : '') || 'Greška pri ažuriranju psa'
     throw new Error(msg)
   }
-  return res.json()
+  return body
 }
 
 export async function deleteDog(id: number): Promise<void> {
