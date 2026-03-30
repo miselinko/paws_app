@@ -65,7 +65,14 @@ def send_push_notification(users, title, body):
     tokens = list(PushToken.objects.filter(user__in=users).values_list('token', flat=True))
     if not tokens:
         return
-    messages = [{'to': t, 'title': title, 'body': body, 'sound': 'default'} for t in tokens]
+    messages = [{
+        'to': t,
+        'title': title,
+        'body': body,
+        'sound': 'default',
+        'priority': 'high',
+        'channelId': 'default',
+    } for t in tokens]
     payload = json_lib.dumps(messages).encode('utf-8')
     req = urllib.request.Request(
         'https://exp.host/--/api/v2/push/send',
