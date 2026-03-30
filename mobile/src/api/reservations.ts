@@ -54,3 +54,8 @@ export async function getWalkLocation(id: number): Promise<WalkLocation> {
   const { data } = await client.get(`/reservations/${id}/location/`)
   return data
 }
+
+export async function getPendingCount(): Promise<number> {
+  const { data } = await client.get('/reservations/pending-count/')
+  return data.count ?? 0
+}

@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react'
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, Alert, ActivityIndicator, TextInput, Linking, Platform,
+  Image,
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRoute, RouteProp, useNavigation, CompositeNavigationProp } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import * as Location from 'expo-location'
-import MapView, { Marker } from 'react-native-maps'
 import {
   getReservations, cancelReservation, respondReservation,
   completeReservation, startWalk, updateWalkLocation, getWalkLocation,
@@ -256,28 +256,11 @@ export default function ReservationDetailScreen() {
           {walkLocation?.lat && walkLocation?.lng && !isNaN(parseFloat(walkLocation.lat)) && !isNaN(parseFloat(walkLocation.lng)) ? (
             <>
               <View style={styles.mapContainer}>
-                <MapView
+                <Image
+                  source={{ uri: `https://staticmap.openstreetmap.de/staticmap.php?center=${walkLocation.lat},${walkLocation.lng}&zoom=16&size=600x300&markers=${walkLocation.lat},${walkLocation.lng},red-pushpin` }}
                   style={styles.map}
-                  region={{
-                    latitude: parseFloat(walkLocation.lat),
-                    longitude: parseFloat(walkLocation.lng),
-                    latitudeDelta: 0.006,
-                    longitudeDelta: 0.006,
-                  }}
-                  scrollEnabled={false}
-                  zoomEnabled={false}
-                  rotateEnabled={false}
-                  pitchEnabled={false}
-                >
-                  <Marker
-                    coordinate={{
-                      latitude: parseFloat(walkLocation.lat),
-                      longitude: parseFloat(walkLocation.lng),
-                    }}
-                    title={reservation.walker_info.first_name}
-                    description="Trenutna lokacija šetača"
-                  />
-                </MapView>
+                  resizeMode="cover"
+                />
               </View>
               <TouchableOpacity
                 style={styles.openMapsBtn}

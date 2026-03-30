@@ -12,7 +12,7 @@ A platform connecting dog owners with walkers and sitters. Built for the Serbian
 | **Images** | Cloudinary |
 | **AI Chat** | Groq API (Llama 4) |
 | **Maps (web)** | Leaflet + react-leaflet |
-| **Maps (mobile)** | react-native-maps (Google Maps) + expo-location |
+| **Maps (mobile)** | OpenStreetMap static maps + expo-location |
 | **Notifications** | Expo Push Notifications |
 | **Hosting** | Render (backend), Vercel (frontend), Neon (PostgreSQL) |
 
@@ -98,9 +98,10 @@ APK output: `mobile/android/app/build/outputs/apk/release/app-release.apk`
 ### Backend (`.env`)
 
 ```env
-SECRET_KEY=
-DEBUG=True
-DATABASE_URL=                     # or DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+SECRET_KEY=                               # REQUIRED — no default, app won't start without it
+DEBUG=False                               # default is False, set True for local dev
+DATABASE_URL=                             # or DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
@@ -140,13 +141,13 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 - Create bookings with dog selection, time slot, service type
 - Lifecycle: pending → confirmed → in_progress → completed
 - Walker accepts/rejects, owner cancels (blocked within 3h of start)
-- Validations: min 15 min duration, max 90 days ahead, walking must be 20/30/60 min
+- Validations: min 15 min duration, max 90 days ahead, walking must be 30/60/90/120/180 min
 - Atomic transactions to prevent race conditions
 
 ### Live GPS Tracking
 - Walker broadcasts location every 5s during a walk
 - Web: owner watches on a Leaflet map in real-time
-- Mobile: in-app MapView with live marker + GPS permission error handling
+- Mobile: static OpenStreetMap image with live marker + "Open in Maps" button + GPS error handling
 - Coordinate validation (lat -90..90, lng -180..180)
 
 ### Dogs
@@ -167,6 +168,7 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 ### Push Notifications
 - Expo push notifications on reservation status changes
 - Notifications when a walk starts/ends
+- Badge counts on tab bar (unread messages + pending reservations)
 
 ### Admin Panel
 - Available on both web and mobile
@@ -174,6 +176,21 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 - View all reservations, reviews, dogs
 - Dashboard with stats
 - All actions logged to AuditLog
+
+### Security
+- Registration restricted to owner/walker roles only (no admin via API)
+- Role is read-only after registration — cannot be changed via profile update
+- Admin endpoints protected with IsAdmin permission class + AuditLog
+- CORS domain whitelist (no allow-all)
+- Rate limiting: login 10/min, registration 20/hr, password reset 5/hr
+- Dog ownership validation — users can only reserve their own dogs
+- Walker role + active status verification on reservations
+- Chat bot reservation creation validates times, service type, walker status
+- Direct message length limit (2000 chars)
+- Chat prompt injection detection with unicode normalization
+- Image upload validation (type whitelist + 5 MB size limit)
+- Native DateTimePicker prevents selecting past dates/times
+- Health check endpoint: `GET /api/health/` (no DB queries)
 
 ### Other
 - Deep linking: `paws://` scheme + `https://paws.rs`
@@ -186,8 +203,9 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 
 ### Auth
 ```
-POST   /api/auth/login/                    JWT login (access + refresh token)
-POST   /api/auth/token/refresh/            Refresh access token
+POST   /api/auth/login/                    JWT login (throttled: 10/min)
+POST   /api/auth/refresh/                  Refresh access token
+GET    /api/health/                        Health check (no DB)
 ```
 
 ### Users

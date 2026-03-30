@@ -181,7 +181,7 @@ function WalkerCard({ walker, onPress, onFavorite, isLoggedIn }: { walker: User;
             style={[styles.heartBtn, walker.is_favorited && styles.heartBtnActive]}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.heartText}>{walker.is_favorited ? '❤️' : '🖤'}</Text>
+            <Text style={styles.heartText}>{walker.is_favorited ? '❤️' : '🤍'}</Text>
           </TouchableOpacity>
         )}
       </Pressable>

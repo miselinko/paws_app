@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator,
+  TextInput, Alert, ActivityIndicator, Platform,
 } from 'react-native'
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
 import { getDogs } from '../api/dogs'
@@ -17,6 +18,13 @@ function pad(n: number) {
 
 function formatLocal(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`
+}
+
+function fmtDate(d: Date) {
+  return d.toLocaleDateString('sr-Latn', { day: '2-digit', month: 'long', year: 'numeric' })
+}
+function fmtTime(d: Date) {
+  return d.toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })
 }
 
 const DURATIONS = [
@@ -41,11 +49,15 @@ export default function CreateReservationScreen() {
   const [serviceType, setServiceType] = useState<'walking' | 'boarding' | null>(null)
   const [selectedDogs, setSelectedDogs] = useState<number[]>([])
   const [duration, setDuration] = useState<number | null>(null)
-  const [startDate, setStartDate] = useState('')
-  const [startTime, setStartTime] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [endTime, setEndTime] = useState('')
   const [notes, setNotes] = useState('')
+
+  // Date/time picker state — zaokružen start na sledećih 30 min
+  const now = new Date()
+  const roundedStart = new Date(now.getTime() + (30 - now.getMinutes() % 30) * 60000)
+  const [startDateTime, setStartDateTime] = useState<Date>(roundedStart)
+  const [endDateTime, setEndDateTime] = useState<Date>(new Date(roundedStart.getTime() + 60 * 60000))
+
+  const [showPicker, setShowPicker] = useState<'startDate' | 'startTime' | 'endDate' | 'endTime' | null>(null)
 
   const mutation = useMutation({
     mutationFn: createReservation,
@@ -66,6 +78,40 @@ export default function CreateReservationScreen() {
     )
   }
 
+  function onPickerChange(event: DateTimePickerEvent, date?: Date) {
+    if (Platform.OS === 'android') setShowPicker(null)
+    if (event.type === 'dismissed' || !date) return
+
+    if (showPicker === 'startDate') {
+      const merged = new Date(date)
+      merged.setHours(startDateTime.getHours(), startDateTime.getMinutes())
+      setStartDateTime(merged)
+      if (merged >= endDateTime) {
+        setEndDateTime(new Date(merged.getTime() + 60 * 60000))
+      }
+    } else if (showPicker === 'startTime') {
+      const merged = new Date(startDateTime)
+      merged.setHours(date.getHours(), date.getMinutes())
+      setStartDateTime(merged)
+      if (merged >= endDateTime) {
+        setEndDateTime(new Date(merged.getTime() + 60 * 60000))
+      }
+    } else if (showPicker === 'endDate') {
+      const merged = new Date(date)
+      merged.setHours(endDateTime.getHours(), endDateTime.getMinutes())
+      setEndDateTime(merged)
+    } else if (showPicker === 'endTime') {
+      const merged = new Date(endDateTime)
+      merged.setHours(date.getHours(), date.getMinutes())
+      setEndDateTime(merged)
+    }
+  }
+
+  function handleDurationSelect(mins: number) {
+    setDuration(mins)
+    setEndDateTime(new Date(startDateTime.getTime() + mins * 60000))
+  }
+
   function handleSubmit() {
     if (!serviceType) {
       Alert.alert('Greška', 'Izaberi tip usluge (Šetanje ili Čuvanje).')
@@ -75,14 +121,12 @@ export default function CreateReservationScreen() {
       Alert.alert('Greška', 'Izaberi bar jednog psa.')
       return
     }
-    if (!startDate || !startTime || !endDate || !endTime) {
-      Alert.alert('Greška', 'Unesite datum i vreme početka i kraja.')
+    if (startDateTime >= endDateTime) {
+      Alert.alert('Greška', 'Vreme početka mora biti pre kraja.')
       return
     }
-    const start = `${startDate}T${startTime}:00`
-    const end = `${endDate}T${endTime}:00`
-    if (new Date(start) >= new Date(end)) {
-      Alert.alert('Greška', 'Vreme početka mora biti pre kraja.')
+    if (startDateTime < new Date()) {
+      Alert.alert('Greška', 'Početak ne može biti u prošlosti.')
       return
     }
     mutation.mutate({
@@ -90,8 +134,8 @@ export default function CreateReservationScreen() {
       dog_ids: selectedDogs,
       service_type: serviceType,
       duration: serviceType === 'walking' && duration ? duration : undefined,
-      start_time: start,
-      end_time: end,
+      start_time: formatLocal(startDateTime),
+      end_time: formatLocal(endDateTime),
       notes,
     })
   }
@@ -99,6 +143,9 @@ export default function CreateReservationScreen() {
   if (dogsLoading) {
     return <View style={styles.center}><ActivityIndicator size="large" color="#00BF8F" /></View>
   }
+
+  const pickerMode = showPicker?.includes('Date') ? 'date' : 'time'
+  const pickerValue = showPicker?.startsWith('start') ? startDateTime : endDateTime
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -131,7 +178,7 @@ export default function CreateReservationScreen() {
               <TouchableOpacity
                 key={d.mins}
                 style={[styles.optBtn, duration === d.mins && styles.optBtnActive]}
-                onPress={() => setDuration(d.mins)}
+                onPress={() => handleDurationSelect(d.mins)}
               >
                 <Text style={[styles.optBtnText, duration === d.mins && styles.optBtnTextActive]}>{d.label}</Text>
               </TouchableOpacity>
@@ -160,43 +207,56 @@ export default function CreateReservationScreen() {
         )}
       </View>
 
-      {/* Datum i vreme */}
+      {/* Datum i vreme — native pickeri */}
       <View style={styles.section}>
-        <Text style={styles.label}>Početak (datum i vreme)</Text>
+        <Text style={styles.label}>Početak</Text>
         <View style={styles.dateRow}>
-          <TextInput
-            style={[styles.input, styles.dateInput]}
-            placeholder="2025-12-01"
-            value={startDate}
-            onChangeText={setStartDate}
-            maxLength={10}
-          />
-          <TextInput
-            style={[styles.input, styles.timeInput]}
-            placeholder="09:00"
-            value={startTime}
-            onChangeText={setStartTime}
-            maxLength={5}
-          />
+          <TouchableOpacity style={[styles.pickerBtn, { flex: 2 }]} onPress={() => setShowPicker('startDate')}>
+            <Text style={styles.pickerBtnText}>📅 {fmtDate(startDateTime)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.pickerBtn, { flex: 1 }]} onPress={() => setShowPicker('startTime')}>
+            <Text style={styles.pickerBtnText}>🕐 {fmtTime(startDateTime)}</Text>
+          </TouchableOpacity>
         </View>
-        <Text style={styles.label}>Kraj (datum i vreme)</Text>
+
+        <Text style={[styles.label, { marginTop: 12 }]}>Kraj</Text>
         <View style={styles.dateRow}>
-          <TextInput
-            style={[styles.input, styles.dateInput]}
-            placeholder="2025-12-01"
-            value={endDate}
-            onChangeText={setEndDate}
-            maxLength={10}
-          />
-          <TextInput
-            style={[styles.input, styles.timeInput]}
-            placeholder="10:00"
-            value={endTime}
-            onChangeText={setEndTime}
-            maxLength={5}
-          />
+          <TouchableOpacity style={[styles.pickerBtn, { flex: 2 }]} onPress={() => setShowPicker('endDate')}>
+            <Text style={styles.pickerBtnText}>📅 {fmtDate(endDateTime)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.pickerBtn, { flex: 1 }]} onPress={() => setShowPicker('endTime')}>
+            <Text style={styles.pickerBtnText}>🕐 {fmtTime(endDateTime)}</Text>
+          </TouchableOpacity>
         </View>
       </View>
+
+      {/* Native DateTimePicker */}
+      {showPicker && (
+        Platform.OS === 'ios' ? (
+          <View style={styles.iosPickerWrap}>
+            <View style={styles.iosPickerHeader}>
+              <TouchableOpacity onPress={() => setShowPicker(null)}>
+                <Text style={styles.iosPickerDone}>Gotovo</Text>
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              value={pickerValue!}
+              mode={pickerMode as 'date' | 'time'}
+              display="spinner"
+              minimumDate={new Date()}
+              onChange={onPickerChange}
+            />
+          </View>
+        ) : (
+          <DateTimePicker
+            value={pickerValue!}
+            mode={pickerMode as 'date' | 'time'}
+            display="default"
+            minimumDate={new Date()}
+            onChange={onPickerChange}
+          />
+        )
+      )}
 
       {/* Napomene */}
       <View style={styles.section}>
@@ -252,12 +312,23 @@ const styles = StyleSheet.create({
   check: { color: '#00BF8F', fontWeight: '700', fontSize: 16 },
   emptyText: { color: '#999', fontSize: 14 },
   dateRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  pickerBtn: {
+    borderWidth: 1, borderColor: '#ddd', borderRadius: 10,
+    paddingHorizontal: 14, paddingVertical: 13, backgroundColor: '#fafafa',
+  },
+  pickerBtnText: { fontSize: 15, color: '#333', fontWeight: '500' },
+  iosPickerWrap: {
+    backgroundColor: '#fff', borderRadius: 12, marginBottom: 12, overflow: 'hidden',
+  },
+  iosPickerHeader: {
+    flexDirection: 'row', justifyContent: 'flex-end', padding: 12,
+    borderBottomWidth: 1, borderBottomColor: '#f0f0f0',
+  },
+  iosPickerDone: { color: '#00BF8F', fontWeight: '700', fontSize: 16 },
   input: {
     borderWidth: 1, borderColor: '#ddd', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, backgroundColor: '#fafafa',
   },
-  dateInput: { flex: 2 },
-  timeInput: { flex: 1 },
   textarea: { height: 80, textAlignVertical: 'top' },
   submitBtn: {
     backgroundColor: '#00BF8F', borderRadius: 12,

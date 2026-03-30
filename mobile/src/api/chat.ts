@@ -50,3 +50,8 @@ export async function sendBotMessage(
 export async function deleteConversation(userId: number): Promise<void> {
   await client.delete(`/chat/${userId}/delete/`)
 }
+
+export async function getUnreadCount(): Promise<number> {
+  const { data } = await client.get('/chat/unread/')
+  return data.count ?? 0
+}
