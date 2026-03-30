@@ -152,6 +152,9 @@ def execute_tool(name, args, user):
         try:
             walker_id = int(args['walker_id'])
             walker = User.objects.get(pk=walker_id, role=User.WALKER)
+            # Verify walker is active
+            if hasattr(walker, 'walker_profile') and not walker.walker_profile.active:
+                return {'greska': 'Šetač trenutno nije aktivan.'}
             raw_dog_ids = args.get('dog_ids', '')
             if isinstance(raw_dog_ids, list):
                 dog_ids = [int(d) for d in raw_dog_ids]
@@ -162,19 +165,46 @@ def execute_tool(name, args, user):
             dogs = Dog.objects.filter(pk__in=dog_ids, owner=user)
             if not dogs.exists():
                 return {'greska': 'Nisu pronađeni psi.'}
+            # Validate service type
+            if args.get('service_type') not in ('walking', 'boarding'):
+                return {'greska': 'Tip usluge mora biti walking ili boarding.'}
+            # Validate times
+            from django.utils import timezone as tz
+            from datetime import timedelta as td
+            from django.utils.dateparse import parse_datetime
+            start = parse_datetime(args['start_time'])
+            end = parse_datetime(args['end_time'])
+            if not start or not end:
+                return {'greska': 'Nevažeći format datuma.'}
+            if timezone.is_naive(start):
+                start = timezone.make_aware(start)
+            if timezone.is_naive(end):
+                end = timezone.make_aware(end)
+            now = tz.now()
+            if start >= end:
+                return {'greska': 'Početak mora biti pre kraja.'}
+            if start < now - td(minutes=5):
+                return {'greska': 'Početak ne može biti u prošlosti.'}
+            if (end - start) < td(minutes=15):
+                return {'greska': 'Minimalno trajanje je 15 minuta.'}
             with transaction.atomic():
                 reservation = Reservation.objects.create(
                     owner=user,
                     walker=walker,
                     service_type=args['service_type'],
-                    start_time=args['start_time'],
-                    end_time=args['end_time'],
+                    start_time=start,
+                    end_time=end,
                     notes=args.get('notes', ''),
                     status=Reservation.PENDING,
                 )
                 reservation.dogs.set(dogs)
             logger.info('Reservation %s created via chat bot for user %s', reservation.id, user.id)
             return {'uspeh': True, 'rezervacija_id': reservation.id, 'status': 'na čekanju'}
+        except User.DoesNotExist:
+            return {'greska': 'Šetač nije pronađen.'}
+        except (ValueError, TypeError) as e:
+            logger.warning('Chat bot reservation creation failed: %s', e)
+            return {'greska': 'Nevažeći podaci za rezervaciju.'}
         except Exception as e:
             logger.warning('Chat bot reservation creation failed: %s', e)
             return {'greska': str(e)}
@@ -320,6 +350,8 @@ class ConversationView(APIView):
         text = request.data.get('text', '').strip()
         if not text:
             return Response({'detail': 'Message cannot be empty.'}, status=400)
+        if len(text) > 2000:
+            return Response({'detail': 'Poruka je previše dugačka (max 2000 karaktera).'}, status=400)
 
         message = Message.objects.create(
             sender=request.user,

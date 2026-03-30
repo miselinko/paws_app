@@ -41,6 +41,10 @@ class LoginRateThrottle(AnonRateThrottle):
 class PasswordResetThrottle(AnonRateThrottle):
     scope = 'password_reset'
 
+
+class RegisterThrottle(AnonRateThrottle):
+    scope = 'register'
+
 class WalkerPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'
@@ -100,6 +104,7 @@ def send_verification_email(user):
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [RegisterThrottle]
 
     def perform_create(self, serializer):
         user = serializer.save()

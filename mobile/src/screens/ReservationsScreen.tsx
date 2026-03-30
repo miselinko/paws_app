@@ -40,15 +40,15 @@ function StaggerItem({ index, children }: { index: number; children: React.React
     Animated.spring(anim, {
       toValue: 1,
       useNativeDriver: true,
-      delay: Math.min(index * 60, 360),
-      tension: 80,
-      friction: 9,
+      delay: Math.min(index * 35, 200),
+      tension: 100,
+      friction: 10,
     }).start()
   }, [index, anim])
   return (
     <Animated.View style={{
       opacity: anim,
-      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }],
+      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
     }}>
       {children}
     </Animated.View>
@@ -117,6 +117,7 @@ export default function ReservationsScreen() {
   const { data: reservations = [], isLoading, refetch } = useQuery({
     queryKey: ['reservations'],
     queryFn: getReservations,
+    refetchInterval: 10000,
   })
 
   const filtered = filter === 'sve'

@@ -37,6 +37,7 @@ class ReservationSerializer(serializers.ModelSerializer):
                             'last_lat', 'last_lng', 'walk_started_at']
 
     def validate(self, data):
+        request = self.context.get('request')
         start = data['start_time']
         end = data['end_time']
         now = timezone.now()
@@ -53,6 +54,20 @@ class ReservationSerializer(serializers.ModelSerializer):
         duration = data.get('duration')
         if data.get('service_type') == 'walking' and duration and duration not in [30, 60, 90, 120, 180]:
             raise serializers.ValidationError('Trajanje šetnje mora biti 30, 60, 90, 120 ili 180 minuta.')
+
+        # Validate dog ownership — user can only reserve their own dogs
+        if request and 'dogs' in data:
+            for dog in data['dogs']:
+                if dog.owner_id != request.user.id:
+                    raise serializers.ValidationError('Možeš rezervisati samo svoje pse.')
+
+        # Validate walker exists and is active
+        walker = data.get('walker')
+        if walker:
+            if walker.role != 'walker':
+                raise serializers.ValidationError('Izabrani korisnik nije šetač.')
+            if hasattr(walker, 'walker_profile') and not walker.walker_profile.active:
+                raise serializers.ValidationError('Šetač trenutno nije aktivan.')
 
         return data
 

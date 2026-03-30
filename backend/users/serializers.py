@@ -133,6 +133,7 @@ class AdminUserDetailSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     password2 = serializers.CharField(write_only=True)
+    role = serializers.ChoiceField(choices=['owner', 'walker'])
     services = serializers.ChoiceField(
         choices=['walking', 'boarding', 'both'],
         required=False,
@@ -142,6 +143,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'first_name', 'last_name', 'phone', 'role', 'address', 'lat', 'lng', 'password', 'password2', 'services']
+
+    def validate_role(self, value):
+        if value not in ('owner', 'walker'):
+            raise serializers.ValidationError('Role must be owner or walker.')
+        return value
 
     def validate(self, data):
         if data['password'] != data['password2']:
@@ -198,7 +204,7 @@ class UserSerializer(WalkerRatingMixin, serializers.ModelSerializer):
             'profile_image', 'role', 'address', 'lat', 'lng',
             'walker_profile', 'average_rating', 'review_count', 'is_favorited',
         ]
-        read_only_fields = ['email', 'role']
+        read_only_fields = ['id', 'email', 'role']
 
     def get_is_favorited(self, obj):
         from .models import Favorite

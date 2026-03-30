@@ -79,6 +79,7 @@ export default function ReservationDetailScreen() {
   const { data: reservations = [], isLoading } = useQuery({
     queryKey: ['reservations'],
     queryFn: getReservations,
+    refetchInterval: 5000,
   })
 
   const reservation = reservations.find(r => r.id === reservationId)
@@ -252,14 +253,14 @@ export default function ReservationDetailScreen() {
             ) : null}
           </View>
 
-          {walkLocation?.lat ? (
+          {walkLocation?.lat && walkLocation?.lng && !isNaN(parseFloat(walkLocation.lat)) && !isNaN(parseFloat(walkLocation.lng)) ? (
             <>
               <View style={styles.mapContainer}>
                 <MapView
                   style={styles.map}
                   region={{
-                    latitude: parseFloat(walkLocation.lat!),
-                    longitude: parseFloat(walkLocation.lng!),
+                    latitude: parseFloat(walkLocation.lat),
+                    longitude: parseFloat(walkLocation.lng),
                     latitudeDelta: 0.006,
                     longitudeDelta: 0.006,
                   }}
@@ -270,8 +271,8 @@ export default function ReservationDetailScreen() {
                 >
                   <Marker
                     coordinate={{
-                      latitude: parseFloat(walkLocation.lat!),
-                      longitude: parseFloat(walkLocation.lng!),
+                      latitude: parseFloat(walkLocation.lat),
+                      longitude: parseFloat(walkLocation.lng),
                     }}
                     title={reservation.walker_info.first_name}
                     description="Trenutna lokacija šetača"

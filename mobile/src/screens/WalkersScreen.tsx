@@ -67,15 +67,15 @@ function StaggerItem({ index, children }: { index: number; children: React.React
     Animated.spring(anim, {
       toValue: 1,
       useNativeDriver: true,
-      delay: Math.min(index * 60, 400),
-      tension: 80,
-      friction: 9,
+      delay: Math.min(index * 35, 200),
+      tension: 100,
+      friction: 10,
     }).start()
   }, [index, anim])
   return (
     <Animated.View style={{
       opacity: anim,
-      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [28, 0] }) }],
+      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
     }}>
       {children}
     </Animated.View>
@@ -172,6 +172,9 @@ function WalkerCard({ walker, onPress, onFavorite, isLoggedIn }: { walker: User;
           </View>
         </View>
 
+        <Text style={styles.arrow}>›</Text>
+
+        {/* Heart — absolute top-right so it doesn't push info */}
         {isLoggedIn && (
           <TouchableOpacity
             onPress={() => { onFavorite?.() }}
@@ -181,8 +184,6 @@ function WalkerCard({ walker, onPress, onFavorite, isLoggedIn }: { walker: User;
             <Text style={styles.heartText}>{walker.is_favorited ? '❤️' : '🖤'}</Text>
           </TouchableOpacity>
         )}
-
-        <Text style={styles.arrow}>›</Text>
       </Pressable>
     </Animated.View>
   )
@@ -358,7 +359,18 @@ export default function WalkersScreen() {
 
       {/* ── Lista ── */}
       {isLoading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color={GREEN} /></View>
+        <View style={styles.list}>
+          {[0, 1, 2, 3, 4].map(i => (
+            <View key={i} style={[styles.card, { opacity: 0.55 }]}>
+              <View style={[styles.avatar, { backgroundColor: '#e5e7eb' }]} />
+              <View style={[styles.cardInfo, { gap: 8 }]}>
+                <View style={{ width: '60%', height: 14, borderRadius: 6, backgroundColor: '#e5e7eb' }} />
+                <View style={{ width: '80%', height: 10, borderRadius: 5, backgroundColor: '#f3f4f6' }} />
+                <View style={{ width: '45%', height: 10, borderRadius: 5, backgroundColor: '#f3f4f6' }} />
+              </View>
+            </View>
+          ))}
+        </View>
       ) : (
         <FlatList
           data={sorted}
@@ -562,12 +574,13 @@ const styles = StyleSheet.create({
   svcPill: { borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4, alignSelf: 'flex-start' },
   svcPillText: { fontSize: 11, fontWeight: '700' },
   heartBtn: {
-    width: 32, height: 32, borderRadius: 16,
+    position: 'absolute', bottom: 10, right: 12,
+    width: 34, height: 34, borderRadius: 17,
     backgroundColor: '#f3f4f6', justifyContent: 'center', alignItems: 'center',
-    marginLeft: 4,
+    zIndex: 5,
   },
-  heartBtnActive: { backgroundColor: 'rgba(255,255,255,0.85)' },
-  heartText: { fontSize: 14 },
+  heartBtnActive: { backgroundColor: 'rgba(239,68,68,0.12)' },
+  heartText: { fontSize: 15 },
   arrow: { fontSize: 24, color: '#d1d5db', marginLeft: 6 },
 
   // Bottom sheet
