@@ -241,71 +241,78 @@ class BotChatView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        message = request.data.get('message', '').strip()
-        history = request.data.get('history', [])
-        if not message:
-            return Response({'detail': 'Poruka ne može biti prazna.'}, status=400)
+        try:
+            message = request.data.get('message', '').strip()
+            history = request.data.get('history', [])
+            if not message:
+                return Response({'detail': 'Poruka ne može biti prazna.'}, status=400)
 
-        # Dužina poruke
-        if len(message) > MAX_MESSAGE_LENGTH:
-            return Response({'reply': 'Poruka je previše dugačka. Molim te skrati pitanje.'})
+            # Dužina poruke
+            if len(message) > MAX_MESSAGE_LENGTH:
+                return Response({'reply': 'Poruka je previše dugačka. Molim te skrati pitanje.'})
 
-        # Prompt injection detekcija
-        normalized = _normalize_for_injection(message)
-        if any(pattern in normalized for pattern in INJECTION_PATTERNS):
-            logger.warning('Injection attempt detected from user %s: %s', request.user.id, message[:100])
-            return Response({'reply': 'Ne mogu da pomognem sa tim zahtevom.'})
+            # Prompt injection detekcija
+            normalized = _normalize_for_injection(message)
+            if any(pattern in normalized for pattern in INJECTION_PATTERNS):
+                logger.warning('Injection attempt detected from user %s: %s', request.user.id, message[:100])
+                return Response({'reply': 'Ne mogu da pomognem sa tim zahtevom.'})
 
-        # Validacija historije — samo dozvoljeni roleovi, bez system poruka
-        clean_history = [
-            h for h in history[-MAX_HISTORY_MESSAGES:]
-            if isinstance(h, dict)
-            and h.get('role') in ('user', 'assistant')
-            and isinstance(h.get('content'), str)
-            and len(h.get('content', '')) <= MAX_MESSAGE_LENGTH * 2
-        ]
+            # Validacija historije — samo dozvoljeni roleovi, bez system poruka
+            clean_history = [
+                h for h in history[-MAX_HISTORY_MESSAGES:]
+                if isinstance(h, dict)
+                and h.get('role') in ('user', 'assistant')
+                and isinstance(h.get('content'), str)
+                and len(h.get('content', '')) <= MAX_MESSAGE_LENGTH * 2
+            ]
 
-        client = Groq(api_key=settings.GROQ_API_KEY)
+            if not settings.GROQ_API_KEY:
+                return Response({'reply': 'AI asistent trenutno nije dostupan.'})
 
-        today = date.today().strftime('%Y-%m-%d')
-        system_prompt = BOT_SYSTEM_PROMPT.format(today=today)
-        messages = [{'role': 'system', 'content': system_prompt}]
-        for h in clean_history:
-            messages.append({'role': h['role'], 'content': h['content']})
-        messages.append({'role': 'user', 'content': message})
+            client = Groq(api_key=settings.GROQ_API_KEY)
 
-        # Agentic loop — max 5 iteracija
-        for _ in range(5):
-            try:
-                completion = client.chat.completions.create(
-                    model='meta-llama/llama-4-scout-17b-16e-instruct',
-                    messages=messages,
-                    tools=BOT_TOOLS,
-                    tool_choice='auto',
-                    max_tokens=1024,
-                    temperature=0.6,
-                )
-            except Exception as e:
-                logger.error('Groq API error: %s', e)
-                return Response({'reply': 'Došlo je do greške. Pokušaj ponovo.'})
+            today = date.today().strftime('%Y-%m-%d')
+            system_prompt = BOT_SYSTEM_PROMPT.format(today=today)
+            messages = [{'role': 'system', 'content': system_prompt}]
+            for h in clean_history:
+                messages.append({'role': h['role'], 'content': h['content']})
+            messages.append({'role': 'user', 'content': message})
 
-            msg = completion.choices[0].message
+            # Agentic loop — max 5 iteracija
+            for _ in range(5):
+                try:
+                    completion = client.chat.completions.create(
+                        model='meta-llama/llama-4-scout-17b-16e-instruct',
+                        messages=messages,
+                        tools=BOT_TOOLS,
+                        tool_choice='auto',
+                        max_tokens=1024,
+                        temperature=0.6,
+                    )
+                except Exception as e:
+                    logger.error('Groq API error: %s', e)
+                    return Response({'reply': 'Došlo je do greške. Pokušaj ponovo.'})
 
-            if not msg.tool_calls:
-                return Response({'reply': msg.content})
+                msg = completion.choices[0].message
 
-            # Izvrši tool calls
-            messages.append(msg)
-            for tc in msg.tool_calls:
-                args = json.loads(tc.function.arguments)
-                result = execute_tool(tc.function.name, args, request.user)
-                messages.append({
-                    'role': 'tool',
-                    'tool_call_id': tc.id,
-                    'content': json.dumps(result, ensure_ascii=False),
-                })
+                if not msg.tool_calls:
+                    return Response({'reply': msg.content})
 
-        return Response({'reply': 'Nisam uspeo da završim zahtev. Pokušaj ponovo.'})
+                # Izvrši tool calls
+                messages.append(msg)
+                for tc in msg.tool_calls:
+                    args = json.loads(tc.function.arguments)
+                    result = execute_tool(tc.function.name, args, request.user)
+                    messages.append({
+                        'role': 'tool',
+                        'tool_call_id': tc.id,
+                        'content': json.dumps(result, ensure_ascii=False),
+                    })
+
+            return Response({'reply': 'Nisam uspeo da završim zahtev. Pokušaj ponovo.'})
+        except Exception as e:
+            logger.error('BotChatView unexpected error: %s', e, exc_info=True)
+            return Response({'reply': 'Došlo je do greške. Pokušaj ponovo.'})
 
 
 class ConversationView(APIView):
