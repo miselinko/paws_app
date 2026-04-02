@@ -97,6 +97,7 @@ export default function ReservationDetailScreen() {
 
   // ── Walker: send GPS every 5s when in_progress ────────────────────────────
   const [gpsError, setGpsError] = useState(false)
+  const [mapError, setMapError] = useState(false)
 
   useEffect(() => {
     if (!isInProgress || !isWalker) {
@@ -255,13 +256,25 @@ export default function ReservationDetailScreen() {
 
           {walkLocation?.lat && walkLocation?.lng && !isNaN(parseFloat(walkLocation.lat)) && !isNaN(parseFloat(walkLocation.lng)) ? (
             <>
-              <View style={styles.mapContainer}>
-                <Image
-                  source={{ uri: `https://staticmap.openstreetmap.de/staticmap.php?center=${walkLocation.lat},${walkLocation.lng}&zoom=16&size=600x300&markers=${walkLocation.lat},${walkLocation.lng},red-pushpin` }}
-                  style={styles.map}
-                  resizeMode="cover"
-                />
-              </View>
+              {!mapError && (
+                <View style={styles.mapContainer}>
+                  <Image
+                    source={{ uri: `https://staticmap.openstreetmap.de/staticmap.php?center=${walkLocation.lat},${walkLocation.lng}&zoom=16&size=600x300&maptype=mapnik&markers=${walkLocation.lat},${walkLocation.lng},red-pushpin` }}
+                    style={styles.map}
+                    resizeMode="cover"
+                    onError={() => setMapError(true)}
+                  />
+                </View>
+              )}
+              {mapError && (
+                <View style={styles.coordsBox}>
+                  <Text style={styles.coordsIcon}>📍</Text>
+                  <Text style={styles.coordsText}>
+                    Lat: {parseFloat(walkLocation.lat).toFixed(5)}{'\n'}
+                    Lng: {parseFloat(walkLocation.lng).toFixed(5)}
+                  </Text>
+                </View>
+              )}
               <TouchableOpacity
                 style={styles.openMapsBtn}
                 onPress={() => openInMaps(walkLocation.lat!, walkLocation.lng!)}
@@ -532,6 +545,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', borderRadius: 10, padding: 12,
   },
   locatingText: { fontSize: 13, color: '#6b7280', fontWeight: '500' },
+  coordsBox: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#fff', borderRadius: 10, padding: 14, marginBottom: 4,
+  },
+  coordsIcon: { fontSize: 28 },
+  coordsText: { fontSize: 14, color: '#374151', fontWeight: '500', lineHeight: 22 },
 
   // GPS active card (walker)
   gpsActiveCard: {

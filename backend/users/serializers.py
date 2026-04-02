@@ -134,6 +134,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     password2 = serializers.CharField(write_only=True)
     role = serializers.ChoiceField(choices=['owner', 'walker'])
+    phone = serializers.CharField(required=False, allow_blank=True)
     services = serializers.ChoiceField(
         choices=['walking', 'boarding', 'both'],
         required=False,
