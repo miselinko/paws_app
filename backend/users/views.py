@@ -81,7 +81,9 @@ def send_push_notification(users, title, body):
         method='POST',
     )
     try:
-        urllib.request.urlopen(req, timeout=5)
+        resp = urllib.request.urlopen(req, timeout=5)
+        resp_body = resp.read().decode('utf-8')
+        logger.info('Push notification sent to %d token(s): %s', len(tokens), resp_body[:200])
     except (urllib.error.URLError, urllib.error.HTTPError, OSError) as e:
         logger.warning('Push notification failed: %s', e)
     except Exception as e:

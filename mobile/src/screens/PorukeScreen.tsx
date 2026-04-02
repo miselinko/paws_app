@@ -5,7 +5,7 @@ import {
   Image, Alert, ScrollView, Keyboard,
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRoute } from '@react-navigation/native'
+import { useRoute, useScrollToTop } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import {
@@ -401,6 +401,8 @@ export default function PorukeScreen() {
   const route = useRoute<any>()
   const [view, setView] = useState<ScreenView>('list')
   const queryClient = useQueryClient()
+  const scrollRef = useRef<ScrollView>(null)
+  useScrollToTop(scrollRef)
 
   // Kada se naviguje sa drugog ekrana sa userId (npr. WalkerDetailScreen → Pošalji poruku)
   useEffect(() => {
@@ -433,7 +435,7 @@ export default function PorukeScreen() {
         )}
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: tabBarHeight + 8 }}>
+      <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: tabBarHeight + 8 }}>
         {/* Bot pinned */}
         <TouchableOpacity style={[styles.convRow, styles.botRow]} onPress={() => setView('bot')}>
           <View style={styles.botAvatarLarge}>

@@ -57,6 +57,52 @@ function Section({ title, children, tint }: { title: string; children: React.Rea
   )
 }
 
+const TILE_SIZE = 256
+const MAP_ZOOM = 16
+
+function latLngToTile(lat: number, lng: number, zoom: number) {
+  const n = Math.pow(2, zoom)
+  const x = Math.floor((lng + 180) / 360 * n)
+  const latRad = lat * Math.PI / 180
+  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n)
+  const pxX = ((lng + 180) / 360 * n - x) * TILE_SIZE
+  const pxY = ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n - y) * TILE_SIZE
+  return { x, y, pxX, pxY }
+}
+
+function OsmTileMap({ lat, lng }: { lat: number; lng: number }) {
+  const { x, y, pxX, pxY } = latLngToTile(lat, lng, MAP_ZOOM)
+  const cols = 3
+  const rows = 3
+  const mapW = cols * TILE_SIZE
+  const mapH = rows * TILE_SIZE
+  const offsetX = pxX + TILE_SIZE - mapW / 2
+  const offsetY = pxY + TILE_SIZE - mapH / 2
+  const tiles: { tx: number; ty: number; left: number; top: number }[] = []
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      tiles.push({ tx: x + dx, ty: y + dy, left: (dx + 1) * TILE_SIZE, top: (dy + 1) * TILE_SIZE })
+    }
+  }
+
+  return (
+    <View style={{ width: '100%', height: 200, overflow: 'hidden' }}>
+      <View style={{ position: 'absolute', left: -offsetX, top: -offsetY, width: mapW, height: mapH }}>
+        {tiles.map((t, i) => (
+          <Image
+            key={i}
+            source={{ uri: `https://tile.openstreetmap.org/${MAP_ZOOM}/${t.tx}/${t.ty}.png` }}
+            style={{ position: 'absolute', width: TILE_SIZE, height: TILE_SIZE, left: t.left, top: t.top }}
+          />
+        ))}
+      </View>
+      <View style={{ position: 'absolute', left: '50%', top: '50%', marginLeft: -12, marginTop: -24 }}>
+        <Text style={{ fontSize: 24 }}>📍</Text>
+      </View>
+    </View>
+  )
+}
+
 function walkDuration(startedAt: string | null): string {
   if (!startedAt) return ''
   const mins = Math.floor((Date.now() - new Date(startedAt).getTime()) / 60000)
@@ -97,7 +143,6 @@ export default function ReservationDetailScreen() {
 
   // ── Walker: send GPS every 5s when in_progress ────────────────────────────
   const [gpsError, setGpsError] = useState(false)
-  const [mapError, setMapError] = useState(false)
 
   useEffect(() => {
     if (!isInProgress || !isWalker) {
@@ -160,14 +205,20 @@ export default function ReservationDetailScreen() {
 
   const respond = useMutation({
     mutationFn: (s: 'confirmed' | 'rejected') => respondReservation(reservationId, s),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['reservations'] }),
-    onError: () => Alert.alert('Greška', 'Pokušaj ponovo.'),
+    onSuccess: (_data, s) => {
+      qc.invalidateQueries({ queryKey: ['reservations'] })
+      Alert.alert(s === 'confirmed' ? 'Potvrđeno' : 'Odbijeno', s === 'confirmed' ? 'Rezervacija je prihvaćena.' : 'Rezervacija je odbijena.')
+    },
+    onError: () => Alert.alert('Greška', 'Nije uspelo. Proveri internet konekciju i pokušaj ponovo.'),
   })
 
   const startWalkMut = useMutation({
     mutationFn: () => startWalk(reservationId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['reservations'] }),
-    onError: (e: any) => Alert.alert('Greška', e?.response?.data?.detail || 'Pokušaj ponovo.'),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reservations'] })
+      Alert.alert('Šetnja pokrenuta', 'GPS praćenje je aktivirano.')
+    },
+    onError: (e: any) => Alert.alert('Greška', e?.response?.data?.detail || 'Nije uspelo. Proveri konekciju i pokušaj ponovo.'),
   })
 
   const complete = useMutation({
@@ -256,25 +307,9 @@ export default function ReservationDetailScreen() {
 
           {walkLocation?.lat && walkLocation?.lng && !isNaN(parseFloat(walkLocation.lat)) && !isNaN(parseFloat(walkLocation.lng)) ? (
             <>
-              {!mapError && (
-                <View style={styles.mapContainer}>
-                  <Image
-                    source={{ uri: `https://staticmap.openstreetmap.de/staticmap.php?center=${walkLocation.lat},${walkLocation.lng}&zoom=16&size=600x300&maptype=mapnik&markers=${walkLocation.lat},${walkLocation.lng},red-pushpin` }}
-                    style={styles.map}
-                    resizeMode="cover"
-                    onError={() => setMapError(true)}
-                  />
-                </View>
-              )}
-              {mapError && (
-                <View style={styles.coordsBox}>
-                  <Text style={styles.coordsIcon}>📍</Text>
-                  <Text style={styles.coordsText}>
-                    Lat: {parseFloat(walkLocation.lat).toFixed(5)}{'\n'}
-                    Lng: {parseFloat(walkLocation.lng).toFixed(5)}
-                  </Text>
-                </View>
-              )}
+              <View style={styles.mapContainer}>
+                <OsmTileMap lat={parseFloat(walkLocation.lat)} lng={parseFloat(walkLocation.lng)} />
+              </View>
               <TouchableOpacity
                 style={styles.openMapsBtn}
                 onPress={() => openInMaps(walkLocation.lat!, walkLocation.lng!)}
@@ -545,12 +580,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', borderRadius: 10, padding: 12,
   },
   locatingText: { fontSize: 13, color: '#6b7280', fontWeight: '500' },
-  coordsBox: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#fff', borderRadius: 10, padding: 14, marginBottom: 4,
-  },
-  coordsIcon: { fontSize: 28 },
-  coordsText: { fontSize: 14, color: '#374151', fontWeight: '500', lineHeight: 22 },
 
   // GPS active card (walker)
   gpsActiveCard: {

@@ -11,6 +11,9 @@ export async function registerPushToken(): Promise<void> {
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#00BF8F',
+        sound: 'default',
+        enableVibrate: true,
+        showBadge: true,
       })
     }
 
@@ -20,14 +23,18 @@ export async function registerPushToken(): Promise<void> {
       const { status } = await Notifications.requestPermissionsAsync()
       finalStatus = status
     }
-    if (finalStatus !== 'granted') return
+    if (finalStatus !== 'granted') {
+      console.warn('Push notification permission not granted:', finalStatus)
+      return
+    }
 
     const projectId = Constants.expoConfig?.extra?.eas?.projectId
     const { data: token } = await Notifications.getExpoPushTokenAsync(
       projectId ? { projectId } : undefined
     )
+    console.log('Push token registered:', token)
     await savePushToken(token)
-  } catch {
-    // Notifications not available (emulator, web, etc.)
+  } catch (e) {
+    console.warn('Push token registration failed:', e)
   }
 }

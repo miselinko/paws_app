@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "894361057510",
+    "project_id": "paws-ffc6c",
+    "storage_bucket": "paws-ffc6c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894361057510:android:833e40fd43ba85a3e2e327",
+        "android_client_info": {
+          "package_name": "com.paws.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8Cjb2tCUls_4L5cRRtZ6spWGBIFFTNuA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

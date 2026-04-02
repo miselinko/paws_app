@@ -5,7 +5,7 @@ import {
   Alert, Animated,
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useScrollToTop } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import * as Location from 'expo-location'
 import { getWalkers, toggleFavorite } from '../api/users'
@@ -196,6 +196,8 @@ export default function WalkersScreen() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const headerAnim = useRef(new Animated.Value(0)).current
+  const listRef = useRef<FlatList>(null)
+  useScrollToTop(listRef)
 
   const [service, setService] = useState('')
   const [size, setSize] = useState('')
@@ -373,6 +375,7 @@ export default function WalkersScreen() {
         </View>
       ) : (
         <FlatList
+          ref={listRef}
           data={sorted}
           keyExtractor={w => w.id.toString()}
           contentContainerStyle={[styles.list, { paddingBottom: tabBarHeight + 24 }]}

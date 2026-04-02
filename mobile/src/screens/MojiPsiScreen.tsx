@@ -4,6 +4,7 @@ import {
   TextInput, Modal, ActivityIndicator, Alert, Switch, FlatList, Animated, Platform,
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useScrollToTop } from '@react-navigation/native'
 import * as ImagePicker from 'expo-image-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
@@ -165,6 +166,8 @@ export default function MojiPsiScreen() {
   const insets = useSafeAreaInsets()
   const tabBarHeight = useBottomTabBarHeight()
   const fadeAnim = useRef(new Animated.Value(0)).current
+  const scrollRef = useRef<ScrollView>(null)
+  useScrollToTop(scrollRef)
   const [formVisible, setFormVisible] = useState(false)
 
   useEffect(() => {
@@ -336,7 +339,7 @@ export default function MojiPsiScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 8 }]}>
+      <ScrollView ref={scrollRef} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 8 }]}>
         {/* Form */}
         {formVisible && (
           <View style={styles.form}>

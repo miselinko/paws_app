@@ -86,6 +86,16 @@ export default function MainTabs() {
           tabBarLabel: 'Šetači',
           tabBarIcon: ({ focused }) => <TabIcon icon="🐕" focused={focused} />,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState()
+            const route = state.routes.find((r: any) => r.name === 'WalkersTab')
+            if (route?.state && route.state.routes.length > 1) {
+              e.preventDefault()
+              navigation.navigate('WalkersTab', { screen: 'Walkers' })
+            }
+          },
+        })}
       />
       <Tab.Screen
         name="ReservationsTab"
@@ -94,6 +104,16 @@ export default function MainTabs() {
           tabBarLabel: 'Rezervacije',
           tabBarIcon: ({ focused }) => <TabIcon icon="📅" focused={focused} badge={pendingCount} />,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState()
+            const route = state.routes.find((r: any) => r.name === 'ReservationsTab')
+            if (route?.state && route.state.routes.length > 1) {
+              e.preventDefault()
+              navigation.navigate('ReservationsTab', { screen: 'Reservations' })
+            }
+          },
+        })}
       />
       {isOwner && (
         <Tab.Screen
@@ -133,6 +153,16 @@ export default function MainTabs() {
           tabBarLabel: 'Profil',
           tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState()
+            const route = state.routes.find((r: any) => r.name === 'ProfileTab')
+            if (route?.state && route.state.routes.length > 1) {
+              e.preventDefault()
+              navigation.navigate('ProfileTab', { screen: 'Profile' })
+            }
+          },
+        })}
       />
     </Tab.Navigator>
   )

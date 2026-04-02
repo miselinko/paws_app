@@ -4,7 +4,7 @@ import {
   StyleSheet, ActivityIndicator, Animated,
 } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useScrollToTop } from '@react-navigation/native'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { getReservations } from '../api/reservations'
@@ -112,6 +112,8 @@ export default function ReservationsScreen() {
   const { user } = useAuth()
   const [filter, setFilter] = useState<string>('sve')
   const fadeAnim = useRef(new Animated.Value(0)).current
+  const listRef = useRef<FlatList>(null)
+  useScrollToTop(listRef)
 
   const tabBarHeight = useBottomTabBarHeight()
   const { data: reservations = [], isLoading, refetch } = useQuery({
@@ -185,6 +187,7 @@ export default function ReservationsScreen() {
 
       {/* Lista */}
       <FlatList
+        ref={listRef}
         data={filtered}
         keyExtractor={r => r.id.toString()}
         contentContainerStyle={[styles.list, { paddingBottom: tabBarHeight + 8 }]}

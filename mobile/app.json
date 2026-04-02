@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.paws.mobile",
+      "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
