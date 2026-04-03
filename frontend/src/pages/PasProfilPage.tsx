@@ -106,14 +106,10 @@ export default function PasProfilPage() {
             </div>
 
             {/* Quick stats */}
-            <div className="grid grid-cols-4 gap-2.5 mb-5">
+            <div className="grid grid-cols-3 gap-2.5 mb-5">
               <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
                 <div className="text-lg font-black text-gray-900">{dog.age}</div>
                 <div className="text-xs text-gray-400 mt-0.5">god.</div>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
-                <div className="text-lg font-black text-gray-900">{dog.weight}kg</div>
-                <div className="text-xs text-gray-400 mt-0.5">Težina</div>
               </div>
               <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
                 <div className="text-lg font-black text-gray-900">{dog.gender === 'male' ? '♂' : '♀'}</div>

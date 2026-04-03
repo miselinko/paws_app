@@ -79,10 +79,6 @@ export default function DogProfileScreen() {
           <Text style={styles.statLabel}>god.</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={styles.statValue}>{dog.weight}kg</Text>
-          <Text style={styles.statLabel}>Težina</Text>
-        </View>
-        <View style={styles.statBox}>
           <Text style={styles.statValue}>{dog.gender === 'male' ? '♂' : '♀'}</Text>
           <Text style={styles.statLabel}>{dog.gender === 'male' ? 'Muški' : 'Ženski'}</Text>
         </View>

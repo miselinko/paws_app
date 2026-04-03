@@ -14,3 +14,5 @@ export const updateWalkLocation = (id: number, lat: number, lng: number) =>
   api.post(`/reservations/${id}/location/`, { lat, lng }).then(r => r.data)
 export const getWalkLocation = (id: number): Promise<{ lat: string | null; lng: string | null; walk_started_at: string | null; status: string }> =>
   api.get(`/reservations/${id}/location/`).then(r => r.data)
+export const getBusySlots = (walkerId: number, date: string): Promise<{ from: string; to: string; status: string }[]> =>
+  api.get('/reservations/busy/', { params: { walker: walkerId, date } }).then(r => r.data)

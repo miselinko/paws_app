@@ -59,3 +59,14 @@ export async function getPendingCount(): Promise<number> {
   const { data } = await client.get('/reservations/pending-count/')
   return data.count ?? 0
 }
+
+export interface BusySlot {
+  from: string
+  to: string
+  status: string
+}
+
+export async function getBusySlots(walkerId: number, date: string): Promise<BusySlot[]> {
+  const { data } = await client.get('/reservations/busy/', { params: { walker: walkerId, date } })
+  return data
+}

@@ -12,8 +12,8 @@ A platform connecting dog owners with walkers and sitters. Built for the Serbian
 | **Images** | Cloudinary |
 | **AI Chat** | Groq API (Llama 4) |
 | **Maps (web)** | Leaflet + react-leaflet |
-| **Maps (mobile)** | OpenStreetMap static maps + expo-location |
-| **Notifications** | Expo Push Notifications |
+| **Maps (mobile)** | OpenStreetMap tile grid + expo-location |
+| **Notifications** | Expo Push Notifications + Firebase Cloud Messaging |
 | **Hosting** | Render (backend), Vercel (frontend), Neon (PostgreSQL) |
 
 ## Project Structure
@@ -89,7 +89,9 @@ For Android emulator: press `a` in the terminal (requires Android Studio).
 
 Release APK build:
 ```bash
-powershell.exe -ExecutionPolicy Bypass -File android/build_release.ps1
+cd mobile
+npx expo prebuild --clean
+powershell.exe -ExecutionPolicy Bypass -File build_apk.ps1
 ```
 APK output: `mobile/android/app/build/outputs/apk/release/app-release.apk`
 

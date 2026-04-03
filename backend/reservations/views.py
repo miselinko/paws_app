@@ -73,7 +73,7 @@ def send_new_reservation_email(reservation):
     dog_lines = []
     for d in reservation.dogs.all():
         size_map = {'small': 'mali', 'medium': 'srednji', 'large': 'veliki'}
-        line = f"  • {d.name} ({d.breed}, {size_map.get(d.size, d.size)}, {d.weight}kg)"
+        line = f"  • {d.name} ({d.breed}, {size_map.get(d.size, d.size)})"
         dog_lines.append(line)
     dogs_section = '\n'.join(dog_lines)
 
@@ -349,3 +349,37 @@ class ReservationPendingCountView(APIView):
         else:
             count = 0
         return Response({'count': count})
+
+
+class WalkerBusySlotsView(APIView):
+    """GET /api/reservations/busy/?walker=<id>&date=2026-04-05
+    Returns busy time slots for a walker on a given date (pending, confirmed, in_progress)."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        walker_id = request.query_params.get('walker')
+        date_str = request.query_params.get('date')
+        if not walker_id or not date_str:
+            return Response({'detail': 'walker and date params required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from datetime import datetime
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({'detail': 'Invalid date format. Use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reservations = Reservation.objects.filter(
+            walker_id=walker_id,
+            status__in=[Reservation.PENDING, Reservation.CONFIRMED, Reservation.IN_PROGRESS],
+            start_time__date=date,
+        ).values_list('start_time', 'end_time', 'status')
+
+        slots = []
+        for start, end, res_status in reservations:
+            slots.append({
+                'from': start.strftime('%H:%M'),
+                'to': end.strftime('%H:%M'),
+                'status': res_status,
+            })
+
+        return Response(slots)

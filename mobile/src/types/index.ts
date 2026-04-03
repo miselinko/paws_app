@@ -34,7 +34,6 @@ export interface Dog {
   name: string
   breed: string
   age: number
-  weight?: number
   size: 'small' | 'medium' | 'large'
   gender: 'male' | 'female'
   neutered: boolean

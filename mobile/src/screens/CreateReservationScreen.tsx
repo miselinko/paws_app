@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, Platform,
@@ -7,7 +7,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
 import { getDogs } from '../api/dogs'
-import { createReservation } from '../api/reservations'
+import { createReservation, getBusySlots, BusySlot } from '../api/reservations'
 import { WalkersStackParamList } from '../navigation/WalkersNavigator'
 
 type Route = RouteProp<WalkersStackParamList, 'CreateReservation'>
@@ -57,7 +57,22 @@ export default function CreateReservationScreen() {
   const [startDateTime, setStartDateTime] = useState<Date>(roundedStart)
   const [endDateTime, setEndDateTime] = useState<Date>(new Date(roundedStart.getTime() + 60 * 60000))
 
+  // Busy slots for the selected date
+  const selectedDate = `${startDateTime.getFullYear()}-${pad(startDateTime.getMonth() + 1)}-${pad(startDateTime.getDate())}`
+  const { data: busySlots = [] } = useQuery({
+    queryKey: ['busySlots', walkerId, selectedDate],
+    queryFn: () => getBusySlots(walkerId, selectedDate),
+  })
+
   const [showPicker, setShowPicker] = useState<'startDate' | 'startTime' | 'endDate' | 'endTime' | null>(null)
+
+  // Auto-select if only 1 dog
+  useEffect(() => {
+    if (dogs.length === 1) setSelectedDogs([dogs[0].id])
+  }, [dogs])
+
+  // Sort busy slots by start time
+  const sortedBusySlots = [...busySlots].sort((a, b) => a.from.localeCompare(b.from))
 
   const mutation = useMutation({
     mutationFn: createReservation,
@@ -67,8 +82,9 @@ export default function CreateReservationScreen() {
         { text: 'OK', onPress: () => navigation.goBack() },
       ])
     },
-    onError: () => {
-      Alert.alert('Greška', 'Proveri unesene podatke i pokušaj ponovo.')
+    onError: (err: any) => {
+      const msg = err?.response?.data?.detail || 'Proveri unesene podatke i pokušaj ponovo.'
+      Alert.alert('Greška', msg)
     },
   })
 
@@ -112,6 +128,19 @@ export default function CreateReservationScreen() {
     setEndDateTime(new Date(startDateTime.getTime() + mins * 60000))
   }
 
+  function checkBusyOverlap(): BusySlot | null {
+    const startMins = startDateTime.getHours() * 60 + startDateTime.getMinutes()
+    const endMins = endDateTime.getHours() * 60 + endDateTime.getMinutes()
+    for (const slot of sortedBusySlots) {
+      const [sh, sm] = slot.from.split(':').map(Number)
+      const [eh, em] = slot.to.split(':').map(Number)
+      const slotStart = sh * 60 + sm
+      const slotEnd = eh * 60 + em
+      if (startMins < slotEnd && endMins > slotStart) return slot
+    }
+    return null
+  }
+
   function handleSubmit() {
     if (!serviceType) {
       Alert.alert('Greška', 'Izaberi tip usluge (Šetanje ili Čuvanje).')
@@ -127,6 +156,12 @@ export default function CreateReservationScreen() {
     }
     if (startDateTime < new Date()) {
       Alert.alert('Greška', 'Početak ne može biti u prošlosti.')
+      return
+    }
+    const overlap = checkBusyOverlap()
+    if (overlap) {
+      const statusLabel = overlap.status === 'confirmed' ? 'potvrđen' : overlap.status === 'pending' ? 'na čekanju' : 'aktivan'
+      Alert.alert('Greška', `Termin se preklapa sa postojećim (${overlap.from}–${overlap.to}, ${statusLabel}).`)
       return
     }
     mutation.mutate({
@@ -148,7 +183,7 @@ export default function CreateReservationScreen() {
   const pickerValue = showPicker?.startsWith('start') ? startDateTime : endDateTime
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={styles.walkerLabel}>Šetač: <Text style={styles.walkerName}>{walkerName}</Text></Text>
 
       {/* Tip usluge */}
@@ -258,6 +293,21 @@ export default function CreateReservationScreen() {
         )
       )}
 
+      {/* Zauzeti termini */}
+      {sortedBusySlots.length > 0 && (
+        <View style={styles.busyBox}>
+          <Text style={styles.busyTitle}>Zauzeti termini tog dana:</Text>
+          {sortedBusySlots.map((slot, i) => {
+            const statusLabel = slot.status === 'confirmed' ? 'Potvrđen' : slot.status === 'pending' ? 'Na čekanju' : 'Aktivan'
+            return (
+              <Text key={i} style={styles.busySlot}>
+                {slot.from} – {slot.to}  ({statusLabel})
+              </Text>
+            )
+          })}
+        </View>
+      )}
+
       {/* Napomene */}
       <View style={styles.section}>
         <Text style={styles.label}>Napomene (opciono)</Text>
@@ -330,6 +380,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, backgroundColor: '#fafafa',
   },
   textarea: { height: 80, textAlignVertical: 'top' },
+  busyBox: {
+    backgroundColor: '#FFF8E1', borderRadius: 12, padding: 14, marginBottom: 12,
+    borderWidth: 1, borderColor: '#FFD54F',
+  },
+  busyTitle: { fontSize: 13, fontWeight: '700', color: '#F57F17', marginBottom: 6 },
+  busySlot: { fontSize: 13, color: '#555', marginBottom: 2 },
   submitBtn: {
     backgroundColor: '#00BF8F', borderRadius: 12,
     paddingVertical: 16, alignItems: 'center', marginTop: 4,

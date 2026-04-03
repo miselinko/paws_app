@@ -3,8 +3,6 @@ from .models import Dog
 
 
 class DogSerializer(serializers.ModelSerializer):
-    weight = serializers.DecimalField(max_digits=5, decimal_places=2, required=False, default=0)
-
     def validate_image(self, value):
         allowed = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
         if value.content_type not in allowed:
@@ -16,7 +14,7 @@ class DogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dog
         fields = [
-            'id', 'name', 'breed', 'age', 'weight',
+            'id', 'name', 'breed', 'age',
             'size', 'gender', 'neutered',
             'temperament', 'notes', 'image', 'created_at'
         ]

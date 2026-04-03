@@ -29,7 +29,6 @@ class Dog(models.Model):
     name = models.CharField(max_length=100)
     breed = models.CharField(max_length=100)
     age = models.PositiveIntegerField(help_text='Age in years')
-    weight = models.DecimalField(max_digits=5, decimal_places=2, help_text='Weight in kg')
     size = models.CharField(max_length=10, choices=SIZE_CHOICES)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     neutered = models.BooleanField(default=False)

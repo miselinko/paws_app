@@ -6,7 +6,7 @@ import Reveal from '../components/Reveal'
 import type { Dog } from '../types'
 
 const initialForm = {
-  name: '', breed: '', age: '', weight: '', size: 'medium',
+  name: '', breed: '', age: '', size: 'medium',
   gender: 'male', neutered: false, temperament: '', notes: '',
 }
 
@@ -202,7 +202,6 @@ export default function MojiPsiPage() {
       name: dog.name,
       breed: dog.breed,
       age: String(dog.age),
-      weight: String(dog.weight ?? ''),
       size: dog.size,
       gender: dog.gender,
       neutered: dog.neutered,
@@ -261,8 +260,6 @@ export default function MojiPsiPage() {
     else if (form.breed.trim().length > 50) errors.breed = 'Rasa ne sme imati više od 50 karaktera'
     if (!form.age) errors.age = 'Starost je obavezna'
     else if (Number(form.age) < 0 || Number(form.age) > 30) errors.age = 'Starost mora biti između 0 i 30'
-    if (!form.weight) errors.weight = 'Težina je obavezna'
-    else if (Number(form.weight) < 0.1 || Number(form.weight) > 150) errors.weight = 'Težina mora biti između 0.1 i 150 kg'
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -349,42 +346,31 @@ export default function MojiPsiPage() {
                 </div>
               </div>
 
-              {/* Breed & Weight */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="relative">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Rasa</label>
-                  <input
-                    type="text" value={form.breed} autoComplete="off" maxLength={50} className={inp}
-                    onChange={e => { setForm({ ...form, breed: e.target.value }); setBreedOpen(true); setFormErrors(err => { const { breed, ...rest } = err; return rest }) }}
-                    onFocus={e => { setBreedOpen(true); Object.assign(e.target.style, inpFocus) }}
-                    onBlur={e => { setTimeout(() => setBreedOpen(false), 150); Object.assign(e.target.style, inpBlur) }}
-                    placeholder="Pretraži rasu..."
-                  />
-                  {formErrors.breed && <p className="text-xs text-red-500 mt-1">{formErrors.breed}</p>}
-                  {breedOpen && (
-                    <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                      {PASMINE.filter(p => p.toLowerCase().includes(form.breed.toLowerCase())).map(p => (
-                        <button key={p} type="button"
-                          onMouseDown={() => { setForm({ ...form, breed: p }); setBreedOpen(false) }}
-                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors">
-                          {p}
-                        </button>
-                      ))}
-                      {PASMINE.filter(p => p.toLowerCase().includes(form.breed.toLowerCase())).length === 0 && (
-                        <div className="px-4 py-3 text-sm text-gray-400">Nema rezultata</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Težina (kg)</label>
-                  <input type="number" value={form.weight} min={0.1} max={150} step={0.1}
-                    onChange={e => { setForm({ ...form, weight: e.target.value }); setFormErrors(err => { const { weight, ...rest } = err; return rest }) }}
-                    placeholder="25" className={inp}
-                    onFocus={e => Object.assign(e.target.style, inpFocus)}
-                    onBlur={e => Object.assign(e.target.style, inpBlur)} />
-                  {formErrors.weight && <p className="text-xs text-red-500 mt-1">{formErrors.weight}</p>}
-                </div>
+              {/* Breed */}
+              <div className="relative">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Rasa</label>
+                <input
+                  type="text" value={form.breed} autoComplete="off" maxLength={50} className={inp}
+                  onChange={e => { setForm({ ...form, breed: e.target.value }); setBreedOpen(true); setFormErrors(err => { const { breed, ...rest } = err; return rest }) }}
+                  onFocus={e => { setBreedOpen(true); Object.assign(e.target.style, inpFocus) }}
+                  onBlur={e => { setTimeout(() => setBreedOpen(false), 150); Object.assign(e.target.style, inpBlur) }}
+                  placeholder="Pretraži rasu..."
+                />
+                {formErrors.breed && <p className="text-xs text-red-500 mt-1">{formErrors.breed}</p>}
+                {breedOpen && (
+                  <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {PASMINE.filter(p => p.toLowerCase().includes(form.breed.toLowerCase())).map(p => (
+                      <button key={p} type="button"
+                        onMouseDown={() => { setForm({ ...form, breed: p }); setBreedOpen(false) }}
+                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors">
+                        {p}
+                      </button>
+                    ))}
+                    {PASMINE.filter(p => p.toLowerCase().includes(form.breed.toLowerCase())).length === 0 && (
+                      <div className="px-4 py-3 text-sm text-gray-400">Nema rezultata</div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Size & gender */}

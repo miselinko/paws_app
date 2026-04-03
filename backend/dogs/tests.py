@@ -2,7 +2,6 @@ from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from decimal import Decimal
 
 from dogs.models import Dog
 
@@ -38,7 +37,6 @@ def _dog_data(**overrides):
         'name': 'Buddy',
         'breed': 'Labrador',
         'age': 3,
-        'weight': '25.00',
         'size': 'large',
         'gender': 'male',
         'neutered': False,
@@ -81,7 +79,6 @@ class TestDogCreate(TestCase):
         dog = Dog.objects.first()
         self.assertEqual(dog.owner, self.owner)
         self.assertEqual(dog.name, 'Buddy')
-        self.assertEqual(dog.weight, Decimal('25.00'))
 
 
 @OVERRIDE
@@ -96,16 +93,16 @@ class TestDogList(TestCase):
         # Owner1's dogs
         Dog.objects.create(
             owner=self.owner1, name='Buddy', breed='Labrador',
-            age=3, weight=Decimal('25.00'), size='large', gender='male',
+            age=3, size='large', gender='male',
         )
         Dog.objects.create(
             owner=self.owner1, name='Max', breed='Poodle',
-            age=5, weight=Decimal('8.00'), size='small', gender='male',
+            age=5, size='small', gender='male',
         )
         # Owner2's dog
         Dog.objects.create(
             owner=self.owner2, name='Rex', breed='Shepherd',
-            age=2, weight=Decimal('30.00'), size='large', gender='male',
+            age=2, size='large', gender='male',
         )
 
     def get_token(self, email, password='testpass123'):
@@ -147,7 +144,7 @@ class TestDogUpdate(TestCase):
         self.owner = _create_user('owner@test.com', role='owner')
         self.dog = Dog.objects.create(
             owner=self.owner, name='Buddy', breed='Labrador',
-            age=3, weight=Decimal('25.00'), size='large', gender='male',
+            age=3, size='large', gender='male',
         )
 
     def get_token(self, email, password='testpass123'):
@@ -187,7 +184,7 @@ class TestDogDelete(TestCase):
         self.owner = _create_user('owner@test.com', role='owner')
         self.dog = Dog.objects.create(
             owner=self.owner, name='Buddy', breed='Labrador',
-            age=3, weight=Decimal('25.00'), size='large', gender='male',
+            age=3, size='large', gender='male',
         )
 
     def get_token(self, email, password='testpass123'):
@@ -220,7 +217,7 @@ class TestDogAccessControl(TestCase):
         self.owner2 = _create_user('owner2@test.com', role='owner', first_name='Owner2')
         self.dog = Dog.objects.create(
             owner=self.owner1, name='Buddy', breed='Labrador',
-            age=3, weight=Decimal('25.00'), size='large', gender='male',
+            age=3, size='large', gender='male',
         )
 
     def get_token(self, email, password='testpass123'):

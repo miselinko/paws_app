@@ -5,7 +5,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getWalker, toggleFavorite } from '../api/users'
 import { getMyDogs } from '../api/dogs'
-import { createReservation } from '../api/reservations'
+import { createReservation, getBusySlots } from '../api/reservations'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import type { Walker, Dog } from '../types'
@@ -211,6 +211,13 @@ function WalkingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefi
     if (dogs && dogs.length === 1) setSelectedDogs([dogs[0].id])
   }, [dogs])
 
+  // Fetch busy slots for selected date
+  const { data: busySlots } = useQuery({
+    queryKey: ['busySlots', walker.id, date],
+    queryFn: () => getBusySlots(walker.id, date),
+    enabled: !!date,
+  })
+
   function getDayKey(dateStr: string): string {
     const jsDay = new Date(dateStr + 'T12:00:00').getDay()
     return String(jsDay === 0 ? 6 : jsDay - 1)
@@ -228,6 +235,16 @@ function WalkingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefi
   const availableTimes = daySchedule?.active
     ? ALL_TIMES.filter(t => t >= daySchedule.from && t < daySchedule.to)
     : ALL_TIMES
+
+  function getSlotStatus(time: string): 'free' | 'confirmed' | 'pending' {
+    if (!busySlots) return 'free'
+    for (const slot of busySlots) {
+      if (time >= slot.from && time < slot.to) {
+        return slot.status === 'pending' ? 'pending' : 'confirmed'
+      }
+    }
+    return 'free'
+  }
 
   const DURATION_OPTIONS = [
     { label: '30 min', mins: 30 },
@@ -361,19 +378,38 @@ function WalkingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefi
             )}
           </div>
           {!timeFrom ? (
-            <div className="grid gap-1.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))' }}>
-              {availableTimes.slice(0, -1).map(t => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => { setTimeFrom(t); setDurationMins(null) }}
-                  className="py-2 rounded-lg text-xs font-bold border transition-all hover:border-[#00BF8F] hover:text-[#00BF8F] text-center"
-                  style={{ backgroundColor: 'white', color: '#374151', borderColor: '#e5e7eb' }}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <>
+              {busySlots && busySlots.length > 0 && (
+                <div className="flex items-center gap-3 mb-2 text-[10px] font-medium text-gray-400">
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#fee2e2' }} /> Zauzeto</span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#fef3c7' }} /> Na čekanju</span>
+                </div>
+              )}
+              <div className="grid gap-1.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))' }}>
+                {availableTimes.slice(0, -1).map(t => {
+                  const slotStatus = getSlotStatus(t)
+                  const isBusy = slotStatus === 'confirmed'
+                  const isPending = slotStatus === 'pending'
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => { setTimeFrom(t); setDurationMins(null) }}
+                      className="py-2 rounded-lg text-xs font-bold border transition-all text-center"
+                      style={isBusy
+                        ? { backgroundColor: '#fee2e2', color: '#991b1b', borderColor: '#fecaca', cursor: 'not-allowed', opacity: 0.7 }
+                        : isPending
+                        ? { backgroundColor: '#fef3c7', color: '#92400e', borderColor: '#fcd34d' }
+                        : { backgroundColor: 'white', color: '#374151', borderColor: '#e5e7eb' }}
+                      title={isBusy ? 'Zauzet termin' : isPending ? 'Termin na čekanju' : ''}
+                    >
+                      {t}
+                    </button>
+                  )
+                })}
+              </div>
+            </>
           ) : (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold"
               style={{ backgroundColor: '#f0fdf9', color: '#059669' }}>

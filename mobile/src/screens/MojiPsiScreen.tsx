@@ -50,7 +50,6 @@ interface FormState {
   name: string
   breed: string
   age: string
-  weight: string
   size: string
   gender: string
   neutered: boolean
@@ -58,7 +57,7 @@ interface FormState {
 }
 
 const initialForm: FormState = {
-  name: '', breed: '', age: '', weight: '',
+  name: '', breed: '', age: '',
   size: '', gender: '', neutered: false, notes: '',
 }
 
@@ -194,6 +193,7 @@ export default function MojiPsiScreen() {
     setImageUri(null)
     setImageAsset(null)
     setFormVisible(true)
+    setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 100)
   }
 
   function openEdit(dog: Dog) {
@@ -202,7 +202,6 @@ export default function MojiPsiScreen() {
       name: dog.name,
       breed: dog.breed,
       age: String(dog.age),
-      weight: String(dog.weight ?? ''),
       size: dog.size,
       gender: dog.gender,
       neutered: dog.neutered,
@@ -211,6 +210,7 @@ export default function MojiPsiScreen() {
     setTempTags(dog.temperament ? dog.temperament.split(',').map(t => t.trim()).filter(Boolean) : [])
     setImageUri(dog.image ? imgUrl(dog.image) ?? null : null)
     setFormVisible(true)
+    setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 100)
   }
 
   function closeForm() {
@@ -246,7 +246,6 @@ export default function MojiPsiScreen() {
     fd.append('name', form.name)
     fd.append('breed', form.breed)
     fd.append('age', form.age)
-    if (form.weight) fd.append('weight', form.weight)
     fd.append('size', form.size)
     fd.append('gender', form.gender)
     fd.append('neutered', String(form.neutered))
@@ -266,10 +265,6 @@ export default function MojiPsiScreen() {
     if (!form.breed.trim() || form.breed.trim().length > 50) return 'Rasa je obavezna (maks. 50 karaktera).'
     const age = Number(form.age)
     if (!form.age || isNaN(age) || age < 0 || age > 30) return 'Starost mora biti 0–30 godina.'
-    if (form.weight) {
-      const w = Number(form.weight)
-      if (isNaN(w) || w < 0.1 || w > 150) return 'Težina mora biti 0.1–150 kg.'
-    }
     return null
   }
 
@@ -339,7 +334,7 @@ export default function MojiPsiScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView ref={scrollRef} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 8 }]}>
+      <ScrollView ref={scrollRef} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 8 }]} keyboardShouldPersistTaps="handled">
         {/* Form */}
         {formVisible && (
           <View style={styles.form}>
