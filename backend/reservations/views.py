@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -105,9 +106,18 @@ def send_new_reservation_email(reservation):
     ).start()
 
 
+class ReservationCreateThrottle(UserRateThrottle):
+    scope = 'reservation_create'
+
+
 class ReservationListCreateView(generics.ListCreateAPIView):
     serializer_class = ReservationSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_throttles(self):
+        if self.request.method == 'POST':
+            return [ReservationCreateThrottle()]
+        return []
 
     def get_queryset(self):
         user = self.request.user

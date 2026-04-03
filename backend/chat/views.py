@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -315,9 +316,18 @@ class BotChatView(APIView):
             return Response({'reply': 'Došlo je do greške. Pokušaj ponovo.'})
 
 
+class ChatMessageThrottle(UserRateThrottle):
+    scope = 'chat_message'
+
+
 class ConversationView(APIView):
     """GET messages with a user, POST send a message."""
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_throttles(self):
+        if self.request.method == 'POST':
+            return [ChatMessageThrottle()]
+        return []
 
     def get(self, request, user_id):
         try:

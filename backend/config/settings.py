@@ -97,6 +97,8 @@ REST_FRAMEWORK = {
         'login': '10/minute',
         'register': '20/hour',
         'password_reset': '5/hour',
+        'reservation_create': '30/hour',
+        'chat_message': '60/minute',
     },
 }
 
