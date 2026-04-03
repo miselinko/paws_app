@@ -5,7 +5,7 @@ import {
   Image, Alert, ScrollView, Keyboard,
 } from 'react-native'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRoute, useScrollToTop } from '@react-navigation/native'
+import { useRoute, useNavigation, useScrollToTop } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import {
@@ -399,6 +399,7 @@ export default function PorukeScreen() {
   const insets = useSafeAreaInsets()
   const tabBarHeight = useBottomTabBarHeight()
   const route = useRoute<any>()
+  const navigation = useNavigation()
   const [view, setView] = useState<ScreenView>('list')
   const queryClient = useQueryClient()
   const scrollRef = useRef<ScrollView>(null)
@@ -409,6 +410,17 @@ export default function PorukeScreen() {
     const userId = route.params?.userId
     if (userId) setView({ userId })
   }, [route.params?.userId])
+
+  // Reset na listu pri ponovnom tapu na tab
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress', (e) => {
+      if (view !== 'list') {
+        e.preventDefault()
+        setView('list')
+      }
+    })
+    return unsubscribe
+  }, [navigation, view])
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['conversations'],

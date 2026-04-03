@@ -87,13 +87,16 @@ npx expo start --clear  # with cache reset
 
 For Android emulator: press `a` in the terminal (requires Android Studio).
 
-Release APK build:
-```bash
+Release APK build (PowerShell):
+```powershell
 cd mobile
-npx expo prebuild --clean
+powershell -ExecutionPolicy Bypass -Command "npx expo prebuild --clean"
 powershell.exe -ExecutionPolicy Bypass -File build_apk.ps1
 ```
 APK output: `mobile/android/app/build/outputs/apk/release/app-release.apk`
+
+> **Note:** `build_apk.ps1` already cleans the build cache — no separate clean step needed.
+> Windows may block scripts by default; always use `-ExecutionPolicy Bypass`.
 
 ## Environment Variables
 
@@ -145,6 +148,7 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 - Walker accepts/rejects, owner cancels (blocked within 3h of start)
 - Validations: min 15 min duration, max 90 days ahead, walking must be 30/60/90/120/180 min
 - Atomic transactions to prevent race conditions
+- Busy slot display: web shows color-coded calendar (red=confirmed, yellow=pending), mobile shows list with overlap validation
 
 ### Live GPS Tracking
 - Walker broadcasts location every 5s during a walk
@@ -154,8 +158,8 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 
 ### Dogs
 - CRUD with image upload
-- Fields: name, breed, size, age, weight, temperament notes
-- Form validation (name max 50 chars, weight 0.1–150 kg, age 0–30)
+- Fields: name, breed, size (mali/srednji/veliki), age, gender, neutered, temperament, notes
+- Form validation (name max 50 chars, age 0–30)
 
 ### Chat
 - Direct messaging between owners and walkers
@@ -184,7 +188,7 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 - Role is read-only after registration — cannot be changed via profile update
 - Admin endpoints protected with IsAdmin permission class + AuditLog
 - CORS domain whitelist (no allow-all)
-- Rate limiting: login 10/min, registration 20/hr, password reset 5/hr
+- Rate limiting: login 10/min, registration 20/hr, password reset 5/hr, reservations 30/hr, chat 60/min
 - Dog ownership validation — users can only reserve their own dogs
 - Walker role + active status verification on reservations
 - Chat bot reservation creation validates times, service type, walker status
@@ -241,6 +245,7 @@ POST   /api/reservations/:id/complete/     Complete walk (walker)
 GET    /api/reservations/:id/location/     Get live GPS location
 POST   /api/reservations/:id/location/     Update GPS location
 GET    /api/reservations/pending-count/    Unread pending count (badge)
+GET    /api/reservations/busy/             Walker busy slots (?walker, ?date)
 ```
 
 ### Dogs
