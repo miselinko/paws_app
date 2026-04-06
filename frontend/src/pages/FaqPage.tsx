@@ -94,7 +94,7 @@ export default function FaqPage() {
             <button
               key={c.id}
               onClick={() => { setActiveCat(c.id); setOpenItems(new Set()) }}
-              className="flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all"
+              className="flex-shrink-0 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all"
               style={activeCat === c.id
                 ? { backgroundColor: '#00BF8F', color: 'white' }
                 : { color: '#666', backgroundColor: 'transparent' }}

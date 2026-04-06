@@ -94,7 +94,7 @@ export default function Navbar() {
                 Prijavi se
               </Link>
               <Link to="/register"
-                className="text-sm font-bold text-white px-4 py-2.5 rounded-xl transition-colors hover:opacity-90"
+                className="text-sm font-bold text-white px-4 py-2.5 rounded-full transition-colors hover:opacity-90"
                 style={{ backgroundColor: '#00BF8F' }}>
                 Registruj se
               </Link>

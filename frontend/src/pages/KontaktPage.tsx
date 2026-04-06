@@ -57,7 +57,7 @@ export default function KontaktPage() {
       </section>
 
       {/* Form + Info */}
-      <section className="py-20 px-4">
+      <section className="py-14 sm:py-20 px-4">
         <div className="max-w-5xl mx-auto grid lg:grid-cols-5 gap-12">
 
           {/* Form */}

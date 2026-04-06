@@ -70,7 +70,7 @@ export default function PostaniSetacPage() {
       </section>
 
       {/* Benefiti */}
-      <section className="py-20 px-4">
+      <section className="py-14 sm:py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <div className="text-center mb-14">
@@ -132,7 +132,7 @@ export default function PostaniSetacPage() {
       </section>
 
       {/* Kako da počneš - koraci */}
-      <section className="bg-gray-50 py-20 px-4">
+      <section className="bg-gray-50 py-14 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <Reveal>
             <div className="text-center mb-14">
@@ -182,7 +182,7 @@ export default function PostaniSetacPage() {
       </section>
 
       {/* Uslovi */}
-      <section className="py-20 px-4">
+      <section className="py-14 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
           <Reveal>
             <div>
@@ -227,7 +227,7 @@ export default function PostaniSetacPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#00BF8F' }}>
+      <section className="py-14 sm:py-20 px-4" style={{ backgroundColor: '#00BF8F' }}>
         <div className="max-w-3xl mx-auto text-center">
           <Reveal>
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">Spreman da počneš?</h2>

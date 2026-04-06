@@ -120,7 +120,7 @@ export default function ZastoPawsPage() {
       </section>
 
       {/* Razlozi - colored cards */}
-      <section className="py-20 px-4">
+      <section className="py-14 sm:py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <div className="text-center mb-14">
@@ -161,7 +161,7 @@ export default function ZastoPawsPage() {
       </section>
 
       {/* Poređenje */}
-      <section className="py-20 px-4">
+      <section className="py-14 sm:py-20 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-10 items-start">
             <Reveal>
@@ -179,8 +179,8 @@ export default function ZastoPawsPage() {
               </div>
             </Reveal>
             <Reveal delay={100}>
-              <div className="bg-white rounded-2xl overflow-hidden border border-gray-100" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-                <table className="w-full text-sm">
+              <div className="bg-white rounded-2xl overflow-x-auto border border-gray-100" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+                <table className="w-full text-sm min-w-[360px]">
                   <thead>
                     <tr className="border-b border-gray-100">
                       <th className="text-left py-4 px-5 font-bold text-gray-900">Funkcionalnost</th>
@@ -226,7 +226,7 @@ export default function ZastoPawsPage() {
       </section>
 
       {/* Testimonijali */}
-      <section className="bg-gray-50 py-20 px-4">
+      <section className="bg-gray-50 py-14 sm:py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <div className="text-center mb-14">
@@ -273,7 +273,7 @@ export default function ZastoPawsPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4">
+      <section className="py-14 sm:py-20 px-4">
         <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
           <Reveal>
             <div>

@@ -73,7 +73,7 @@ export default function HomePage() {
               <img
                 src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=700&auto=format&fit=crop"
                 alt="Srećan zlatni retriver"
-                className="relative rounded-3xl w-full max-w-md object-cover"
+                className="relative rounded-3xl w-full max-w-md object-cover max-h-72 sm:max-h-none"
                 style={{ aspectRatio: '4/5', boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}
               />
             </div>
@@ -121,11 +121,11 @@ export default function HomePage() {
       </section>
 
       {/* O platformi */}
-      <section className="py-20 px-4">
+      <section className="py-14 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
           <Reveal>
             <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-              <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop" alt="Psi na šetnji" className="w-full h-72 sm:h-80 object-cover" />
+              <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop" alt="Psi na šetnji" className="w-full h-52 sm:h-80 object-cover" />
             </div>
           </Reveal>
           <Reveal delay={100}>
@@ -149,7 +149,7 @@ export default function HomePage() {
       </section>
 
       {/* Usluge */}
-      <section className="bg-gray-50 py-20 px-4">
+      <section className="bg-gray-50 py-14 sm:py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <div className="text-center mb-14">
@@ -193,7 +193,7 @@ export default function HomePage() {
       </section>
 
       {/* Kako funkcioniše - detaljno */}
-      <section className="py-20 px-4">
+      <section className="py-14 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <Reveal>
             <div className="text-center mb-16">
@@ -208,7 +208,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-10 items-center mb-16">
             <Reveal>
               <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?q=80&w=700&auto=format&fit=crop" alt="Pretraga šetača" className="w-full h-64 object-cover" />
+                <img src="https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?q=80&w=700&auto=format&fit=crop" alt="Pretraga šetača" className="w-full h-48 sm:h-64 object-cover" />
               </div>
             </Reveal>
             <Reveal delay={100}>
@@ -239,7 +239,7 @@ export default function HomePage() {
             </Reveal>
             <Reveal>
               <div className="rounded-2xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop" alt="Rezervacija termina" className="w-full h-64 object-cover" />
+                <img src="https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop" alt="Rezervacija termina" className="w-full h-48 sm:h-64 object-cover" />
               </div>
             </Reveal>
           </div>
@@ -248,7 +248,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <Reveal>
               <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?q=80&w=700&auto=format&fit=crop" alt="Prati šetnju" className="w-full h-64 object-cover" />
+                <img src="https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?q=80&w=700&auto=format&fit=crop" alt="Prati šetnju" className="w-full h-48 sm:h-64 object-cover" />
               </div>
             </Reveal>
             <Reveal delay={100}>
@@ -292,7 +292,7 @@ export default function HomePage() {
 
       {/* Postani šetač */}
       {!user && (
-        <section className="py-20 px-4">
+        <section className="py-14 sm:py-20 px-4">
           <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
             <Reveal delay={100}>
               <div className="order-2 lg:order-1">
