@@ -37,8 +37,8 @@ const STATUS = {
 } as const
 
 const SVC = {
-  walking:  { icon: '🦮', label: 'Šetanje' },
-  boarding: { icon: '🏠', label: 'Čuvanje' },
+  walking:  { label: 'Šetanje' },
+  boarding: { label: 'Čuvanje' },
 } as const
 
 function fmtRange(start: string, end: string) {
@@ -70,7 +70,7 @@ function DogChip({ dog }: { dog: Dog }) {
   return (
     <Link to={`/dogs/${dog.id}`}
       className="rounded-xl border border-gray-200 overflow-hidden flex items-center gap-2.5 px-3.5 py-2.5 transition-colors hover:border-[#00BF8F] hover:bg-[#f0fdf9] no-underline">
-      <span className="text-base">🐕</span>
+      <span className="text-xs font-bold text-gray-500">PS</span>
       <div className="flex-1 min-w-0">
         <span className="text-sm font-semibold text-gray-900">{dog.name}</span>
         <span className="text-xs text-gray-400 ml-1.5">{dog.breed}</span>
@@ -115,7 +115,7 @@ function WalkerInfoSection({ w }: { w: WalkerInfo }) {
             <div className="text-right shrink-0">
               <p className="font-black text-sm text-gray-900">{Number(wp.hourly_rate).toLocaleString()} <span className="text-xs font-medium text-gray-400">RSD/h</span></p>
               <p className="text-xs text-gray-400">
-                {wp.services === 'both' ? 'Šetanje & Čuvanje' : wp.services === 'walking' ? '🦮 Šetanje' : '🏠 Čuvanje'}
+                {wp.services === 'both' ? 'Šetanje & Čuvanje' : wp.services === 'walking' ? 'Šetanje' : 'Čuvanje'}
               </p>
             </div>
           )}
@@ -257,7 +257,7 @@ function ReservationCard({ r }: { r: Reservation }) {
   const gpsFailCountRef = useRef(0)
   const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const st = STATUS[r.status as keyof typeof STATUS] ?? STATUS.cancelled
-  const svc = SVC[r.service_type as keyof typeof SVC] ?? { icon: '📅', label: r.service_type }
+  const svc = SVC[r.service_type as keyof typeof SVC] ?? { label: r.service_type }
   const { day, date, time } = fmtRange(r.start_time, r.end_time)
   const isWithin3h = r.status === 'confirmed' && (new Date(r.start_time).getTime() - Date.now()) <= 3 * 60 * 60 * 1000
   const hasStarted = new Date(r.start_time).getTime() - Date.now() <= 30 * 60 * 1000
@@ -330,7 +330,7 @@ function ReservationCard({ r }: { r: Reservation }) {
       {isWalkerPending && (
         <div className="px-4 py-2 text-xs font-bold flex items-center gap-1.5"
           style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-          ⏳ Čeka tvoj odgovor
+          Čeka tvoj odgovor
         </div>
       )}
 
@@ -348,7 +348,7 @@ function ReservationCard({ r }: { r: Reservation }) {
           <div className="flex items-start justify-between gap-2 mb-1">
             <div>
               {personName && <p className="font-bold text-gray-900 text-sm leading-tight">{personName}</p>}
-              <p className="text-xs text-gray-400 mt-0.5">{svc.icon} {svc.label}{r.duration ? ` · ${r.duration} min` : ''}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{svc.label}{r.duration ? ` · ${r.duration} min` : ''}</p>
             </div>
             <span className="text-xs font-bold px-2.5 py-1 rounded-full shrink-0"
               style={{ backgroundColor: st.bg, color: st.color }}>
@@ -358,7 +358,7 @@ function ReservationCard({ r }: { r: Reservation }) {
 
           {/* Date */}
           <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mt-2">
-            <span className="text-base">📅</span>
+            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
             <span>{day}, {date}</span>
             <span className="text-gray-300">·</span>
             <span style={{ color: '#00BF8F' }}>{time}</span>
@@ -371,7 +371,7 @@ function ReservationCard({ r }: { r: Reservation }) {
                 <Link key={d.id} to={`/dogs/${d.id}`}
                   className="text-xs font-medium px-2.5 py-1 rounded-full border transition-all hover:shadow-sm hover:opacity-80"
                   style={{ backgroundColor: '#f0fdf9', color: '#059669', borderColor: '#bbf7d0' }}>
-                  🐕 {d.name}
+                  {d.name}
                 </Link>
               ))}
             </div>
@@ -385,7 +385,7 @@ function ReservationCard({ r }: { r: Reservation }) {
           <button onClick={() => startM.mutate()} disabled={startM.isPending || !hasStarted}
             className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#00BF8F' }}>
-            {startM.isPending ? 'Pokretanje...' : !hasStarted ? `🕐 Čeka početak (${time})` : '🐾 Pokreni šetnju'}
+            {startM.isPending ? 'Pokretanje...' : !hasStarted ? `Čeka početak (${time})` : 'Pokreni šetnju'}
           </button>
         </div>
       )}
@@ -411,7 +411,7 @@ function ReservationCard({ r }: { r: Reservation }) {
             disabled={cancelM.isPending || isWithin3h}
             className="w-full py-2.5 rounded-xl text-sm font-semibold border-2 transition-all hover:bg-red-50 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ color: '#ef4444', borderColor: '#fecaca' }}>
-            {cancelM.isPending ? 'Otkazujem...' : isWithin3h ? '🔒 Otkaži (blokiran - manje od 3h)' : 'Otkaži rezervaciju'}
+            {cancelM.isPending ? 'Otkazujem...' : isWithin3h ? 'Otkaži (blokiran - manje od 3h)' : 'Otkaži rezervaciju'}
           </button>
           {cancelError && <p className="text-xs text-red-500 mt-1.5 text-center">{cancelError}</p>}
         </div>
@@ -443,7 +443,7 @@ function ReservationCard({ r }: { r: Reservation }) {
             onClick={() => setShowReview(true)}
             className="w-full py-2.5 rounded-xl text-sm font-bold border-2 transition-all hover:bg-amber-50 active:scale-95"
             style={{ color: '#92400e', borderColor: '#fcd34d', backgroundColor: '#fffbeb' }}>
-            ⭐ Ostavi recenziju za ovu šetnju
+            Ostavi recenziju za ovu šetnju
           </button>
         </div>
       )}
@@ -489,7 +489,7 @@ function ReservationCard({ r }: { r: Reservation }) {
         <div className="mx-4 mb-2 px-3 py-2.5 rounded-xl flex items-center justify-between cursor-pointer"
           style={{ backgroundColor: '#f0fdf9', border: '1px solid #bbf7d0' }}
           onClick={() => setExpanded(true)}>
-          <span className="text-xs font-bold text-green-800">🐾 Šetnja je u toku - prikaži mapu ▼</span>
+          <span className="text-xs font-bold text-green-800">Šetnja je u toku - prikaži mapu ▼</span>
           {r.walk_started_at && (
             <span className="text-xs text-green-600">{walkDuration(r.walk_started_at)}</span>
           )}
@@ -688,7 +688,9 @@ export default function RezervacijePage() {
         {/* Empty state */}
         {isEmpty && (
           <div className="text-center py-20">
-            <div className="text-5xl mb-4">📅</div>
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 bg-gray-100 text-gray-400">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+            </div>
             <h3 className="text-lg font-bold text-gray-700 mb-1">
               {tab === 'all' ? 'Nema rezervacija' :
                tab === 'pending' ? 'Nema rezervacija na čekanju' :

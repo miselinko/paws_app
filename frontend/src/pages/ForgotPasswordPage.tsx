@@ -35,7 +35,9 @@ export default function ForgotPasswordPage() {
 
         {sent ? (
           <div className="text-center">
-            <div className="text-5xl mb-4">📧</div>
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+            </div>
             <h1 className="text-2xl font-black text-gray-900 mb-2">Proveri email</h1>
             <p className="text-gray-500 text-sm mb-6">
               Ako ovaj email postoji u sistemu, poslaćemo ti link za resetovanje lozinke.

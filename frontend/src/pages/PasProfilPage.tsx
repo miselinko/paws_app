@@ -53,7 +53,9 @@ export default function PasProfilPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
           <div className="text-center py-24">
-            <div className="text-5xl mb-4">🔒</div>
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 bg-gray-100 text-gray-400">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+            </div>
             <h3 className="text-xl font-bold text-gray-700 mb-2">Nema pristupa</h3>
             <p className="text-gray-400 text-sm mb-6">Nemate dozvolu da vidite profil ovog psa.</p>
             <button onClick={() => navigate(-1)}
@@ -93,8 +95,10 @@ export default function PasProfilPage() {
               <img src={photo} alt={dog.name} className="w-full h-full object-cover" />
             </div>
           ) : (
-            <div className="h-44 bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
-              <span className="text-7xl">🐕</span>
+            <div className="h-44 flex items-center justify-center" style={{ backgroundColor: '#f0fdf9' }}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: '#00BF8F' }}>
+                <span className="text-3xl font-black text-white">{dog.name[0]}</span>
+              </div>
             </div>
           )}
 

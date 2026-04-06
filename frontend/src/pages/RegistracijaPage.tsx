@@ -25,10 +25,15 @@ const inp = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gra
 const inpStyle = { borderColor: '#e5e7eb' }
 const inpFocus = { borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,0.12)' }
 
+const SVC_ICONS: Record<string, React.ReactNode> = {
+  walking: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>,
+  boarding: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>,
+  both: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>,
+}
 const SVC_OPTIONS = [
-  { val: 'walking', icon: '🦮', title: 'Šetanje', desc: 'Vodim pse na šetnju' },
-  { val: 'boarding', icon: '🏠', title: 'Čuvanje', desc: 'Čuvam pse kod kuće' },
-  { val: 'both', icon: '🐾', title: 'Oboje', desc: 'Šetam i čuvam' },
+  { val: 'walking', title: 'Šetanje', desc: 'Vodim pse na šetnju' },
+  { val: 'boarding', title: 'Čuvanje', desc: 'Čuvam pse kod kuće' },
+  { val: 'both', title: 'Oboje', desc: 'Šetam i čuvam' },
 ]
 
 const LEFT_CONTENT = {
@@ -212,9 +217,11 @@ export default function RegistracijaPage() {
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Ko si?</p>
           <div className="grid grid-cols-2 gap-3 mb-4">
             {[
-              { val: 'owner',  icon: '🏠', title: 'Vlasnik psa',   desc: 'Tražim šetača' },
-              { val: 'walker', icon: '🦮', title: 'Šetač / Čuvar', desc: 'Nudim usluge' },
-            ].map(({ val, icon, title, desc }) => (
+              { val: 'owner',  title: 'Vlasnik psa',   desc: 'Tražim šetača',
+                ic: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg> },
+              { val: 'walker', title: 'Šetač / Čuvar', desc: 'Nudim usluge',
+                ic: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg> },
+            ].map(({ val, ic, title, desc }) => (
               <label
                 key={val}
                 className="flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all"
@@ -223,7 +230,7 @@ export default function RegistracijaPage() {
                   : { borderColor: '#e5e7eb', backgroundColor: 'white' }}
               >
                 <input {...register('role')} type="radio" value={val} className="sr-only" />
-                <span className="text-2xl">{icon}</span>
+                <span className="text-gray-500">{ic}</span>
                 <div>
                   <div className="font-bold text-sm" style={{ color: role === val ? '#00BF8F' : '#1f2937' }}>{title}</div>
                   <div className="text-xs text-gray-400">{desc}</div>
@@ -237,7 +244,7 @@ export default function RegistracijaPage() {
             <div style={{ animation: 'slideDown 0.25s ease' }} className="mb-5">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Koje usluge nudim?</p>
               <div className="grid grid-cols-3 gap-2">
-                {SVC_OPTIONS.map(({ val, icon, title, desc }) => (
+                {SVC_OPTIONS.map(({ val, title, desc }) => (
                   <button
                     key={val}
                     type="button"
@@ -247,7 +254,7 @@ export default function RegistracijaPage() {
                       ? { borderColor: '#00BF8F', backgroundColor: '#f0fdf9' }
                       : { borderColor: '#e5e7eb', backgroundColor: 'white' }}
                   >
-                    <span className="text-2xl">{icon}</span>
+                    <span className="text-gray-500">{SVC_ICONS[val]}</span>
                     <span className="text-xs font-bold" style={{ color: services === val ? '#059669' : '#1f2937' }}>{title}</span>
                     <span className="text-[10px] text-center leading-tight text-gray-400">{desc}</span>
                   </button>

@@ -505,20 +505,17 @@ function WalkingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefi
         <div style={{ animation: 'fadeIn 0.3s ease', borderLeft: '3px solid #00BF8F' }}
           className="bg-green-50 rounded-xl px-4 py-3 space-y-1">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Pregled</p>
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <span>🦮</span>
-            <span className="font-semibold">Šetanje</span>
-          </div>
-          <div className="text-sm text-gray-700">📅 {formatDateNice(date)}</div>
-          <div className="text-sm text-gray-700">🕐 {timeFrom} – {timeTo} ({durationLabel})</div>
+          <div className="text-sm text-gray-700 font-semibold">Šetanje</div>
+          <div className="text-sm text-gray-700">{formatDateNice(date)}</div>
+          <div className="text-sm text-gray-700">{timeFrom} – {timeTo} ({durationLabel})</div>
           {dogs && selectedDogs.length > 0 && (
             <div className="text-sm text-gray-700">
-              🐕 {dogs.filter(d => selectedDogs.includes(d.id)).map(d => d.name).join(', ')}
+              {dogs.filter(d => selectedDogs.includes(d.id)).map(d => d.name).join(', ')}
             </div>
           )}
           {priceTotal && (
             <div className="text-sm font-black" style={{ color: '#FAAB43' }}>
-              💰 {priceTotal.toLocaleString()} RSD
+              {priceTotal.toLocaleString()} RSD
             </div>
           )}
         </div>
@@ -666,15 +663,15 @@ function BoardingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undef
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Tip čuvanja</p>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { val: 'single', icon: '📅', label: 'Jedan dan' },
-            { val: 'multi',  icon: '📆', label: 'Više dana' },
+            { val: 'single', label: 'Jedan dan' },
+            { val: 'multi',  label: 'Više dana' },
           ] as const).map(opt => (
             <button key={opt.val} type="button" onClick={() => switchType(opt.val)}
               className="flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all"
               style={boardingType === opt.val
                 ? { borderColor: '#00BF8F', backgroundColor: '#f0fdf9', color: '#059669' }
                 : { borderColor: '#e5e7eb', color: '#6b7280', backgroundColor: 'white' }}>
-              {opt.icon} {opt.label}
+              {opt.label}
             </button>
           ))}
         </div>
@@ -825,25 +822,22 @@ function BoardingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undef
         <div style={{ animation: 'fadeIn 0.3s ease', borderLeft: '3px solid #FAAB43' }}
           className="bg-amber-50 rounded-xl px-4 py-3 space-y-1">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Pregled</p>
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <span>🏠</span>
-            <span className="font-semibold">Čuvanje</span>
-          </div>
+          <div className="text-sm text-gray-700 font-semibold">Čuvanje</div>
           <div className="text-sm text-gray-700">
-            📅 {isSingle
+            {isSingle
             ? formatDateNice(boardingFrom)
             : `${formatDateNice(boardingFrom)} – ${formatDateNice(boardingTo)}`
           } ({numDays === 1 ? '1 dan' : `${numDays} dana`})
           </div>
-          <div className="text-sm text-gray-700">🕐 Preuzimanje: {checkIn} · Vraćanje: {checkOut}</div>
+          <div className="text-sm text-gray-700">Preuzimanje: {checkIn} · Vraćanje: {checkOut}</div>
           {dogs && selectedDogs.length > 0 && (
             <div className="text-sm text-gray-700">
-              🐕 {dogs.filter(d => selectedDogs.includes(d.id)).map(d => d.name).join(', ')}
+              {dogs.filter(d => selectedDogs.includes(d.id)).map(d => d.name).join(', ')}
             </div>
           )}
           {price && (
             <div className="text-sm font-black" style={{ color: '#FAAB43' }}>
-              💰 {price.total.toLocaleString()} RSD
+              {price.total.toLocaleString()} RSD
             </div>
           )}
         </div>
@@ -888,7 +882,9 @@ function BookingWidget({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefin
 
   if (!user) return (
     <div className="p-6 text-center rounded-xl border border-gray-100" style={{ backgroundColor: '#f0fdf9' }}>
-      <div className="text-3xl mb-3">🐾</div>
+      <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
+      </div>
       <p className="font-bold text-gray-800 mb-1">Želiš da rezervišeš?</p>
       <p className="text-sm text-gray-500 mb-4">Kreiraj nalog - besplatno je i traje 1 minut.</p>
       <Link to="/register" className="w-full block py-3 rounded-xl text-white font-bold text-sm text-center mb-2" style={{ backgroundColor: '#00BF8F' }}>
@@ -920,7 +916,7 @@ function BookingWidget({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefin
                 ? { backgroundColor: '#00BF8F', color: 'white' }
                 : { backgroundColor: 'white', color: '#6b7280' }}
             >
-              🦮 Šetanje
+              Šetanje
             </button>
             <button
               type="button"
@@ -930,7 +926,7 @@ function BookingWidget({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefin
                 ? { backgroundColor: '#FAAB43', color: 'white' }
                 : { backgroundColor: 'white', color: '#6b7280' }}
             >
-              🏠 Čuvanje
+              Čuvanje
             </button>
           </div>
         </div>
@@ -1115,7 +1111,9 @@ export default function SetacProfilPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {availableSvcs.includes('walking') && (
                 <div className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50">
-                  <span className="text-2xl">🦮</span>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                  </div>
                   <div>
                     <div className="font-bold text-gray-900 text-sm">Šetanje</div>
                     <div className="text-xs font-black mt-0.5" style={{ color: '#00BF8F' }}>
@@ -1126,7 +1124,9 @@ export default function SetacProfilPage() {
               )}
               {availableSvcs.includes('boarding') && (
                 <div className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50">
-                  <span className="text-2xl">🏠</span>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#fff5e6', color: '#FAAB43' }}>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                  </div>
                   <div>
                     <div className="font-bold text-gray-900 text-sm">Čuvanje</div>
                     <div className="text-xs font-black mt-0.5" style={{ color: '#FAAB43' }}>

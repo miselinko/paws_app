@@ -92,7 +92,7 @@ function DogCard({
               className="w-8 h-8 rounded-xl bg-white/90 flex items-center justify-center text-sm hover:bg-red-50 transition-all"
               title="Ukloni sliku"
             >
-              🖼
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
             </button>
           )}
           <button
@@ -103,7 +103,7 @@ function DogCard({
               : { backgroundColor: 'rgba(255,255,255,0.9)', color: '#374151' }}
             title={editing ? 'Zatvori' : 'Izmeni'}
           >
-            {editing ? '✕' : '✏️'}
+            {editing ? '✕' : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>}
           </button>
           <button
             onClick={onDelete}
@@ -312,7 +312,7 @@ export default function MojiPsiPage() {
               {editingDog && (
                 <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
                   style={{ backgroundColor: '#d1fae5', color: '#065f46' }}>
-                  ✏️ Izmena
+                  Izmena
                 </span>
               )}
             </div>
@@ -455,7 +455,9 @@ export default function MojiPsiPage() {
                     </>
                   ) : (
                     <>
-                      <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-3xl mb-3">📸</div>
+                      <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center mb-3 text-gray-400">
+                        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" /></svg>
+                      </div>
                       <p className="text-sm font-semibold text-gray-700">Klikni da dodaš fotografiju</p>
                       <p className="text-xs text-gray-400 mt-1">JPG, PNG - max 5MB</p>
                     </>
@@ -497,7 +499,9 @@ export default function MojiPsiPage() {
         {/* Empty */}
         {!isLoading && dogs?.length === 0 && !showForm && (
           <div className="text-center py-28">
-            <div className="text-6xl mb-4">🐕</div>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
+              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
+            </div>
             <h3 className="text-xl font-bold text-gray-700 mb-2">Još nema dodatih pasa</h3>
             <p className="text-gray-400 text-sm mb-6">Dodaj profil svog psa da bi rezervisao šetača</p>
             <button onClick={openCreate}

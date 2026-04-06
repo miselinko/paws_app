@@ -105,20 +105,20 @@ function Dashboard({ stats, onNavigate }: { stats: AdminStats; onNavigate: (tab:
     <div className="space-y-6">
       <h2 className="text-lg font-bold text-gray-900">Pregled</h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Ukupno korisnika" value={stats.total_users} icon="👥" color="bg-indigo-50" onClick={() => onNavigate('users')} />
-        <StatCard label="Vlasnici" value={stats.owners} icon="🏠" color="bg-blue-50" onClick={() => onNavigate('users', { role: 'owner' })} />
-        <StatCard label="Šetači" value={stats.walkers} icon="🐾" color="bg-green-50" onClick={() => onNavigate('users', { role: 'walker' })} />
-        <StatCard label="Admini" value={stats.admins} icon="🛡️" color="bg-purple-50" onClick={() => onNavigate('users', { role: 'admin' })} />
+        <StatCard label="Ukupno korisnika" value={stats.total_users} icon="K" color="bg-indigo-50" onClick={() => onNavigate('users')} />
+        <StatCard label="Vlasnici" value={stats.owners} icon="V" color="bg-blue-50" onClick={() => onNavigate('users', { role: 'owner' })} />
+        <StatCard label="Šetači" value={stats.walkers} icon="Š" color="bg-green-50" onClick={() => onNavigate('users', { role: 'walker' })} />
+        <StatCard label="Admini" value={stats.admins} icon="A" color="bg-purple-50" onClick={() => onNavigate('users', { role: 'admin' })} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Ukupno rezervacija" value={stats.total_reservations} icon="📅" color="bg-orange-50" onClick={() => onNavigate('reservations')} />
-        <StatCard label="Završene" value={stats.completed_reservations} icon="✅" color="bg-emerald-50" onClick={() => onNavigate('reservations', { status: 'completed' })} />
-        <StatCard label="Na čekanju" value={stats.pending_reservations} icon="⏳" color="bg-yellow-50" onClick={() => onNavigate('reservations', { status: 'pending' })} />
+        <StatCard label="Ukupno rezervacija" value={stats.total_reservations} icon="R" color="bg-orange-50" onClick={() => onNavigate('reservations')} />
+        <StatCard label="Završene" value={stats.completed_reservations} icon="Z" color="bg-emerald-50" onClick={() => onNavigate('reservations', { status: 'completed' })} />
+        <StatCard label="Na čekanju" value={stats.pending_reservations} icon="N" color="bg-yellow-50" onClick={() => onNavigate('reservations', { status: 'pending' })} />
         <StatCard label="Otkazane" value={stats.cancelled_reservations} icon="❌" color="bg-red-50" onClick={() => onNavigate('reservations', { status: 'cancelled' })} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Recenzije" value={stats.total_reviews} icon="⭐" color="bg-amber-50" onClick={() => onNavigate('reviews')} />
-        <StatCard label="Psi" value={stats.total_dogs} icon="🐕" color="bg-cyan-50" onClick={() => onNavigate('dogs')} />
+        <StatCard label="Recenzije" value={stats.total_reviews} icon="O" color="bg-amber-50" onClick={() => onNavigate('reviews')} />
+        <StatCard label="Psi" value={stats.total_dogs} icon="P" color="bg-cyan-50" onClick={() => onNavigate('dogs')} />
         <StatCard label="Aktivni korisnici" value={stats.active_users} icon="🟢" color="bg-lime-50" onClick={() => onNavigate('users', { is_active: 'true' })} />
         <StatCard label="Neaktivni" value={stats.inactive_users} icon="🔴" color="bg-stone-50" onClick={() => onNavigate('users', { is_active: 'false' })} />
       </div>
@@ -252,7 +252,7 @@ function UserDetail({ userId, onClose }: { userId: number; onClose: () => void }
                     {d.image ? (
                       <img src={imgUrl(d.image)} className="w-10 h-10 rounded-lg object-cover" alt="" />
                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-lg">🐕</div>
+                      <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">P</div>
                     )}
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{d.name}</p>
@@ -382,7 +382,7 @@ function UsersTable({ initialRole, initialActive }: { initialRole?: string; init
       {/* Table */}
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {isLoading ? <Spinner /> : !data?.results.length ? (
-          <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">🔍</p><p className="text-sm">Nema pronađenih korisnika</p></div>
+          <div className="text-center py-16 text-gray-400"><p className="text-sm font-medium">Nema pronađenih korisnika</p></div>
         ) : (
           <>
             <div className="hidden md:block overflow-x-auto">
@@ -518,7 +518,7 @@ function ReservationsTable({ initialStatus }: { initialStatus?: string }) {
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {isLoading ? <Spinner /> : !data?.results.length ? (
-          <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">📅</p><p className="text-sm">Nema pronađenih rezervacija</p></div>
+          <div className="text-center py-16 text-gray-400"><p className="text-sm font-medium">Nema pronađenih rezervacija</p></div>
         ) : (
           <>
             <div className="hidden md:block overflow-x-auto">
@@ -617,7 +617,7 @@ function ReviewsTable({ initialRating }: { initialRating?: string }) {
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {isLoading ? <Spinner /> : !data?.results.length ? (
-          <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">⭐</p><p className="text-sm">Nema pronađenih recenzija</p></div>
+          <div className="text-center py-16 text-gray-400"><p className="text-sm font-medium">Nema pronađenih recenzija</p></div>
         ) : (
           <div className="divide-y divide-gray-50">
             {data.results.map((r: AdminReview) => (
@@ -690,7 +690,7 @@ function DogsTable({ initialSize }: { initialSize?: string }) {
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {isLoading ? <Spinner /> : !data?.results.length ? (
-          <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">🐕</p><p className="text-sm">Nema pronađenih pasa</p></div>
+          <div className="text-center py-16 text-gray-400"><p className="text-sm font-medium">Nema pronađenih pasa</p></div>
         ) : (
           <>
             <div className="hidden md:block overflow-x-auto">
@@ -713,7 +713,7 @@ function DogsTable({ initialSize }: { initialSize?: string }) {
                           {d.image ? (
                             <img src={imgUrl(d.image)} className="w-9 h-9 rounded-lg object-cover" alt="" />
                           ) : (
-                            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-lg">🐕</div>
+                            <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">P</div>
                           )}
                           <span className="text-sm font-semibold text-gray-900">{d.name}</span>
                         </div>
@@ -736,7 +736,7 @@ function DogsTable({ initialSize }: { initialSize?: string }) {
                   {d.image ? (
                     <img src={imgUrl(d.image)} className="w-12 h-12 rounded-xl object-cover" alt="" />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-2xl">🐕</div>
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">P</div>
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900">{d.name}</p>
@@ -775,11 +775,11 @@ export default function AdminPage() {
   }
 
   const tabs: { key: Tab; label: string; icon: string }[] = [
-    { key: 'dashboard', label: 'Pregled', icon: '📊' },
-    { key: 'users', label: 'Korisnici', icon: '👥' },
-    { key: 'reservations', label: 'Rezervacije', icon: '📅' },
-    { key: 'reviews', label: 'Recenzije', icon: '⭐' },
-    { key: 'dogs', label: 'Psi', icon: '🐕' },
+    { key: 'dashboard', label: 'Pregled', icon: '' },
+    { key: 'users', label: 'Korisnici', icon: '' },
+    { key: 'reservations', label: 'Rezervacije', icon: '' },
+    { key: 'reviews', label: 'Recenzije', icon: '' },
+    { key: 'dogs', label: 'Psi', icon: '' },
   ]
 
   return (

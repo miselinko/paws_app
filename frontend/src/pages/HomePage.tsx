@@ -351,24 +351,32 @@ export default function HomePage() {
             </Reveal>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Reveal delay={0}><Link to="/walkers" className="block bg-white rounded-xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-                <div className="text-3xl mb-3">🔍</div>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                </div>
                 <div className="font-bold text-gray-900">Pronađi šetača</div>
                 <div className="text-sm text-gray-500 mt-1">Pretraži dostupne šetače</div>
               </Link></Reveal>
               <Reveal delay={100}><Link to="/reservations" className="block bg-white rounded-xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-                <div className="text-3xl mb-3">📅</div>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#fff5e6', color: '#FAAB43' }}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                </div>
                 <div className="font-bold text-gray-900">Rezervacije</div>
                 <div className="text-sm text-gray-500 mt-1">Pregledaj aktivne termine</div>
               </Link></Reveal>
               <Reveal delay={200}>{user.role === 'owner' ? (
                 <Link to="/my-dogs" className="block bg-white rounded-xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-                  <div className="text-3xl mb-3">🐕</div>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
+                  </div>
                   <div className="font-bold text-gray-900">Moji psi</div>
                   <div className="text-sm text-gray-500 mt-1">Upravljaj profilima pasa</div>
                 </Link>
               ) : (
                 <Link to="/profile" className="block bg-white rounded-xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-                  <div className="text-3xl mb-3">👤</div>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                  </div>
                   <div className="font-bold text-gray-900">Moj profil</div>
                   <div className="text-sm text-gray-500 mt-1">Uredi profil šetača</div>
                 </Link>

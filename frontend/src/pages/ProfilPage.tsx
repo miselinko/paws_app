@@ -10,10 +10,10 @@ const inp = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gra
 const inpFocus = { borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,0.10)' }
 const inpBlur = { borderColor: '#e5e7eb', boxShadow: '' }
 
-const SVC_LABELS: Record<string, { icon: string; label: string }> = {
-  walking: { icon: '🦮', label: 'Šetanje' },
-  boarding: { icon: '🏠', label: 'Čuvanje' },
-  both: { icon: '🐾', label: 'Sve usluge' },
+const SVC_LABELS: Record<string, { label: string }> = {
+  walking: { label: 'Šetanje' },
+  boarding: { label: 'Čuvanje' },
+  both: { label: 'Sve usluge' },
 }
 const DAYS = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
 
@@ -167,12 +167,12 @@ export default function ProfilPage() {
                     ? { backgroundColor: '#fef3c7', color: '#92400e' }
                     : { backgroundColor: '#d1fae5', color: '#065f46' }}>
                   {profile.role === 'owner'
-                ? '🏠 Vlasnik psa'
+                ? 'Vlasnik psa'
                 : wp?.services === 'walking'
-                ? '🦮 Šetač'
+                ? 'Šetač'
                 : wp?.services === 'boarding'
-                ? '🏠 Čuvar'
-                : '🐾 Šetač & Čuvar'}
+                ? 'Čuvar'
+                : 'Šetač & Čuvar'}
                 </span>
                 {user?.role === 'walker' && wp && (
                   <span className="text-xs font-semibold px-3 py-1 rounded-full"
@@ -289,7 +289,7 @@ export default function ProfilPage() {
           <div className="bg-white rounded-xl border border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)', animation: 'fadeIn 0.5s ease' }}>
             <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
               <div>
-                <h2 className="font-black text-gray-900">🦮 Profil šetača</h2>
+                <h2 className="font-black text-gray-900">Profil šetača</h2>
                 <p className="text-xs text-gray-400 mt-0.5">Vidljivo vlasnicima pasa</p>
               </div>
               {!editingWalker && (
@@ -352,7 +352,7 @@ export default function ProfilPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Usluga</p>
-                    <p className="text-sm font-semibold text-gray-800">{SVC_LABELS[wp.services]?.icon} {SVC_LABELS[wp.services]?.label}</p>
+                    <p className="text-sm font-semibold text-gray-800">{SVC_LABELS[wp.services]?.label}</p>
                   </div>
                 </div>
                 {wp.bio && (
@@ -405,9 +405,9 @@ export default function ProfilPage() {
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Usluge</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { val: 'walking', icon: '🦮', label: 'Šetanje' },
-                      { val: 'boarding', icon: '🏠', label: 'Čuvanje' },
-                      { val: 'both', icon: '🐾', label: 'Sve' },
+                      { val: 'walking', label: 'Šetanje' },
+                      { val: 'boarding', label: 'Čuvanje' },
+                      { val: 'both', label: 'Sve' },
                     ].map(u => (
                       <button key={u.val} type="button"
                         onClick={() => setWalkerForm({ ...walkerForm, services: u.val as typeof walkerForm.services })}
@@ -415,7 +415,7 @@ export default function ProfilPage() {
                         style={walkerForm.services === u.val
                           ? { borderColor: '#00BF8F', backgroundColor: '#f0fdf9', color: '#059669' }
                           : { borderColor: '#e5e7eb', color: '#4b5563' }}>
-                        <span className="text-xl">{u.icon}</span>{u.label}
+                        {u.label}
                       </button>
                     ))}
                   </div>
