@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import logoImg from '../assets/logo.png'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -16,6 +16,7 @@ const inp = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gra
 const inpFocus = { outline: 'none', borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,0.12)' }
 
 export default function PrijavaPage() {
+  useEffect(() => { document.title = 'Prijava - Paws' }, [])
   const { login } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState('')

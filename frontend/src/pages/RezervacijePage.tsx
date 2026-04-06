@@ -586,6 +586,7 @@ function ReservationCard({ r }: { r: Reservation }) {
 type TabKey = 'all' | 'pending' | 'upcoming' | 'completed' | 'past'
 
 export default function RezervacijePage() {
+  useEffect(() => { document.title = 'Rezervacije - Paws' }, [])
   const { user } = useAuth()
   const [tab, setTab] = useState<TabKey>('all')
   const { data: reservations, isLoading } = useQuery({ queryKey: ['reservations'], queryFn: getReservations })

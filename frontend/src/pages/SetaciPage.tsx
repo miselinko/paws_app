@@ -46,6 +46,7 @@ function Stars({ rating, count }: { rating: number; count: number }) {
 }
 
 export default function SetaciPage() {
+  useEffect(() => { document.title = 'Pronađi šetača - Paws' }, [])
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [params] = useSearchParams()

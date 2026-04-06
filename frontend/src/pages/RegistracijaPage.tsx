@@ -1,4 +1,4 @@
-import { useState, useCallback, lazy, Suspense } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import logoImg from '../assets/logo.png'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -50,6 +50,7 @@ const LEFT_CONTENT = {
 }
 
 export default function RegistracijaPage() {
+  useEffect(() => { document.title = 'Registracija - Paws' }, [])
   const navigate = useNavigate()
   const [apiError, setApiError] = useState('')
   const [services, setServices] = useState<'walking' | 'boarding' | 'both'>('both')
