@@ -12,13 +12,6 @@ import type { Walker, Dog } from '../types'
 
 const MapaSetac = lazy(() => import('../components/MapaSetac'))
 
-const GRAD_COLORS = [
-  'from-emerald-400 to-teal-500',
-  'from-violet-400 to-purple-500',
-  'from-blue-400 to-cyan-500',
-  'from-rose-400 to-pink-500',
-]
-
 
 function getAvailableServices(services: string): Array<'walking' | 'boarding'> {
   if (services === 'both') return ['walking', 'boarding']
