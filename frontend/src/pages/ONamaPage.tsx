@@ -182,8 +182,7 @@ export default function ONamaPage() {
                   <strong className="text-gray-800"> GPS praćenje u realnom vremenu</strong> vam daje potpuni mir.
                 </p>
                 <Link to="/walkers" className="inline-flex items-center gap-2 font-bold transition-all hover:gap-3" style={{ color: '#00BF8F' }}>
-                  Pronađi šetača <span>&rarr;</span>
-                </Link>
+                  Pronađi šetača                </Link>
               </div>
             </Reveal>
           </div>
@@ -204,8 +203,7 @@ export default function ONamaPage() {
                   što zaradite je vaše.
                 </p>
                 <Link to="/postani-setac" className="inline-flex items-center gap-2 font-bold transition-all hover:gap-3" style={{ color: '#FAAB43' }}>
-                  Postani šetač <span>&rarr;</span>
-                </Link>
+                  Postani šetač                </Link>
               </div>
             </Reveal>
             <Reveal>

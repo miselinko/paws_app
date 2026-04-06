@@ -93,10 +93,10 @@ export default function KakoFunkcionisePage() {
           </Reveal>
 
           {/* Korak 1 */}
-          <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 items-center mb-10 sm:mb-16">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 items-center mb-12 sm:mb-16">
             <Reveal>
               <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop" alt="Psi na šetnji" className="w-full h-48 sm:h-72 object-cover" />
+                <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop" alt="Psi na šetnji" className="w-full h-56 sm:h-72 object-cover" />
               </div>
             </Reveal>
             <Reveal delay={100}>
@@ -117,7 +117,7 @@ export default function KakoFunkcionisePage() {
           </div>
 
           {/* Korak 2 */}
-          <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 items-center mb-10 sm:mb-16">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 items-center mb-12 sm:mb-16">
             <Reveal delay={100}>
               <div className="order-2 lg:order-1">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm mb-4" style={{ backgroundColor: '#00BF8F' }}>2</div>
@@ -135,16 +135,16 @@ export default function KakoFunkcionisePage() {
             </Reveal>
             <Reveal>
               <div className="rounded-xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop" alt="Šetanje psa" className="w-full h-48 sm:h-72 object-cover" />
+                <img src="https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop" alt="Šetanje psa" className="w-full h-56 sm:h-72 object-cover" />
               </div>
             </Reveal>
           </div>
 
           {/* Korak 3 */}
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 items-center">
             <Reveal>
               <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?q=80&w=700&auto=format&fit=crop" alt="Šetnja sa psom u prirodi" className="w-full h-48 sm:h-72 object-cover" />
+                <img src="https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?q=80&w=700&auto=format&fit=crop" alt="Šetnja sa psom u prirodi" className="w-full h-56 sm:h-72 object-cover" />
               </div>
             </Reveal>
             <Reveal delay={100}>
@@ -202,7 +202,7 @@ export default function KakoFunkcionisePage() {
                     Biraj trajanje od 30 min do 3 sata. <strong className="text-gray-700">Praćenje na mapi u realnom vremenu</strong> ti
                     daje potpuni mir dok si na poslu ili obavljaš obaveze.
                   </p>
-                  <span className="text-sm font-bold" style={{ color: '#00BF8F' }}>Pronađi šetača &rarr;</span>
+                  <span className="text-sm font-bold" style={{ color: '#00BF8F' }}>Pronađi šetača</span>
                 </div>
               </Link>
             </Reveal>
@@ -218,7 +218,7 @@ export default function KakoFunkcionisePage() {
                     Čuvari nude <strong className="text-gray-700">sigurno okruženje</strong> i redovne šetnje tokom boravka.
                     Dogovori detalje kroz ugrađeni chat.
                   </p>
-                  <span className="text-sm font-bold" style={{ color: '#00BF8F' }}>Pronađi čuvara &rarr;</span>
+                  <span className="text-sm font-bold" style={{ color: '#00BF8F' }}>Pronađi čuvara</span>
                 </div>
               </Link>
             </Reveal>

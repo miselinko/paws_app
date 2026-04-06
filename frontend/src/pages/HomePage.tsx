@@ -50,9 +50,6 @@ export default function HomePage() {
                   style={{ backgroundColor: '#FAAB43', boxShadow: '0 4px 16px rgba(250,171,67,0.35)' }}
                 >
                   Pronađi šetača
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
                 </button>
                 {!user && (
                   <Link
@@ -169,7 +166,7 @@ export default function HomePage() {
                     Iskusni šetači dolaze po tvog psa i vode ga na sigurnu i prijatnu šetnju.
                     <strong className="text-gray-700"> Praćenje na mapi u realnom vremenu</strong> ti daje potpuni mir.
                   </p>
-                  <span className="text-sm font-bold" style={{ color: '#00BF8F' }}>Pronađi šetača &rarr;</span>
+                  <span className="text-sm font-bold" style={{ color: '#00BF8F' }}>Pronađi šetača</span>
                 </div>
               </Link>
             </Reveal>
@@ -184,7 +181,7 @@ export default function HomePage() {
                     Tvoj pas ostaje u toplom domu kod proverenog čuvara dok ti putuješ ili si na poslu.
                     <strong className="text-gray-700"> Sigurno okruženje</strong> i redovne šetnje.
                   </p>
-                  <span className="text-sm font-bold" style={{ color: '#00BF8F' }}>Pronađi čuvara &rarr;</span>
+                  <span className="text-sm font-bold" style={{ color: '#00BF8F' }}>Pronađi čuvara</span>
                 </div>
               </Link>
             </Reveal>
