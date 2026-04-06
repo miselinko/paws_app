@@ -50,6 +50,15 @@ export default function Navbar() {
           }>
             🐾 Pronađi šetača
           </NavLink>
+          {!user && (
+            <>
+              <NavLink to="/o-nama" className={linkClass}>O nama</NavLink>
+              <NavLink to="/zasto-paws" className={linkClass}>Zašto Paws</NavLink>
+              <NavLink to="/kako-funkcionise" className={linkClass}>Kako funkcioniše</NavLink>
+              <NavLink to="/postani-setac" className={linkClass}>Postani šetač</NavLink>
+              <NavLink to="/kontakt" className={linkClass}>Kontakt</NavLink>
+            </>
+          )}
           {user && (
             <>
               <NavLink to="/reservations" className={linkClass}>Rezervacije</NavLink>
@@ -204,6 +213,12 @@ export default function Navbar() {
       {menuOpen && !user && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
           <Link to="/walkers" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-bold text-gray-700 hover:bg-green-50 rounded-lg">🐾 Pronađi šetača</Link>
+          <Link to="/o-nama" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">O nama</Link>
+          <Link to="/zasto-paws" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Zašto Paws</Link>
+          <Link to="/kako-funkcionise" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Kako funkcioniše</Link>
+          <Link to="/postani-setac" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Postani šetač</Link>
+          <Link to="/kontakt" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Kontakt</Link>
+          <div className="border-t border-gray-100 my-1"></div>
           <Link to="/login" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Prijavi se</Link>
           <Link to="/register" onClick={() => setMenuOpen(false)} className="block px-3 py-2.5 text-sm font-bold text-white rounded-lg text-center" style={{ backgroundColor: '#00BF8F' }}>Registruj se</Link>
         </div>

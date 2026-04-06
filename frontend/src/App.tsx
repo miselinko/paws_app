@@ -15,6 +15,14 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import AdminPage from './pages/AdminPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
 import PasProfilPage from './pages/PasProfilPage'
+import ONamaPage from './pages/ONamaPage'
+import KakoFunkcionisePage from './pages/KakoFunkcionisePage'
+import PostaniSetacPage from './pages/PostaniSetacPage'
+import FaqPage from './pages/FaqPage'
+import KontaktPage from './pages/KontaktPage'
+import ZastoPawsPage from './pages/ZastoPawsPage'
+import Footer from './components/Footer'
+import ScrollToTop from './components/ScrollToTop'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -39,10 +47,17 @@ export default function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Navbar />
       <div className={user ? 'pb-16 md:pb-0' : ''}>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/o-nama" element={<ONamaPage />} />
+        <Route path="/kako-funkcionise" element={<KakoFunkcionisePage />} />
+        <Route path="/postani-setac" element={<PostaniSetacPage />} />
+        <Route path="/faq" element={<FaqPage />} />
+        <Route path="/kontakt" element={<KontaktPage />} />
+        <Route path="/zasto-paws" element={<ZastoPawsPage />} />
         <Route path="/walkers" element={<SetaciPage />} />
         <Route path="/walkers/:id" element={<SetacProfilPage />} />
         <Route path="/login" element={<GuestRoute><PrijavaPage /></GuestRoute>} />
@@ -58,6 +73,7 @@ export default function App() {
         <Route path="/messages/:userId" element={<PrivateRoute><PorukePage /></PrivateRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       </Routes>
+      <Footer />
       </div>
     </>
   )

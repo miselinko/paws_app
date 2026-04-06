@@ -125,7 +125,12 @@ export default function SetaciPage() {
       <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-4">
-            {isLoading ? 'Učitavam šetače...' : `${(showFavOnly ? walkers?.filter(w => w.is_favorited) : walkers)?.length ?? 0} šetača`}
+            Pronađi šetača
+            {!isLoading && (
+              <span className="text-base font-medium text-gray-400 ml-2">
+                ({(showFavOnly ? walkers?.filter(w => w.is_favorited) : walkers)?.length ?? 0} rezultata)
+              </span>
+            )}
           </h1>
 
           {/* Search */}
