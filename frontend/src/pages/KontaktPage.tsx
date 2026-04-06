@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
 
 export default function KontaktPage() {
-  useEffect(() => { document.title = 'Kontakt — Paws' }, [])
+  useEffect(() => { document.title = 'Kontakt - Paws' }, [])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -33,7 +33,7 @@ export default function KontaktPage() {
               </h1>
               <p className="text-gray-500 text-lg leading-relaxed mb-4">
                 Imate pitanje, sugestiju ili želite da sarađujete? Rado ćemo vam pomoći.
-                Naš tim je tu za vas — obično odgovaramo u roku od 24 sata.
+                Naš tim je tu za vas - obično odgovaramo u roku od 24 sata.
               </p>
               <p className="text-gray-500 leading-relaxed">
                 Možete nas kontaktirati putem forme ispod, direktno na email <strong className="text-gray-700">info@paws.rs</strong> ili
@@ -48,7 +48,7 @@ export default function KontaktPage() {
               <img
                 src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=600&auto=format&fit=crop"
                 alt="Prijateljski pas"
-                className="relative rounded-2xl w-full max-w-sm object-cover"
+                className="relative rounded-xl w-full max-w-sm object-cover"
                 style={{ aspectRatio: '4/3', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}
               />
             </div>
@@ -66,7 +66,7 @@ export default function KontaktPage() {
               <h2 className="text-2xl font-black text-gray-900 mb-2">Pišite nam</h2>
               <p className="text-gray-500 mb-6">Popunite formu i javićemo vam se u najkraćem roku.</p>
               {sent ? (
-                <div className="rounded-2xl p-8 text-center" style={{ backgroundColor: '#e6f9f3' }}>
+                <div className="rounded-xl p-8 text-center" style={{ backgroundColor: '#e6f9f3' }}>
                   <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-white" style={{ backgroundColor: '#00BF8F' }}>
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4.5 12.75l6 6 9-13.5" />

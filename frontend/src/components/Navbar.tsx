@@ -124,7 +124,7 @@ export default function Navbar() {
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 top-12 w-52 bg-white rounded-2xl border border-gray-100 py-1 z-50" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
+                  <div className="absolute right-0 top-12 w-52 bg-white rounded-xl border border-gray-200 py-1 z-50" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
                     <Link to="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
                       <span>👤</span> Moj profil
                     </Link>

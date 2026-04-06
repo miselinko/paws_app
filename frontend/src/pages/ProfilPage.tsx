@@ -113,8 +113,8 @@ export default function ProfilPage() {
       <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
       {/* Hero header */}
-      <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <section className="px-4 py-8" style={{ backgroundColor: '#f8faf9' }}>
+        <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-5">
             {/* Avatar */}
             <div className="relative shrink-0">
@@ -184,7 +184,7 @@ export default function ProfilPage() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 space-y-4">
         {saved && (
@@ -195,7 +195,7 @@ export default function ProfilPage() {
         )}
 
         {/* Basic info card */}
-        <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)', animation: 'fadeIn 0.4s ease' }}>
+        <div className="bg-white rounded-xl border border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)', animation: 'fadeIn 0.4s ease' }}>
           <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <h2 className="font-black text-gray-900">Osnovni podaci</h2>
             {!editingBasic && (
@@ -286,7 +286,7 @@ export default function ProfilPage() {
 
         {/* Walker profile card */}
         {user?.role === 'walker' && wp && (
-          <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)', animation: 'fadeIn 0.5s ease' }}>
+          <div className="bg-white rounded-xl border border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)', animation: 'fadeIn 0.5s ease' }}>
             <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
               <div>
                 <h2 className="font-black text-gray-900">🦮 Profil šetača</h2>
@@ -376,7 +376,7 @@ export default function ProfilPage() {
                           {active ? (
                             <span className="text-[9px] text-gray-400 text-center leading-tight">{sch.from.slice(0,5)}<br/>–{sch.to.slice(0,5)}</span>
                           ) : (
-                            <span className="text-[9px] text-gray-300">—</span>
+                            <span className="text-[9px] text-gray-300">-</span>
                           )}
                         </div>
                       )
@@ -515,7 +515,7 @@ export default function ProfilPage() {
                                       style={{ borderColor: '#d1d5db' }}>
                                       {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
-                                    <span className="text-xs text-gray-400">—</span>
+                                    <span className="text-xs text-gray-400">-</span>
                                     <select value={sch.to}
                                       onChange={e => setWalkerForm(f => ({ ...f, availability: { ...f.availability, [key]: { ...sch, to: e.target.value } } }))}
                                       className="flex-1 border border-gray-200 rounded-lg px-2 py-1 text-xs bg-white focus:outline-none"
@@ -558,7 +558,7 @@ export default function ProfilPage() {
           </div>
         )}
         {/* Account management */}
-        <div className="bg-white rounded-2xl border border-gray-100" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)', animation: 'fadeIn 0.6s ease' }}>
+        <div className="bg-white rounded-xl border border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)', animation: 'fadeIn 0.6s ease' }}>
           <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
             <h2 className="font-black text-gray-900">Upravljanje nalogom</h2>
           </div>

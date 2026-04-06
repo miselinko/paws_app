@@ -83,7 +83,7 @@ function BotChat() {
                 style={{ backgroundColor: '#f0fdf9' }}>🐾</div>
             )}
             <div className={`max-w-[75%] sm:max-w-xs lg:max-w-sm`}>
-              <div className="px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
+              <div className="px-4 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap"
                 style={m.role === 'user'
                   ? { backgroundColor: '#00BF8F', color: 'white', borderRadius: '18px 18px 4px 18px' }
                   : { backgroundColor: 'white', color: '#1f2937', border: '1px solid #e5e7eb', borderRadius: '18px 18px 18px 4px' }}>
@@ -96,7 +96,7 @@ function BotChat() {
           <div className="flex gap-2">
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0"
               style={{ backgroundColor: '#f0fdf9' }}>🐾</div>
-            <div className="px-4 py-3 rounded-2xl bg-white border border-gray-200 flex gap-1 items-center"
+            <div className="px-4 py-3 rounded-xl bg-white border border-gray-200 flex gap-1 items-center"
               style={{ borderRadius: '18px 18px 18px 4px' }}>
               {[0,1,2].map(i => (
                 <div key={i} className="w-2 h-2 rounded-full bg-gray-300 animate-bounce"
@@ -283,12 +283,12 @@ export default function PorukePage() {
     <div className="bg-gray-50 flex flex-col" style={{ height: 'calc(100dvh - 4rem)' }}>
 
       {/* Header */}
-      <div className={`bg-white border-b border-gray-100 shrink-0 ${(activeId || isBot) ? 'hidden md:block' : 'block'}`}
-        style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div className={`shrink-0 ${(activeId || isBot) ? 'hidden md:block' : 'block'}`}
+        style={{ backgroundColor: '#f8faf9' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900">Poruke</h1>
           {conversations && (
-            <p className="text-gray-400 text-sm mt-0.5">{conversations.length} razgovor{conversations.length === 1 ? '' : 'a'}</p>
+            <p className="text-gray-500 text-sm mt-0.5">{conversations.length} razgovor{conversations.length === 1 ? '' : 'a'}</p>
           )}
         </div>
       </div>
@@ -296,8 +296,8 @@ export default function PorukePage() {
       <div className="flex-1 max-w-5xl mx-auto w-full px-0 sm:px-5 sm:py-5 flex gap-0 sm:gap-4 min-h-0 overflow-hidden">
 
         {/* Sidebar */}
-        <div className={`${(activeId || isBot) ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-72 md:shrink-0 bg-white sm:rounded-2xl border-0 sm:border sm:border-gray-100 overflow-hidden`}
-          style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+        <div className={`${(activeId || isBot) ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-72 md:shrink-0 bg-white sm:rounded-xl border-0 sm:border sm:border-gray-100 overflow-hidden`}
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <div className="px-4 py-3.5 border-b border-gray-100">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Razgovori</p>
           </div>
@@ -336,8 +336,8 @@ export default function PorukePage() {
         </div>
 
         {/* Chat */}
-        <div className={`${(activeId || isBot) ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white sm:rounded-2xl border-0 sm:border sm:border-gray-100 overflow-hidden min-w-0`}
-          style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+        <div className={`${(activeId || isBot) ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white sm:rounded-xl border-0 sm:border sm:border-gray-100 overflow-hidden min-w-0`}
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
 
           {isBot ? <BotChat /> : !activeId ? (
             <div className="flex-1 flex items-center justify-center">
@@ -387,7 +387,7 @@ export default function PorukePage() {
                     <div key={m.id} className={`flex gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
                       {!isMine && <Avatar {...m.sender} id={m.sender.id} size="sm" />}
                       <div className={`max-w-[75%] sm:max-w-xs lg:max-w-sm flex flex-col gap-1 ${isMine ? 'items-end' : 'items-start'}`}>
-                        <div className="px-4 py-2.5 rounded-2xl text-sm leading-relaxed"
+                        <div className="px-4 py-2.5 rounded-xl text-sm leading-relaxed"
                           style={isMine
                             ? { backgroundColor: '#00BF8F', color: 'white', borderRadius: '18px 18px 4px 18px' }
                             : { backgroundColor: 'white', color: '#1f2937', border: '1px solid #e5e7eb', borderRadius: '18px 18px 18px 4px' }}>

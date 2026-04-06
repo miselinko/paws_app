@@ -25,21 +25,21 @@ const FAQS: FaqItem[] = [
   { cat: 'owners', q: 'Kako da ostavim ocenu?', a: 'Nakon završene šetnje, na stranici rezervacija ćete imati opciju da ostavite ocenu (1-5 zvezdica) i tekstualnu recenziju. Ocene pomažu drugim vlasnicima da pronađu najbolje šetače i motivišu šetače da pružaju kvalitetnu uslugu.' },
   { cat: 'owners', q: 'Mogu li otkazati rezervaciju?', a: 'Da, možete otkazati rezervaciju najkasnije 3 sata pre zakazanog početka. Otkazivanje unutar 3 sata nije moguće kako bi se zaštitio šetač koji je već rezervisao svoje vreme za vašeg psa.' },
 
-  { cat: 'walkers', q: 'Kako da postanem šetač?', a: 'Registrujte se kao šetač, popunite profil sa opisom, cenama i rasporedom. Vaš profil će biti vidljiv vlasnicima pasa odmah nakon registracije. Ne uzimamo nikakvu proviziju — sve što zaradite je vaše.' },
+  { cat: 'walkers', q: 'Kako da postanem šetač?', a: 'Registrujte se kao šetač, popunite profil sa opisom, cenama i rasporedom. Vaš profil će biti vidljiv vlasnicima pasa odmah nakon registracije. Ne uzimamo nikakvu proviziju - sve što zaradite je vaše.' },
   { cat: 'walkers', q: 'Da li sam postavljam cene?', a: 'Da, vi postavljate cenu po satu za šetanje i dnevnu cenu za čuvanje. Cene su potpuno pod vašom kontrolom i možete ih menjati u bilo kom trenutku kroz podešavanja profila.' },
   { cat: 'walkers', q: 'Kako primam rezervacije?', a: 'Vlasnici vam šalju zahteve za rezervaciju. Dobijate push notifikaciju i email obaveštenje, i možete potvrditi ili odbiti svaki zahtev prema svom rasporedu. Sistem automatski prikazuje vaše zauzetetermine.' },
   { cat: 'walkers', q: 'Mogu li nuditi i šetanje i čuvanje?', a: 'Da, pri registraciji možete izabrati jednu ili obe usluge. Cene se postavljaju zasebno za svaku uslugu, što vam daje potpunu fleksibilnost u kreiranju ponude.' },
 
   { cat: 'safety', q: 'Da li su šetači provereni?', a: 'Svaki šetač ima javni profil sa ocenama i recenzijama od drugih vlasnika. Sistem transparentnosti pomaže u izgradnji poverenja u zajednici. Što više pozitivnih ocena šetač ima, to je pouzdaniji.' },
-  { cat: 'safety', q: 'Kako funkcioniše komunikacija?', a: 'Sva komunikacija ide kroz ugrađeni chat na platformi. Možete razmeniti poruke sa šetačem pre i posle rezervacije, podeliti informacije o psu i dogovoriti detalje — sve bez razmene privatnih brojeva telefona.' },
+  { cat: 'safety', q: 'Kako funkcioniše komunikacija?', a: 'Sva komunikacija ide kroz ugrađeni chat na platformi. Možete razmeniti poruke sa šetačem pre i posle rezervacije, podeliti informacije o psu i dogovoriti detalje - sve bez razmene privatnih brojeva telefona.' },
   { cat: 'safety', q: 'Šta ako imam problem sa rezervacijom?', a: 'Kontaktirajte nas putem kontakt forme ili emaila na info@paws.rs. Naš tim će vam pomoći u najkraćem roku. Takođe možete koristiti AI asistenta za brze odgovore na česta pitanja.' },
 
   { cat: 'payment', q: 'Kako funkcioniše plaćanje?', a: 'Trenutno se plaćanje dogovara direktno između vlasnika i šetača. Radimo na integraciji online plaćanja za veću bezbednost i jednostavnost u budućnosti.' },
-  { cat: 'payment', q: 'Da li Paws naplaćuje proviziju?', a: 'Ne. Paws je trenutno potpuno besplatan za korišćenje — i za vlasnike i za šetače. Bez skrivenih troškova, mesečnih pretplata ili provizija. 100% zarade ide šetaču.' },
+  { cat: 'payment', q: 'Da li Paws naplaćuje proviziju?', a: 'Ne. Paws je trenutno potpuno besplatan za korišćenje - i za vlasnike i za šetače. Bez skrivenih troškova, mesečnih pretplata ili provizija. 100% zarade ide šetaču.' },
 ]
 
 export default function FaqPage() {
-  useEffect(() => { document.title = 'FAQ — Paws' }, [])
+  useEffect(() => { document.title = 'FAQ - Paws' }, [])
 
   const [activeCat, setActiveCat] = useState('all')
   const [openItems, setOpenItems] = useState<Set<number>>(new Set())
@@ -68,7 +68,7 @@ export default function FaqPage() {
                 <span style={{ color: '#00BF8F' }}>pitanja</span>
               </h1>
               <p className="text-gray-500 text-lg leading-relaxed">
-                Sve što treba da znaš o Paws platformi — od registracije do praćenja šetnji.
+                Sve što treba da znaš o Paws platformi - od registracije do praćenja šetnji.
                 Ako ne pronađeš odgovor ovde, slobodno nas <Link to="/kontakt" className="font-bold hover:underline" style={{ color: '#00BF8F' }}>kontaktiraj</Link>.
               </p>
             </div>
@@ -79,7 +79,7 @@ export default function FaqPage() {
               <img
                 src="https://images.unsplash.com/photo-1544568100-847a948585b9?q=80&w=600&auto=format&fit=crop"
                 alt="Prijateljski pas"
-                className="relative rounded-2xl w-full max-w-sm object-cover"
+                className="relative rounded-xl w-full max-w-sm object-cover"
                 style={{ aspectRatio: '4/3', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}
               />
             </div>

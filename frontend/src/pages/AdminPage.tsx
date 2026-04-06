@@ -55,7 +55,7 @@ function StatCard({ label, value, icon, color, onClick }: { label: string; value
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#00BF8F] hover:shadow-md hover:-translate-y-0.5' : ''}`}
+      className={`bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4 transition-all ${onClick ? 'cursor-pointer hover:border-[#00BF8F] hover:shadow-md hover:-translate-y-0.5' : ''}`}
       style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
     >
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${color}`}>{icon}</div>
@@ -172,9 +172,9 @@ function UserDetail({ userId, onClose }: { userId: number; onClose: () => void }
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               {user.profile_image ? (
-                <img src={imgUrl(user.profile_image)} className="w-16 h-16 rounded-2xl object-cover" alt="" />
+                <img src={imgUrl(user.profile_image)} className="w-16 h-16 rounded-xl object-cover" alt="" />
               ) : (
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-lg font-bold" style={{ background: 'linear-gradient(135deg, #00BF8F, #00A87D)' }}>
+                <div className="w-16 h-16 rounded-xl flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: '#00BF8F' }}>
                   {user.first_name[0]}{user.last_name[0]}
                 </div>
               )}
@@ -198,7 +198,7 @@ function UserDetail({ userId, onClose }: { userId: number; onClose: () => void }
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 rounded-xl p-3">
               <p className="text-xs text-gray-500 mb-1">Telefon</p>
-              <p className="text-sm font-medium text-gray-900">{user.phone || '—'}</p>
+              <p className="text-sm font-medium text-gray-900">{user.phone || '-'}</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-3">
               <p className="text-xs text-gray-500 mb-1">Registrovan</p>
@@ -206,7 +206,7 @@ function UserDetail({ userId, onClose }: { userId: number; onClose: () => void }
             </div>
             <div className="bg-gray-50 rounded-xl p-3 col-span-2">
               <p className="text-xs text-gray-500 mb-1">Adresa</p>
-              <p className="text-sm font-medium text-gray-900">{user.address || '—'}</p>
+              <p className="text-sm font-medium text-gray-900">{user.address || '-'}</p>
             </div>
           </div>
 
@@ -380,7 +380,7 @@ function UsersTable({ initialRole, initialActive }: { initialRole?: string; init
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {isLoading ? <Spinner /> : !data?.results.length ? (
           <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">🔍</p><p className="text-sm">Nema pronađenih korisnika</p></div>
         ) : (
@@ -516,7 +516,7 @@ function ReservationsTable({ initialStatus }: { initialStatus?: string }) {
         </select>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {isLoading ? <Spinner /> : !data?.results.length ? (
           <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">📅</p><p className="text-sm">Nema pronađenih rezervacija</p></div>
         ) : (
@@ -615,7 +615,7 @@ function ReviewsTable({ initialRating }: { initialRating?: string }) {
         </select>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {isLoading ? <Spinner /> : !data?.results.length ? (
           <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">⭐</p><p className="text-sm">Nema pronađenih recenzija</p></div>
         ) : (
@@ -688,7 +688,7 @@ function DogsTable({ initialSize }: { initialSize?: string }) {
         </select>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         {isLoading ? <Spinner /> : !data?.results.length ? (
           <div className="text-center py-16 text-gray-400"><p className="text-4xl mb-2">🐕</p><p className="text-sm">Nema pronađenih pasa</p></div>
         ) : (
@@ -783,15 +783,17 @@ export default function AdminPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900">Admin panel</h1>
-          <p className="text-sm text-gray-500 mt-1">Upravljanje korisnicima i pregled statistike</p>
+    <div className="min-h-screen bg-white">
+      <section className="py-6 sm:py-8 px-4" style={{ backgroundColor: '#f8faf9' }}>
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900">Admin panel</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Upravljanje korisnicima i pregled statistike</p>
         </div>
+      </section>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-white rounded-xl border border-gray-100 p-1 w-fit overflow-x-auto" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="flex gap-1 bg-white rounded-lg border border-gray-200 p-1 w-fit overflow-x-auto">
           {tabs.map(t => (
             <button
               key={t.key}

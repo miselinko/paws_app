@@ -3,7 +3,7 @@ import Reveal from '../components/Reveal'
 import { useEffect } from 'react'
 
 export default function ONamaPage() {
-  useEffect(() => { document.title = 'O nama — Paws' }, [])
+  useEffect(() => { document.title = 'O nama - Paws' }, [])
 
   return (
     <div className="bg-white">
@@ -15,13 +15,13 @@ export default function ONamaPage() {
             <div>
               <p className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#00BF8F' }}>O nama</p>
               <h1 className="text-3xl sm:text-5xl font-black text-gray-900 mb-5 leading-tight">
-                Paws aplikacija — <br />
+                Paws aplikacija - <br />
                 <span style={{ color: '#00BF8F' }}>tvoj najbolji prijatelj</span><br />
                 za brigu o psu
               </h1>
               <p className="text-gray-500 text-lg mb-4 leading-relaxed">
                 Ko smo mi? Tim ljubitelja pasa koji veruju da svaki ljubimac zaslužuje
-                najbolju moguću brigu, a svaki vlasnik — mir i sigurnost.
+                najbolju moguću brigu, a svaki vlasnik - mir i sigurnost.
               </p>
               <p className="text-gray-500 mb-8 leading-relaxed">
                 Paws je prva platforma u Srbiji koja omogućava <strong className="text-gray-700">online zakazivanje šetnji i čuvanja pasa</strong> sa
@@ -80,7 +80,7 @@ export default function ONamaPage() {
           </Reveal>
           <div className="grid sm:grid-cols-2 gap-6">
             <Reveal delay={0}>
-              <div className="rounded-2xl p-8 sm:p-10 h-full" style={{ backgroundColor: '#e6f9f3' }}>
+              <div className="rounded-xl p-8 sm:p-10 h-full" style={{ backgroundColor: '#e6f9f3' }}>
                 <h3 className="text-2xl font-black mb-1">Naša <span style={{ color: '#00BF8F' }}>misija</span></h3>
                 <p className="font-bold text-gray-800 mb-4">Platforma koja povezuje ljubitelje pasa</p>
                 <p className="text-gray-600 leading-relaxed">
@@ -93,7 +93,7 @@ export default function ONamaPage() {
               </div>
             </Reveal>
             <Reveal delay={100}>
-              <div className="rounded-2xl p-8 sm:p-10 h-full" style={{ backgroundColor: '#fff5e6' }}>
+              <div className="rounded-xl p-8 sm:p-10 h-full" style={{ backgroundColor: '#fff5e6' }}>
                 <h3 className="text-2xl font-black mb-1">Naša <span style={{ color: '#FAAB43' }}>vizija</span></h3>
                 <p className="font-bold text-gray-800 mb-4">Budućnost brige o ljubimcima</p>
                 <p className="text-gray-600 leading-relaxed">
@@ -125,7 +125,7 @@ export default function ONamaPage() {
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>
                 ),
                 title: 'Paws aplikacija',
-                desc: 'Prva online platforma u Srbiji za zakazivanje šetnji i čuvanja pasa — dostupna na webu i kao mobilna aplikacija.',
+                desc: 'Prva online platforma u Srbiji za zakazivanje šetnji i čuvanja pasa - dostupna na webu i kao mobilna aplikacija.',
               },
               {
                 icon: (
@@ -143,7 +143,7 @@ export default function ONamaPage() {
               },
             ].map((item, i) => (
               <Reveal key={item.title} delay={i * 100}>
-                <div className="bg-white rounded-2xl p-8 text-center h-full" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+                <div className="bg-white rounded-xl p-8 text-center h-full" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
                     {item.icon}
                   </div>
@@ -162,7 +162,7 @@ export default function ONamaPage() {
           {/* Za vlasnike */}
           <div className="grid lg:grid-cols-2 gap-10 items-center mb-20">
             <Reveal>
-              <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                 <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop" alt="Psi na šetnji" className="w-full h-52 sm:h-80 object-cover" />
               </div>
             </Reveal>
@@ -197,7 +197,7 @@ export default function ONamaPage() {
                   sa vlasnicima i izgradite reputaciju kroz ocene.
                 </p>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Paws vam daje potpunu kontrolu — vi birate kada radite, koliko naplaćujete i
+                  Paws vam daje potpunu kontrolu - vi birate kada radite, koliko naplaćujete i
                   koje usluge nudite. <strong className="text-gray-800">Bez provizije, bez skrivenih troškova.</strong> Sve
                   što zaradite je vaše.
                 </p>
@@ -207,7 +207,7 @@ export default function ONamaPage() {
               </div>
             </Reveal>
             <Reveal>
-              <div className="rounded-2xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+              <div className="rounded-xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                 <img src="https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop" alt="Šetač sa psom" className="w-full h-52 sm:h-80 object-cover" />
               </div>
             </Reveal>
@@ -241,7 +241,7 @@ export default function ONamaPage() {
               <img
                 src="https://images.unsplash.com/photo-1554692918-08fa0fdc9db3?q=80&w=600&auto=format&fit=crop"
                 alt="Vlasnica sa psom"
-                className="relative rounded-2xl w-full max-w-sm object-cover"
+                className="relative rounded-xl w-full max-w-sm object-cover"
                 style={{ aspectRatio: '4/3', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}
               />
             </div>
@@ -250,7 +250,7 @@ export default function ONamaPage() {
             <div>
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">Želiš da budeš deo Paws priče?</h2>
               <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                Bilo da tražiš šetača za svog ljubimca ili želiš da zarađuješ radeći sa psima —
+                Bilo da tražiš šetača za svog ljubimca ili želiš da zarađuješ radeći sa psima -
                 Paws je tu za tebe. Pridruži se stotinama korisnika koji već koriste platformu.
               </p>
               <div className="flex flex-wrap gap-3">

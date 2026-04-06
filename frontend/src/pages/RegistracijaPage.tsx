@@ -305,7 +305,7 @@ export default function RegistracijaPage() {
               {currentAddress !== 'Trenutna adresa nije učitana' && (
                 <p className="text-xs text-gray-400 mt-1.5">
                   Približna lokacija: <span className="font-semibold text-gray-600">{currentAddress}</span>
-                  {' — ako nije tačna, '}
+                  {' - ako nije tačna, '}
                   <button type="button" onClick={() => setShowMap(true)} className="font-semibold underline hover:no-underline" style={{ color: '#00BF8F' }}>
                     izaberi na mapi
                   </button>

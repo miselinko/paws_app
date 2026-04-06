@@ -3,7 +3,7 @@ import Reveal from '../components/Reveal'
 import { useEffect } from 'react'
 
 export default function KakoFunkcionisePage() {
-  useEffect(() => { document.title = 'Kako funkcioniše — Paws' }, [])
+  useEffect(() => { document.title = 'Kako funkcioniše - Paws' }, [])
 
   return (
     <div className="bg-white">
@@ -21,7 +21,7 @@ export default function KakoFunkcionisePage() {
               <p className="text-gray-500 text-lg leading-relaxed">
                 Korišćenjem Paws platforme, rezervacija termina za šetanje ili čuvanje psa je brza i
                 jednostavna procedura. Pronađi šetača u svom komšiluku, zakaži termin
-                i prati šetnju u realnom vremenu — sve na jednom mestu.
+                i prati šetnju u realnom vremenu - sve na jednom mestu.
               </p>
             </div>
           </Reveal>
@@ -56,7 +56,7 @@ export default function KakoFunkcionisePage() {
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
               ),
               title: 'Rezerviši',
-              desc: 'Potvrdi termin u dva klika — brzo i jednostavno!',
+              desc: 'Potvrdi termin u dva klika - brzo i jednostavno!',
             },
             {
               icon: (
@@ -95,7 +95,7 @@ export default function KakoFunkcionisePage() {
           {/* Korak 1 */}
           <div className="grid lg:grid-cols-2 gap-6 sm:gap-10 items-center mb-10 sm:mb-16">
             <Reveal>
-              <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                 <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop" alt="Psi na šetnji" className="w-full h-48 sm:h-72 object-cover" />
               </div>
             </Reveal>
@@ -109,7 +109,7 @@ export default function KakoFunkcionisePage() {
                   maksimalnoj ceni i prosečnoj oceni.
                 </p>
                 <p className="text-gray-600 leading-relaxed">
-                  Pogledaj profil svakog šetača — opise, slike, recenzije drugih vlasnika i
+                  Pogledaj profil svakog šetača - opise, slike, recenzije drugih vlasnika i
                   dostupne termine. Sve informacije su ti na dlanu.
                 </p>
               </div>
@@ -134,7 +134,7 @@ export default function KakoFunkcionisePage() {
               </div>
             </Reveal>
             <Reveal>
-              <div className="rounded-2xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+              <div className="rounded-xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                 <img src="https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop" alt="Šetanje psa" className="w-full h-48 sm:h-72 object-cover" />
               </div>
             </Reveal>
@@ -143,7 +143,7 @@ export default function KakoFunkcionisePage() {
           {/* Korak 3 */}
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <Reveal>
-              <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                 <img src="https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?q=80&w=700&auto=format&fit=crop" alt="Šetnja sa psom u prirodi" className="w-full h-48 sm:h-72 object-cover" />
               </div>
             </Reveal>
@@ -186,12 +186,12 @@ export default function KakoFunkcionisePage() {
           <Reveal>
             <div className="text-center mb-14">
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Dostupne usluge</h2>
-              <p className="text-gray-500 text-lg">Sve što je potrebno za brigu o tvom ljubimcu — na jednom mestu.</p>
+              <p className="text-gray-500 text-lg">Sve što je potrebno za brigu o tvom ljubimcu - na jednom mestu.</p>
             </div>
           </Reveal>
           <div className="grid sm:grid-cols-2 gap-6">
             <Reveal delay={0}>
-              <Link to="/walkers?usluga=walking" className="group block rounded-2xl overflow-hidden transition-all hover:-translate-y-1" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.08)' }}>
+              <Link to="/walkers?usluga=walking" className="group block rounded-xl overflow-hidden transition-all hover:-translate-y-1" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.08)' }}>
                 <div className="h-48 overflow-hidden">
                   <img src="https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800&auto=format&fit=crop" alt="Šetanje pasa" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
@@ -207,7 +207,7 @@ export default function KakoFunkcionisePage() {
               </Link>
             </Reveal>
             <Reveal delay={100}>
-              <Link to="/walkers?usluga=boarding" className="group block rounded-2xl overflow-hidden transition-all hover:-translate-y-1" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.08)' }}>
+              <Link to="/walkers?usluga=boarding" className="group block rounded-xl overflow-hidden transition-all hover:-translate-y-1" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.08)' }}>
                 <div className="h-48 overflow-hidden">
                   <img src="https://images.unsplash.com/photo-1588943211346-0908a1fb0b01?q=80&w=800&auto=format&fit=crop" alt="Čuvanje pasa" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
@@ -252,7 +252,7 @@ export default function KakoFunkcionisePage() {
               <img
                 src="https://images.unsplash.com/photo-1507146426996-ef05306b995a?q=80&w=600&auto=format&fit=crop"
                 alt="Srećan pas"
-                className="relative rounded-2xl w-full max-w-sm object-cover"
+                className="relative rounded-xl w-full max-w-sm object-cover"
                 style={{ aspectRatio: '4/3', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}
               />
             </div>

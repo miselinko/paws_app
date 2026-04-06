@@ -29,8 +29,8 @@ export default function PasProfilPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-          <div className="bg-white rounded-2xl border border-gray-100 animate-pulse overflow-hidden"
-            style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.08)' }}>
+          <div className="bg-white rounded-xl border border-gray-100 animate-pulse overflow-hidden"
+            style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <div className="h-56 bg-gray-100" />
             <div className="p-6 space-y-4">
               <div className="h-6 bg-gray-100 rounded w-1/3" />
@@ -84,8 +84,8 @@ export default function PasProfilPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
-          style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.08)' }}>
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden"
+          style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
 
           {/* Photo */}
           {photo ? (

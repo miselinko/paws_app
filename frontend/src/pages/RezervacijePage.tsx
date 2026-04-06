@@ -69,7 +69,7 @@ function Avatar({ firstName, lastName, image, size = 10 }: { firstName: string; 
 function DogChip({ dog }: { dog: Dog }) {
   return (
     <Link to={`/dogs/${dog.id}`}
-      className="rounded-2xl border border-gray-200 overflow-hidden flex items-center gap-2.5 px-3.5 py-2.5 transition-colors hover:border-[#00BF8F] hover:bg-[#f0fdf9] no-underline">
+      className="rounded-xl border border-gray-200 overflow-hidden flex items-center gap-2.5 px-3.5 py-2.5 transition-colors hover:border-[#00BF8F] hover:bg-[#f0fdf9] no-underline">
       <span className="text-base">🐕</span>
       <div className="flex-1 min-w-0">
         <span className="text-sm font-semibold text-gray-900">{dog.name}</span>
@@ -103,7 +103,7 @@ function WalkerInfoSection({ w }: { w: WalkerInfo }) {
   return (
     <div className="mt-4">
       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">O šetaču</p>
-      <div className="rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="rounded-xl border border-gray-100 overflow-hidden">
         {/* Header row */}
         <div className="flex items-center gap-3 p-3 bg-gray-50">
           <Avatar firstName={w.first_name} lastName={w.last_name} image={w.profile_image} size={10} />
@@ -218,7 +218,7 @@ function WalkLiveMap({ reservationId }: { reservationId: number }) {
   const lng = loc?.lng ? parseFloat(loc.lng) : null
 
   return (
-    <div className="mt-3 rounded-2xl overflow-hidden border border-green-200"
+    <div className="mt-3 rounded-xl overflow-hidden border border-green-200"
       style={{ boxShadow: '0 1px 6px rgba(0,191,143,0.15)' }}>
       <div className="px-3 py-2 flex items-center justify-between"
         style={{ backgroundColor: '#f0fdf9' }}>
@@ -323,8 +323,8 @@ function ReservationCard({ r }: { r: Reservation }) {
   const personName = person ? `${person.first_name} ${person.last_name}` : null
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden transition-all"
-      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.07)', borderLeft: `4px solid ${st.border}` }}>
+    <div className="bg-white rounded-xl overflow-hidden transition-all border border-gray-100"
+      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderLeft: `3px solid ${st.border}` }}>
 
       {/* Walker pending — action banner */}
       {isWalkerPending && (
@@ -411,7 +411,7 @@ function ReservationCard({ r }: { r: Reservation }) {
             disabled={cancelM.isPending || isWithin3h}
             className="w-full py-2.5 rounded-xl text-sm font-semibold border-2 transition-all hover:bg-red-50 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ color: '#ef4444', borderColor: '#fecaca' }}>
-            {cancelM.isPending ? 'Otkazujem...' : isWithin3h ? '🔒 Otkaži (blokiran — manje od 3h)' : 'Otkaži rezervaciju'}
+            {cancelM.isPending ? 'Otkazujem...' : isWithin3h ? '🔒 Otkaži (blokiran - manje od 3h)' : 'Otkaži rezervaciju'}
           </button>
           {cancelError && <p className="text-xs text-red-500 mt-1.5 text-center">{cancelError}</p>}
         </div>
@@ -489,7 +489,7 @@ function ReservationCard({ r }: { r: Reservation }) {
         <div className="mx-4 mb-2 px-3 py-2.5 rounded-xl flex items-center justify-between cursor-pointer"
           style={{ backgroundColor: '#f0fdf9', border: '1px solid #bbf7d0' }}
           onClick={() => setExpanded(true)}>
-          <span className="text-xs font-bold text-green-800">🐾 Šetnja je u toku — prikaži mapu ▼</span>
+          <span className="text-xs font-bold text-green-800">🐾 Šetnja je u toku - prikaži mapu ▼</span>
           {r.walk_started_at && (
             <span className="text-xs text-green-600">{walkDuration(r.walk_started_at)}</span>
           )}
@@ -624,20 +624,24 @@ export default function RezervacijePage() {
     <div className="min-h-screen bg-gray-50">
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-0">
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900">Rezervacije</h1>
+      <section className="py-6 sm:py-8 px-4" style={{ backgroundColor: '#f8faf9' }}>
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-0.5">Rezervacije</h1>
           {reservations && (
-            <p className="text-gray-400 text-sm mt-0.5 mb-4">
+            <p className="text-gray-500 text-sm">
               {all.length} ukupno
               {needsAction.length > 0 && (
                 <span className="ml-2 font-bold" style={{ color: '#92400e' }}>· {needsAction.length} čeka odgovor</span>
               )}
             </p>
           )}
+        </div>
+      </section>
 
-          {/* Tabs */}
-          <div className="flex gap-1 overflow-x-auto pb-0 scrollbar-none -mx-4 sm:-mx-6 px-4 sm:px-6"
+      {/* Tabs */}
+      <div className="sticky top-16 z-20 bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+          <div className="flex gap-1 overflow-x-auto pb-0 scrollbar-none"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {TABS.map(t => {
               const isActive = tab === t.key
@@ -675,7 +679,7 @@ export default function RezervacijePage() {
         {isLoading && (
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl animate-pulse overflow-hidden h-28"
+              <div key={i} className="bg-white rounded-xl animate-pulse overflow-hidden h-28"
                 style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.07)', borderLeft: '4px solid #e5e7eb' }} />
             ))}
           </div>

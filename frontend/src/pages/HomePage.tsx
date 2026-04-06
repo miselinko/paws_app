@@ -97,7 +97,7 @@ export default function HomePage() {
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
               ),
               title: 'Rezerviši',
-              desc: 'Potvrdi termin u dva klika — brzo i jednostavno!',
+              desc: 'Potvrdi termin u dva klika - brzo i jednostavno!',
             },
             {
               icon: (
@@ -124,7 +124,7 @@ export default function HomePage() {
       <section className="py-14 sm:py-20 px-4">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
           <Reveal>
-            <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+            <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
               <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop" alt="Psi na šetnji" className="w-full h-52 sm:h-80 object-cover" />
             </div>
           </Reveal>
@@ -132,11 +132,11 @@ export default function HomePage() {
             <div>
               <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: '#00BF8F' }}>O platformi</p>
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">
-                Paws — prva aplikacija za <span style={{ color: '#00BF8F' }}>online zakazivanje</span> šetanja i čuvanja pasa
+                Paws - prva aplikacija za <span style={{ color: '#00BF8F' }}>online zakazivanje</span> šetanja i čuvanja pasa
               </h2>
               <p className="text-gray-600 leading-relaxed mb-4">
                 Paws je praktična aplikacija koja ti omogućava da brzo i lako
-                zakažeš šetnju za svog psa, pronađeš čuvara ili ponudiš usluge šetanja —
+                zakažeš šetnju za svog psa, pronađeš čuvara ili ponudiš usluge šetanja -
                 sve na jednom mestu. Dovoljno je samo <strong className="text-gray-800">dva klika</strong> i tvoj
                 ljubimac ima zakazan termin za šetnju ili brigu.
               </p>
@@ -154,12 +154,12 @@ export default function HomePage() {
           <Reveal>
             <div className="text-center mb-14">
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Dostupne usluge</h2>
-              <p className="text-gray-500 text-lg max-w-xl mx-auto">Od kratkih šetnji do višednevnog čuvanja — pronađi pravo rešenje za svog ljubimca.</p>
+              <p className="text-gray-500 text-lg max-w-xl mx-auto">Od kratkih šetnji do višednevnog čuvanja - pronađi pravo rešenje za svog ljubimca.</p>
             </div>
           </Reveal>
           <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
             <Reveal delay={0}>
-              <Link to="/walkers?usluga=walking" className="group block rounded-2xl overflow-hidden bg-white transition-all hover:-translate-y-1" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+              <Link to="/walkers?usluga=walking" className="group block rounded-xl overflow-hidden bg-white transition-all hover:-translate-y-1" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
                 <div className="h-48 overflow-hidden">
                   <img src="https://images.unsplash.com/photo-1576201836106-db1758fd1c97?q=80&w=800&auto=format&fit=crop" alt="Šetanje pasa" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
@@ -174,7 +174,7 @@ export default function HomePage() {
               </Link>
             </Reveal>
             <Reveal delay={100}>
-              <Link to="/walkers?usluga=boarding" className="group block rounded-2xl overflow-hidden bg-white transition-all hover:-translate-y-1" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+              <Link to="/walkers?usluga=boarding" className="group block rounded-xl overflow-hidden bg-white transition-all hover:-translate-y-1" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
                 <div className="h-48 overflow-hidden">
                   <img src="https://images.unsplash.com/photo-1588943211346-0908a1fb0b01?q=80&w=800&auto=format&fit=crop" alt="Čuvanje pasa" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
@@ -207,7 +207,7 @@ export default function HomePage() {
           {/* Korak 1 */}
           <div className="grid lg:grid-cols-2 gap-10 items-center mb-16">
             <Reveal>
-              <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                 <img src="https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?q=80&w=700&auto=format&fit=crop" alt="Pretraga šetača" className="w-full h-48 sm:h-64 object-cover" />
               </div>
             </Reveal>
@@ -238,7 +238,7 @@ export default function HomePage() {
               </div>
             </Reveal>
             <Reveal>
-              <div className="rounded-2xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+              <div className="rounded-xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                 <img src="https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop" alt="Rezervacija termina" className="w-full h-48 sm:h-64 object-cover" />
               </div>
             </Reveal>
@@ -247,7 +247,7 @@ export default function HomePage() {
           {/* Korak 3 */}
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <Reveal>
-              <div className="rounded-2xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                 <img src="https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?q=80&w=700&auto=format&fit=crop" alt="Prati šetnju" className="w-full h-48 sm:h-64 object-cover" />
               </div>
             </Reveal>
@@ -282,7 +282,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <Reveal>
             <p className="text-white text-lg sm:text-xl leading-relaxed">
-              Paws je <strong className="font-black">potpuno besplatna platforma</strong> — bez provizije, bez skrivenih troškova.
+              Paws je <strong className="font-black">potpuno besplatna platforma</strong> - bez provizije, bez skrivenih troškova.
               Registracija traje manje od 2 minuta, a pristup svim funkcionalnostima je{' '}
               <strong className="font-black">100% besplatan</strong> i za vlasnike i za šetače.
             </p>
@@ -302,11 +302,11 @@ export default function HomePage() {
                 </h2>
                 <p className="text-gray-600 leading-relaxed mb-4">
                   Zajedno možemo raditi na unapređenju dobrobiti svih ljubimaca i njihovih vlasnika.
-                  Ako voliš pse i želiš da <strong className="text-gray-800">zarađuješ fleksibilno</strong> — Paws je pravo mesto za tebe.
+                  Ako voliš pse i želiš da <strong className="text-gray-800">zarađuješ fleksibilno</strong> - Paws je pravo mesto za tebe.
                 </p>
                 <p className="text-gray-600 leading-relaxed mb-6">
                   Pridruživanjem možeš proširiti bazu klijenata, pružati kvalitetne usluge
-                  i postati deo zajednice koja se brine o psima. <strong className="text-gray-800">Bez provizije</strong> — sve što zaradiš je tvoje.
+                  i postati deo zajednice koja se brine o psima. <strong className="text-gray-800">Bez provizije</strong> - sve što zaradiš je tvoje.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link
@@ -332,7 +332,7 @@ export default function HomePage() {
                 <img
                   src="https://images.unsplash.com/photo-1527526029430-319f10814151?q=80&w=600&auto=format&fit=crop"
                   alt="Šetač sa psima"
-                  className="relative rounded-2xl w-full max-w-sm object-cover"
+                  className="relative rounded-xl w-full max-w-sm object-cover"
                   style={{ aspectRatio: '3/4', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}
                 />
               </div>
@@ -350,24 +350,24 @@ export default function HomePage() {
               <p className="text-gray-500 mb-8">Šta bi danas uradio?</p>
             </Reveal>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Reveal delay={0}><Link to="/walkers" className="block bg-white rounded-2xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+              <Reveal delay={0}><Link to="/walkers" className="block bg-white rounded-xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
                 <div className="text-3xl mb-3">🔍</div>
                 <div className="font-bold text-gray-900">Pronađi šetača</div>
                 <div className="text-sm text-gray-500 mt-1">Pretraži dostupne šetače</div>
               </Link></Reveal>
-              <Reveal delay={100}><Link to="/reservations" className="block bg-white rounded-2xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+              <Reveal delay={100}><Link to="/reservations" className="block bg-white rounded-xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
                 <div className="text-3xl mb-3">📅</div>
                 <div className="font-bold text-gray-900">Rezervacije</div>
                 <div className="text-sm text-gray-500 mt-1">Pregledaj aktivne termine</div>
               </Link></Reveal>
               <Reveal delay={200}>{user.role === 'owner' ? (
-                <Link to="/my-dogs" className="block bg-white rounded-2xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+                <Link to="/my-dogs" className="block bg-white rounded-xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
                   <div className="text-3xl mb-3">🐕</div>
                   <div className="font-bold text-gray-900">Moji psi</div>
                   <div className="text-sm text-gray-500 mt-1">Upravljaj profilima pasa</div>
                 </Link>
               ) : (
-                <Link to="/profile" className="block bg-white rounded-2xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+                <Link to="/profile" className="block bg-white rounded-xl p-6 border border-gray-100 hover:border-transparent transition-all hover:-translate-y-0.5" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
                   <div className="text-3xl mb-3">👤</div>
                   <div className="font-bold text-gray-900">Moj profil</div>
                   <div className="text-sm text-gray-500 mt-1">Uredi profil šetača</div>

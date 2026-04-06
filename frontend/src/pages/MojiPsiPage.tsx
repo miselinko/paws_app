@@ -34,13 +34,7 @@ const SIZE_SR: Record<string, { label: string; short: string; bg: string; color:
   large:  { label: 'Veliki (25kg+)',    short: 'Veliki',  bg: '#eff6ff', color: '#1d4ed8' },
 }
 
-const GRAD_COLORS = [
-  'from-emerald-400 to-teal-500',
-  'from-violet-400 to-purple-500',
-  'from-blue-400 to-cyan-500',
-  'from-rose-400 to-pink-500',
-  'from-amber-400 to-orange-500',
-]
+const DOG_COLORS = ['#00BF8F', '#FAAB43', '#6366f1', '#ec4899', '#0ea5e9']
 
 const inp = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none bg-white"
 const inpFocus = { borderColor: '#00BF8F', boxShadow: '0 0 0 3px rgba(0,191,143,0.10)' }
@@ -56,33 +50,33 @@ function DogCard({
   onDeleteImage: () => void
 }) {
   const sz = SIZE_SR[dog.size]
-  const gradColor = GRAD_COLORS[dog.id % GRAD_COLORS.length]
+  const bgColor = DOG_COLORS[dog.id % DOG_COLORS.length]
 
   return (
     <div
-      className="bg-white rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 group"
+      className="bg-white rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-0.5 group border border-gray-100"
       style={{
         boxShadow: editing
-          ? '0 0 0 2px #00BF8F, 0 8px 24px rgba(0,191,143,0.15)'
-          : '0 2px 12px rgba(71,71,71,0.09)',
+          ? '0 0 0 2px #00BF8F, 0 4px 16px rgba(0,191,143,0.12)'
+          : '0 1px 4px rgba(0,0,0,0.06)',
       }}
-      onMouseEnter={e => { if (!editing) e.currentTarget.style.boxShadow = '0 8px 24px rgba(71,71,71,0.16)' }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = editing ? '0 0 0 2px #00BF8F, 0 8px 24px rgba(0,191,143,0.15)' : '0 2px 12px rgba(71,71,71,0.09)' }}
+      onMouseEnter={e => { if (!editing) e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)' }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = editing ? '0 0 0 2px #00BF8F, 0 4px 16px rgba(0,191,143,0.12)' : '0 1px 4px rgba(0,0,0,0.06)' }}
     >
-      {/* Photo / gradient banner */}
-      <div className="relative h-36 overflow-hidden">
+      {/* Photo */}
+      <div className="relative h-36 overflow-hidden bg-gray-100">
         {dog.image ? (
           <img
             src={imgUrl(dog.image)}
             alt={dog.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
           />
         ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${gradColor} flex items-center justify-center`}>
-            <span className="text-6xl opacity-80">🐕</span>
+          <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bgColor }}>
+            <span className="text-white text-4xl font-black opacity-90">{dog.name[0]}</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
         {/* Size badge */}
         <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg text-xs font-bold"
@@ -275,33 +269,33 @@ export default function MojiPsiPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 flex items-center justify-between">
+      <section className="py-6 sm:py-8 px-4" style={{ backgroundColor: '#f8faf9' }}>
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900">Moji psi</h1>
-            <p className="text-gray-400 text-sm mt-0.5">
+            <p className="text-gray-500 text-sm mt-0.5">
               {dogs ? `${dogs.length} ${dogs.length === 1 ? 'pas' : 'pasa'} na profilu` : ''}
             </p>
           </div>
           <button
             onClick={showForm ? closeForm : openCreate}
-            className="text-sm font-bold px-4 py-2.5 rounded-xl transition-all"
+            className="text-sm font-bold px-4 py-2.5 rounded-lg transition-all"
             style={showForm
               ? { backgroundColor: 'white', color: '#6b7280', border: '1px solid #e5e7eb' }
               : { backgroundColor: '#1f2937', color: 'white' }}
           >
-            {showForm ? '✕ Otkaži' : '+ Dodaj psa'}
+            {showForm ? '× Otkaži' : '+ Dodaj psa'}
           </button>
         </div>
-      </div>
+      </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {/* Form */}
         {showForm && (
           <div
-            className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-8"
-            style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08)', animation: 'slideDown 0.25s ease' }}
+            className="bg-white rounded-xl border border-gray-100 overflow-hidden mb-8"
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)', animation: 'slideDown 0.25s ease' }}
           >
             <style>{`@keyframes slideDown { from { opacity:0; transform:translateY(-12px) } to { opacity:1; transform:none } }`}</style>
 
@@ -309,7 +303,7 @@ export default function MojiPsiPage() {
               style={{ background: editingDog ? 'linear-gradient(135deg,#f0fdf9,#ecfdf5)' : '#f9fafb' }}>
               <div>
                 <h2 className="font-black text-gray-900">
-                  {editingDog ? `Izmena — ${editingDog.name}` : 'Dodaj novog psa'}
+                  {editingDog ? `Izmena - ${editingDog.name}` : 'Dodaj novog psa'}
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">
                   {editingDog ? 'Izmeni podatke i sačuvaj' : 'Popuni podatke o svom ljubimcu'}
@@ -445,14 +439,14 @@ export default function MojiPsiPage() {
                 </label>
                 <div
                   onClick={() => fileRef.current?.click()}
-                  className="border-2 border-dashed rounded-2xl cursor-pointer transition-all flex flex-col items-center justify-center py-8 px-4 text-center"
+                  className="border-2 border-dashed rounded-xl cursor-pointer transition-all flex flex-col items-center justify-center py-8 px-4 text-center"
                   style={{ borderColor: imagePreview ? '#00BF8F' : '#d1d5db', backgroundColor: imagePreview ? '#f0fdf9' : '#fafafa' }}
                   onMouseEnter={e => { if (!imagePreview) e.currentTarget.style.borderColor = '#00BF8F'; e.currentTarget.style.backgroundColor = '#f0fdf9' }}
                   onMouseLeave={e => { if (!imagePreview) { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.backgroundColor = '#fafafa' } }}
                 >
                   {imagePreview ? (
                     <>
-                      <img src={imagePreview} alt="" className="w-28 h-28 rounded-2xl object-cover mb-3 shadow-sm" />
+                      <img src={imagePreview} alt="" className="w-28 h-28 rounded-xl object-cover mb-3 shadow-sm" />
                       <p className="text-sm font-semibold" style={{ color: '#00BF8F' }}>
                         {image ? 'Nova slika izabrana ✓' : 'Trenutna fotografija'}
                       </p>
@@ -461,9 +455,9 @@ export default function MojiPsiPage() {
                     </>
                   ) : (
                     <>
-                      <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center text-3xl mb-3">📸</div>
+                      <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-3xl mb-3">📸</div>
                       <p className="text-sm font-semibold text-gray-700">Klikni da dodaš fotografiju</p>
-                      <p className="text-xs text-gray-400 mt-1">JPG, PNG — max 5MB</p>
+                      <p className="text-xs text-gray-400 mt-1">JPG, PNG - max 5MB</p>
                     </>
                   )}
                 </div>
@@ -488,8 +482,8 @@ export default function MojiPsiPage() {
         {isLoading && (
           <div className="grid gap-5 sm:grid-cols-2">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse"
-                style={{ boxShadow: '0 2px 12px rgba(71,71,71,0.07)' }}>
+              <div key={i} className="bg-white rounded-xl overflow-hidden animate-pulse"
+                style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
                 <div className="h-36 bg-gray-100" />
                 <div className="p-4 space-y-2">
                   <div className="h-3 bg-gray-100 rounded w-2/3" />
@@ -535,7 +529,7 @@ export default function MojiPsiPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
           onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-white rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl"
+          <div className="bg-white rounded-xl p-6 mx-4 max-w-sm w-full shadow-xl"
             onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-900 mb-2">
               {deleteConfirm.type === 'dog' ? 'Obriši psa?' : 'Ukloni sliku?'}

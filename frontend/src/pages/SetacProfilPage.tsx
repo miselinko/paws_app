@@ -122,7 +122,7 @@ function DatePickerPopup({
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-gray-100 z-50 p-4"
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl border border-gray-100 z-50 p-4"
           style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
 
           <div className="flex items-center justify-between mb-3">
@@ -894,10 +894,10 @@ function BookingWidget({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefin
   }
 
   if (!user) return (
-    <div className="p-6 text-center rounded-2xl border border-gray-100" style={{ backgroundColor: '#f0fdf9' }}>
+    <div className="p-6 text-center rounded-xl border border-gray-100" style={{ backgroundColor: '#f0fdf9' }}>
       <div className="text-3xl mb-3">🐾</div>
       <p className="font-bold text-gray-800 mb-1">Želiš da rezervišeš?</p>
-      <p className="text-sm text-gray-500 mb-4">Kreiraj nalog — besplatno je i traje 1 minut.</p>
+      <p className="text-sm text-gray-500 mb-4">Kreiraj nalog - besplatno je i traje 1 minut.</p>
       <Link to="/register" className="w-full block py-3 rounded-xl text-white font-bold text-sm text-center mb-2" style={{ backgroundColor: '#00BF8F' }}>
         Registruj se besplatno
       </Link>
@@ -969,14 +969,14 @@ function ReviewsSection({ walkerId }: { walkerId: number }) {
 
   if (isLoading) return null
   if (!reviews || reviews.length === 0) return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+    <div className="bg-white rounded-xl border border-gray-100 p-6" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
       <h2 className="font-black text-gray-900 text-xl mb-3">Recenzije</h2>
       <p className="text-gray-400 text-sm italic">Još nema recenzija za ovog šetača.</p>
     </div>
   )
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+    <div className="bg-white rounded-xl border border-gray-100 p-6" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
       <h2 className="font-black text-gray-900 text-xl mb-4">Recenzije ({reviews.length})</h2>
       <div className="space-y-4">
         {reviews.map(r => (
@@ -1045,22 +1045,24 @@ export default function SetacProfilPage() {
 
   if (!walker) return null
   const wp = walker.walker_profile
-  const gradColor = GRAD_COLORS[walker.id % GRAD_COLORS.length]
+  const bgColor = ['#00BF8F', '#FAAB43', '#6366f1', '#ec4899'][walker.id % 4]
   const availableSvcs = getAvailableServices(wp.services)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
 
       {/* Hero */}
       <div className="relative h-64 sm:h-80 overflow-hidden">
         {walker.profile_image ? (
           <img src={imgUrl(walker.profile_image)} alt={walker.first_name} className="w-full h-full object-cover" />
         ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${gradColor}`} />
+          <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: bgColor }}>
+            <span className="text-white text-8xl font-black opacity-80">{walker.first_name[0]}{walker.last_name[0]}</span>
+          </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
-        <Link to="/walkers" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-white/90 hover:text-white bg-black/20 backdrop-blur-sm rounded-xl px-3 py-2 text-sm font-medium">
+        <Link to="/walkers" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-white/90 hover:text-white bg-black/20 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -1070,13 +1072,12 @@ export default function SetacProfilPage() {
         {user && walker && (
           <button
             onClick={() => favMutation.mutate(walker.id)}
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 w-11 h-11 rounded-full flex items-center justify-center transition-all"
-            style={{
-              backgroundColor: walker.is_favorited ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.6)',
-              backdropFilter: 'blur(4px)',
-            }}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full flex items-center justify-center transition-all bg-white/80 backdrop-blur-sm hover:bg-white"
           >
-            <span className="text-xl">{walker.is_favorited ? '❤️' : '🖤'}</span>
+            <svg className="w-5 h-5" fill={walker.is_favorited ? '#ef4444' : 'none'} viewBox="0 0 24 24"
+              stroke={walker.is_favorited ? '#ef4444' : '#9ca3af'} strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
           </button>
         )}
 
@@ -1106,7 +1107,7 @@ export default function SetacProfilPage() {
 
           {/* About */}
           <Reveal>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+          <div className="bg-white rounded-xl border border-gray-100 p-6" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <h2 className="font-black text-gray-900 text-xl mb-4">O meni</h2>
             {wp.bio
               ? <p className="text-gray-600 leading-relaxed">{wp.bio}</p>
@@ -1116,7 +1117,7 @@ export default function SetacProfilPage() {
 
           {/* Services & prices */}
           <Reveal delay={60}>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+          <div className="bg-white rounded-xl border border-gray-100 p-6" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <h2 className="font-black text-gray-900 text-xl mb-4">Usluge & cene</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {availableSvcs.includes('walking') && (
@@ -1149,7 +1150,7 @@ export default function SetacProfilPage() {
           </Reveal>
 
           {/* Map */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6" style={{ boxShadow: '0 2px 11px rgba(71,71,71,0.07)' }}>
+          <div className="bg-white rounded-xl border border-gray-100 p-6" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
             <h2 className="font-black text-gray-900 text-xl mb-4">Lokacija</h2>
             {walker.lat && walker.lng ? (
               <Suspense fallback={<div className="h-64 bg-gray-100 rounded-xl animate-pulse" />}>
@@ -1172,7 +1173,7 @@ export default function SetacProfilPage() {
 
         {/* Right: Booking widget */}
         <div className="lg:col-span-1 order-1 lg:order-2">
-          <div className="sticky top-20 bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 4px 20px rgba(71,71,71,0.12)' }}>
+          <div className="sticky top-20 bg-white rounded-xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
             <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
               <div className="flex items-baseline gap-2 flex-wrap">
                 {(wp.services === 'walking' || wp.services === 'both') && Number(wp.hourly_rate) > 0 && (
