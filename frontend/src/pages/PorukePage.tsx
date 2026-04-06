@@ -18,11 +18,12 @@ function BotChat() {
   const [history, setHistory] = useState<BotMessage[]>([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const botContainerRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const el = botContainerRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [history, loading])
 
   const send = async () => {
@@ -59,7 +60,7 @@ function BotChat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3 bg-gray-50">
+      <div ref={botContainerRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-3 bg-gray-50">
         {history.length === 0 && (
           <div className="text-center py-8 space-y-3">
             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
@@ -107,7 +108,6 @@ function BotChat() {
             </div>
           </div>
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Input */}
@@ -217,7 +217,7 @@ export default function PorukePage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [text, setText] = useState('')
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   const { data: conversations } = useQuery({
     queryKey: ['conversations'],
@@ -268,7 +268,8 @@ export default function PorukePage() {
   })
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const el = messagesContainerRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [latestMessages])
 
   const activeUser: ChatUser | undefined = !isBot
@@ -371,7 +372,7 @@ export default function PorukePage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3 bg-gray-50">
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-3 bg-gray-50">
                 {hasMoreOlder && (
                   <div className="text-center pt-1 pb-2">
                     <button onClick={loadOlderMessages}
@@ -402,8 +403,6 @@ export default function PorukePage() {
                     </div>
                   )
                 })}
-                <div ref={bottomRef} />
-
               </div>
 
               {/* Input */}
