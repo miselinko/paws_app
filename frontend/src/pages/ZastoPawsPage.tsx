@@ -71,11 +71,6 @@ const COMPARISON = [
   { feature: 'Push notifikacije', paws: true, others: false },
 ]
 
-const TESTIMONIALS = [
-  { name: 'Ana M.', role: 'Vlasnica labrador retrivera', text: 'Konačno platforma gde mogu da vidim gde mi je pas u svakom trenutku. GPS praćenje je game changer! Preporučujem svakome ko traži sigurnog šetača.', rating: 5 },
-  { name: 'Marko P.', role: 'Šetač na Paws-u', text: 'Fleksibilan raspored i fer uslovi. Počeo sam pre mesec dana i već imam stalne klijente. Aplikacija je intuitivna i laka za korišćenje.', rating: 5 },
-  { name: 'Jelena S.', role: 'Vlasnica dva mopsa', text: 'Jednostavno zakazivanje, brza komunikacija sa šetačem i super ocene. Chat funkcija je odlična za dogovor oko detalja. Preporuka!', rating: 5 },
-]
 
 export default function ZastoPawsPage() {
   useEffect(() => { document.title = 'Zašto Paws - Paws' }, [])
@@ -225,29 +220,27 @@ export default function ZastoPawsPage() {
         </div>
       </section>
 
-      {/* Testimonijali */}
+      {/* Kako početi */}
       <section className="bg-gray-50 py-14 sm:py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <div className="text-center mb-14">
-              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Šta kažu korisnici</h2>
-              <p className="text-gray-500 text-lg">Iskustva vlasnika i šetača koji već koriste Paws platformu.</p>
+              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Počni za manje od 2 minuta</h2>
+              <p className="text-gray-500 text-lg">Tri koraka do prvog zakazivanja.</p>
             </div>
           </Reveal>
           <div className="grid sm:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t, i) => (
-              <Reveal key={t.name} delay={i * 100}>
+            {[
+              { step: '1', title: 'Registruj se', desc: 'Kreiraj nalog kao vlasnik ili šetač. Verifikuj email i popuni profil - to je sve.', color: '#00BF8F' },
+              { step: '2', title: 'Pronađi šetača', desc: 'Pregledaj profile šetača u svom gradu, uporedi cene i ocene, izaberi termin koji ti odgovara.', color: '#FAAB43' },
+              { step: '3', title: 'Rezerviši i prati', desc: 'Zakaži šetnju ili čuvanje, komuniciraj putem chat-a i prati lokaciju psa uživo na mapi.', color: '#00BF8F' },
+            ].map((s, i) => (
+              <Reveal key={s.step} delay={i * 100}>
                 <div className="bg-white rounded-xl p-7 h-full flex flex-col" style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-                  <div className="mb-3">
-                    {Array.from({ length: t.rating }).map((_, j) => (
-                      <span key={j} style={{ color: '#FAAB43' }}>&#9733;</span>
-                    ))}
-                  </div>
-                  <p className="text-gray-600 leading-relaxed italic flex-1">"{t.text}"</p>
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="font-bold text-gray-900 text-sm">{t.name}</p>
-                    <p className="text-gray-400 text-xs">{t.role}</p>
-                  </div>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-lg mb-4"
+                    style={{ backgroundColor: s.color }}>{s.step}</div>
+                  <h3 className="font-black text-gray-900 text-lg mb-2">{s.title}</h3>
+                  <p className="text-gray-600 leading-relaxed flex-1">{s.desc}</p>
                 </div>
               </Reveal>
             ))}

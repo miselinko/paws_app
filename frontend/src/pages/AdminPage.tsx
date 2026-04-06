@@ -114,13 +114,13 @@ function Dashboard({ stats, onNavigate }: { stats: AdminStats; onNavigate: (tab:
         <StatCard label="Ukupno rezervacija" value={stats.total_reservations} icon="R" color="bg-orange-50" onClick={() => onNavigate('reservations')} />
         <StatCard label="Završene" value={stats.completed_reservations} icon="Z" color="bg-emerald-50" onClick={() => onNavigate('reservations', { status: 'completed' })} />
         <StatCard label="Na čekanju" value={stats.pending_reservations} icon="N" color="bg-yellow-50" onClick={() => onNavigate('reservations', { status: 'pending' })} />
-        <StatCard label="Otkazane" value={stats.cancelled_reservations} icon="❌" color="bg-red-50" onClick={() => onNavigate('reservations', { status: 'cancelled' })} />
+        <StatCard label="Otkazane" value={stats.cancelled_reservations} icon="X" color="bg-red-50" onClick={() => onNavigate('reservations', { status: 'cancelled' })} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Recenzije" value={stats.total_reviews} icon="O" color="bg-amber-50" onClick={() => onNavigate('reviews')} />
         <StatCard label="Psi" value={stats.total_dogs} icon="P" color="bg-cyan-50" onClick={() => onNavigate('dogs')} />
-        <StatCard label="Aktivni korisnici" value={stats.active_users} icon="🟢" color="bg-lime-50" onClick={() => onNavigate('users', { is_active: 'true' })} />
-        <StatCard label="Neaktivni" value={stats.inactive_users} icon="🔴" color="bg-stone-50" onClick={() => onNavigate('users', { is_active: 'false' })} />
+        <StatCard label="Aktivni korisnici" value={stats.active_users} icon="A" color="bg-lime-50" onClick={() => onNavigate('users', { is_active: 'true' })} />
+        <StatCard label="Neaktivni" value={stats.inactive_users} icon="N" color="bg-stone-50" onClick={() => onNavigate('users', { is_active: 'false' })} />
       </div>
     </div>
   )

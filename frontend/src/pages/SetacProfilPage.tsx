@@ -308,7 +308,7 @@ function WalkingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undefi
 
   if (success) return (
     <div className="text-center py-6 px-5" style={{ animation: 'fadeIn 0.3s ease' }}>
-      <div className="text-4xl mb-3">🎉</div>
+      <div className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0fdf9' }}><svg className="w-6 h-6" style={{ color: '#00BF8F' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
       <h3 className="font-black text-gray-900 mb-1">Rezervacija poslata!</h3>
       <p className="text-sm text-gray-500 mb-4">Šetač će te uskoro kontaktirati.</p>
       <button onClick={() => navigate('/reservations')} className="w-full py-3 rounded-xl text-white font-bold text-sm" style={{ backgroundColor: '#00BF8F' }}>
@@ -645,7 +645,7 @@ function BoardingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undef
 
   if (success) return (
     <div className="text-center py-6 px-5" style={{ animation: 'fadeIn 0.3s ease' }}>
-      <div className="text-4xl mb-3">🎉</div>
+      <div className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0fdf9' }}><svg className="w-6 h-6" style={{ color: '#00BF8F' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
       <h3 className="font-black text-gray-900 mb-1">Rezervacija poslata!</h3>
       <p className="text-sm text-gray-500 mb-4">Šetač će te uskoro kontaktirati.</p>
       <button onClick={() => navigate('/reservations')} className="w-full py-3 rounded-xl text-white font-bold text-sm" style={{ backgroundColor: '#00BF8F' }}>
@@ -718,7 +718,7 @@ function BoardingBooking({ walker, dogs }: { walker: Walker; dogs: Dog[] | undef
           <div className="mt-2" style={{ animation: 'fadeIn 0.3s ease' }}>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black"
               style={{ backgroundColor: '#f0fdf9', color: '#059669', border: '1.5px solid #bbf7d0' }}>
-              🗓 {numDays === 1 ? '1 dan' : `${numDays} dana`}
+              {numDays === 1 ? '1 dan' : `${numDays} dana`}
               {!isSingle && boardingFrom && boardingTo && (
                 <span className="font-normal text-gray-400 ml-1">
                   ({formatDateNice(boardingFrom)} – {formatDateNice(boardingTo)})
