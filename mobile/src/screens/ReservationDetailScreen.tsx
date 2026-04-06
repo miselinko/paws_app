@@ -91,7 +91,10 @@ function OsmTileMap({ lat, lng }: { lat: number; lng: number }) {
         {tiles.map((t, i) => (
           <Image
             key={i}
-            source={{ uri: `https://tile.openstreetmap.org/${MAP_ZOOM}/${t.tx}/${t.ty}.png` }}
+            source={{
+              uri: `https://tile.openstreetmap.org/${MAP_ZOOM}/${t.tx}/${t.ty}.png`,
+              headers: { 'User-Agent': 'PawsApp/1.0 (Android; contact@paws.rs)' },
+            }}
             style={{ position: 'absolute', width: TILE_SIZE, height: TILE_SIZE, left: t.left, top: t.top }}
           />
         ))}

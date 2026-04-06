@@ -70,7 +70,7 @@ function DogChip({ dog }: { dog: Dog }) {
   return (
     <Link to={`/dogs/${dog.id}`}
       className="rounded-xl border border-gray-200 overflow-hidden flex items-center gap-2.5 px-3.5 py-2.5 transition-colors hover:border-[#00BF8F] hover:bg-[#f0fdf9] no-underline">
-      <span className="text-xs font-bold text-gray-500">PS</span>
+      <svg className="w-5 h-5 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
       <div className="flex-1 min-w-0">
         <span className="text-sm font-semibold text-gray-900">{dog.name}</span>
         <span className="text-xs text-gray-400 ml-1.5">{dog.breed}</span>
