@@ -15,7 +15,7 @@ export default function ONamaPage() {
             <div>
               <p className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#00BF8F' }}>O nama</p>
               <h1 className="text-3xl sm:text-5xl font-black text-gray-900 mb-5 leading-tight">
-                Paws aplikacija - <br />
+                PawsApp aplikacija - <br />
                 <span style={{ color: '#00BF8F' }}>tvoj najbolji prijatelj</span><br />
                 za brigu o psu
               </h1>
@@ -24,7 +24,7 @@ export default function ONamaPage() {
                 najbolju moguću brigu, a svaki vlasnik - mir i sigurnost.
               </p>
               <p className="text-gray-500 mb-8 leading-relaxed">
-                Paws je prva platforma u Srbiji koja omogućava <strong className="text-gray-700">online zakazivanje šetnji i čuvanja pasa</strong> sa
+                PawsApp je prva platforma u Srbiji koja omogućava <strong className="text-gray-700">online zakazivanje šetnji i čuvanja pasa</strong> sa
                 proverenim šetačima u tvom komšiluku. Jednostavno, brzo i sigurno.
               </p>
               <div className="flex flex-wrap gap-3">
@@ -58,7 +58,7 @@ export default function ONamaPage() {
         <div className="max-w-4xl mx-auto text-center">
           <Reveal>
             <p className="text-white text-lg sm:text-xl leading-relaxed">
-              Paws je nastao kao rezultat <strong className="font-black">ljubavi prema psima</strong> i velike strasti sa ciljem da{' '}
+              PawsApp je nastao kao rezultat <strong className="font-black">ljubavi prema psima</strong> i velike strasti sa ciljem da{' '}
               <strong className="font-black">olakša život vlasnicima</strong> i{' '}
               <strong className="font-black">šetačima</strong> širom Srbije.
               Naša posvećenost je ne samo da olakšamo brigu o ljubimcima, već i da unapredimo
@@ -86,11 +86,11 @@ export default function ONamaPage() {
                 <h3 className="text-2xl font-black mb-1">Naša <span style={{ color: '#00BF8F' }}>misija</span></h3>
                 <p className="font-bold text-gray-800 mb-4">Platforma koja povezuje ljubitelje pasa</p>
                 <p className="text-gray-600 leading-relaxed">
-                  Naša misija je da kroz Paws platformu unapredimo vezu između vlasnika pasa i šetača,
+                  Naša misija je da kroz PawsApp platformu unapredimo vezu između vlasnika pasa i šetača,
                   čineći proces zakazivanja šetnji i čuvanja <strong className="text-gray-800">jednostavnim, sigurnim i bezbrižnim</strong>.
                   Želimo da stvorimo harmoniju između ljubimaca i njihovih vlasnika, pružajući im
                   mogućnost da se brinu o svom četvoronožnom prijatelju sa lakoćom i zadovoljstvom.
-                  Uz Paws, život sa psom postaje još lepši i praktičniji.
+                  Uz PawsApp, život sa psom postaje još lepši i praktičniji.
                 </p>
               </div>
             </Reveal>
@@ -101,7 +101,7 @@ export default function ONamaPage() {
                 <p className="text-gray-600 leading-relaxed">
                   Naša vizija je da budemo saveznici kako vlasnicima ljubimaca, tako i šetačima,
                   u boljoj organizaciji i upravljanju svakodnevnim potrebama pasa.
-                  Želimo da Paws postane <strong className="text-gray-800">pouzdan partner</strong>,
+                  Želimo da PawsApp postane <strong className="text-gray-800">pouzdan partner</strong>,
                   pružajući vam jedinstvenu platformu koja olakšava brigu o ljubimcu,
                   unapređuje kvalitet usluga i gradi zajednicu zasnovanu na poverenju.
                 </p>
@@ -126,7 +126,7 @@ export default function ONamaPage() {
                 icon: (
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>
                 ),
-                title: 'Paws aplikacija',
+                title: 'PawsApp aplikacija',
                 desc: 'Prva online platforma u Srbiji za zakazivanje šetnji i čuvanja pasa - dostupna na webu i kao mobilna aplikacija.',
               },
               {
@@ -134,14 +134,14 @@ export default function ONamaPage() {
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" /></svg>
                 ),
                 title: 'Više uživanja sa psom',
-                desc: 'Paws unapređuje kvalitet života tvog ljubimca. Profesionalni šetači, praćenje u realnom vremenu i potpuna transparentnost.',
+                desc: 'PawsApp unapređuje kvalitet života tvog ljubimca. Profesionalni šetači, praćenje u realnom vremenu i potpuna transparentnost.',
               },
               {
                 icon: (
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
                 ),
                 title: 'Ljubav prema psima',
-                desc: 'U Paws timu, delimo istinsku strast prema psima i želimo da doprinesemo njihovom kvalitetu na najbolji mogući način.',
+                desc: 'U PawsApp timu, delimo istinsku strast prema psima i želimo da doprinesemo njihovom kvalitetu na najbolji mogući način.',
               },
             ].map((item, i) => (
               <Reveal key={item.title} delay={i * 100}>
@@ -177,7 +177,7 @@ export default function ONamaPage() {
                   Posle šetnje, ostavite ocenu i pomozite zajednici.
                 </p>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Sa Paws-om, više ne morate da brinete kada ste na poslu ili putovanju.
+                  Sa PawsApp-om, više ne morate da brinete kada ste na poslu ili putovanju.
                   Vaš pas je u sigurnim rukama, a vi u svakom trenutku znate gde se nalazi.
                   <strong className="text-gray-800"> GPS praćenje u realnom vremenu</strong> vam daje potpuni mir.
                 </p>
@@ -198,7 +198,7 @@ export default function ONamaPage() {
                   sa vlasnicima i izgradite reputaciju kroz ocene.
                 </p>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Paws vam daje potpunu kontrolu - vi birate kada radite, koliko naplaćujete i
+                  PawsApp vam daje potpunu kontrolu - vi birate kada radite, koliko naplaćujete i
                   koje usluge nudite. <strong className="text-gray-800">Bez provizije, bez skrivenih troškova.</strong> Sve
                   što zaradite je vaše.
                 </p>
@@ -248,10 +248,10 @@ export default function ONamaPage() {
           </Reveal>
           <Reveal delay={100}>
             <div>
-              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">Želiš da budeš deo Paws priče?</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">Želiš da budeš deo PawsApp priče?</h2>
               <p className="text-gray-600 text-lg leading-relaxed mb-8">
                 Bilo da tražiš šetača za svog ljubimca ili želiš da zarađuješ radeći sa psima -
-                Paws je tu za tebe. Pridruži se stotinama korisnika koji već koriste platformu.
+                PawsApp je tu za tebe. Pridruži se stotinama korisnika koji već koriste platformu.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link to="/register" className="inline-flex items-center justify-center text-white font-bold px-7 py-3.5 rounded-full transition-all hover:opacity-90" style={{ backgroundColor: '#FAAB43' }}>

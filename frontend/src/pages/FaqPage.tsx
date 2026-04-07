@@ -14,10 +14,10 @@ const CATEGORIES = [
 ]
 
 const FAQS: FaqItem[] = [
-  { cat: 'general', q: 'Šta je Paws?', a: 'Paws je online platforma koja povezuje vlasnike pasa sa proverenim šetačima i čuvarima u Srbiji. Kroz naš sajt i mobilnu aplikaciju možete lako pronaći, rezervisati i oceniti šetača u svojoj blizini. Sve funkcionalnosti su besplatne za korišćenje.' },
+  { cat: 'general', q: 'Šta je PawsApp?', a: 'PawsApp je online platforma koja povezuje vlasnike pasa sa proverenim šetačima i čuvarima u Srbiji. Kroz naš sajt i mobilnu aplikaciju možete lako pronaći, rezervisati i oceniti šetača u svojoj blizini. Sve funkcionalnosti su besplatne za korišćenje.' },
   { cat: 'general', q: 'Da li je registracija besplatna?', a: 'Da, registracija je potpuno besplatna i za vlasnike i za šetače. Ne naplaćujemo nikakvu proviziju niti mesečnu pretplatu. Svi prihodi od šetnji i čuvanja idu direktno šetačima.' },
-  { cat: 'general', q: 'U kojim gradovima je Paws dostupan?', a: 'Paws je dostupan širom Srbije. Možete pretraživati šetače po lokaciji i pronaći nekoga u svojoj blizini, bez obzira na grad. Platforma radi svuda gde postoji internet konekcija.' },
-  { cat: 'general', q: 'Da li mogu koristiti Paws bez naloga?', a: 'Možete pregledati profile šetača bez naloga, ali za rezervaciju, komunikaciju, praćenje šetnji i ostale funkcionalnosti je potrebna besplatna registracija. Registracija traje manje od 2 minuta.' },
+  { cat: 'general', q: 'U kojim gradovima je PawsApp dostupan?', a: 'PawsApp je dostupan širom Srbije. Možete pretraživati šetače po lokaciji i pronaći nekoga u svojoj blizini, bez obzira na grad. Platforma radi svuda gde postoji internet konekcija.' },
+  { cat: 'general', q: 'Da li mogu koristiti PawsApp bez naloga?', a: 'Možete pregledati profile šetača bez naloga, ali za rezervaciju, komunikaciju, praćenje šetnji i ostale funkcionalnosti je potrebna besplatna registracija. Registracija traje manje od 2 minuta.' },
 
   { cat: 'owners', q: 'Kako da pronađem šetača?', a: 'Na stranici "Pronađi šetača" možete filtrirati po lokaciji, usluzi (šetanje ili čuvanje), maksimalnoj ceni i oceni. Kliknite na profil šetača za više detalja, recenzije i raspored. Možete pregledati i njihovu mapu lokacije.' },
   { cat: 'owners', q: 'Kako funkcioniše rezervacija?', a: 'Izaberite šetača, odaberite datum i vreme, selektujte pse i pošaljite zahtev. Šetač potvrđuje ili odbija rezervaciju, a vi dobijate push notifikaciju i email obaveštenje o statusu. Ceo proces traje svega par klikova.' },
@@ -35,7 +35,7 @@ const FAQS: FaqItem[] = [
   { cat: 'safety', q: 'Šta ako imam problem sa rezervacijom?', a: 'Kontaktirajte nas putem kontakt forme ili emaila na info@paws.rs. Naš tim će vam pomoći u najkraćem roku. Takođe možete koristiti AI asistenta za brze odgovore na česta pitanja.' },
 
   { cat: 'payment', q: 'Kako funkcioniše plaćanje?', a: 'Trenutno se plaćanje dogovara direktno između vlasnika i šetača. Radimo na integraciji online plaćanja za veću bezbednost i jednostavnost u budućnosti.' },
-  { cat: 'payment', q: 'Da li Paws naplaćuje proviziju?', a: 'Ne. Paws je trenutno potpuno besplatan za korišćenje - i za vlasnike i za šetače. Bez skrivenih troškova, mesečnih pretplata ili provizija. 100% zarade ide šetaču.' },
+  { cat: 'payment', q: 'Da li PawsApp naplaćuje proviziju?', a: 'Ne. PawsApp je trenutno potpuno besplatan za korišćenje - i za vlasnike i za šetače. Bez skrivenih troškova, mesečnih pretplata ili provizija. 100% zarade ide šetaču.' },
 ]
 
 export default function FaqPage() {
@@ -68,7 +68,7 @@ export default function FaqPage() {
                 <span style={{ color: '#00BF8F' }}>pitanja</span>
               </h1>
               <p className="text-gray-500 text-lg leading-relaxed">
-                Sve što treba da znaš o Paws platformi - od registracije do praćenja šetnji.
+                Sve što treba da znaš o PawsApp platformi - od registracije do praćenja šetnji.
                 Ako ne pronađeš odgovor ovde, slobodno nas <Link to="/kontakt" className="font-bold hover:underline" style={{ color: '#00BF8F' }}>kontaktiraj</Link>.
               </p>
             </div>

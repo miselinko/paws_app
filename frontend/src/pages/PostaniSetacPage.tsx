@@ -16,12 +16,12 @@ export default function PostaniSetacPage() {
               <p className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#FAAB43' }}>Postani partner</p>
               <h1 className="text-3xl sm:text-5xl font-black text-gray-900 mb-5 leading-tight">
                 Istraži nove mogućnosti sa{' '}
-                <span style={{ color: '#00BF8F' }}>Paws</span>-om!
+                <span style={{ color: '#00BF8F' }}>PawsApp</span>-om!
               </h1>
               <p className="text-gray-500 text-lg leading-relaxed mb-4">
                 Zajedno možemo raditi na unapređenju dobrobiti i zadovoljstva svih
                 ljubimaca i njihovih vlasnika. Ako voliš pse i želiš da zarađuješ
-                fleksibilno - Paws je pravo mesto za tebe.
+                fleksibilno - PawsApp je pravo mesto za tebe.
               </p>
               <p className="text-gray-500 leading-relaxed mb-8">
                 Imamo posebnu ponudu za sve! Pridruživanjem možeš <strong className="text-gray-700">proširiti bazu
@@ -61,7 +61,7 @@ export default function PostaniSetacPage() {
         <div className="max-w-4xl mx-auto text-center">
           <Reveal>
             <p className="text-white text-lg sm:text-xl leading-relaxed">
-              Kao šetač na Paws platformi, dobijaš pristup <strong className="font-black">stotinama vlasnika pasa</strong> u
+              Kao šetač na PawsApp platformi, dobijaš pristup <strong className="font-black">stotinama vlasnika pasa</strong> u
               tvom gradu. Sam biraš raspored, cene i usluge - <strong className="font-black">bez provizije</strong>,
               bez skrivenih troškova. Sve što zaradiš je 100% tvoje.
             </p>
@@ -75,7 +75,7 @@ export default function PostaniSetacPage() {
           <Reveal>
             <div className="text-center mb-14">
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Zašto postati šetač?</h2>
-              <p className="text-gray-500 text-lg">Pridruži se šetačima koji već zarađuju na Paws-u.</p>
+              <p className="text-gray-500 text-lg">Pridruži se šetačima koji već zarađuju na PawsApp-u.</p>
             </div>
           </Reveal>
           <div className="grid sm:grid-cols-2 gap-6">
@@ -94,7 +94,7 @@ export default function PostaniSetacPage() {
                   <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" /></svg>
                 ),
                 title: 'Dodatna zarada bez provizije',
-                desc: 'Postavi sopstvene cene za šetanje i čuvanje. Zarađuj radeći ono što voliš - Paws ne uzima nikakvu proviziju. 100% zarade ostaje tebi.',
+                desc: 'Postavi sopstvene cene za šetanje i čuvanje. Zarađuj radeći ono što voliš - PawsApp ne uzima nikakvu proviziju. 100% zarade ostaje tebi.',
                 bg: '#fff5e6',
                 color: '#FAAB43',
               },
@@ -137,7 +137,7 @@ export default function PostaniSetacPage() {
           <Reveal>
             <div className="text-center mb-14">
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Kako da počneš?</h2>
-              <p className="text-gray-500 text-lg">Tri jednostavna koraka do prve zarade na Paws platformi.</p>
+              <p className="text-gray-500 text-lg">Tri jednostavna koraka do prve zarade na PawsApp platformi.</p>
             </div>
           </Reveal>
 
@@ -188,7 +188,7 @@ export default function PostaniSetacPage() {
             <div>
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">Šta je potrebno?</h2>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Da bi postao šetač na Paws platformi, potrebno je ispuniti nekoliko jednostavnih uslova.
+                Da bi postao šetač na PawsApp platformi, potrebno je ispuniti nekoliko jednostavnih uslova.
                 Nema komplikacija - cilj nam je da omogućimo <strong className="text-gray-800">svima koji vole pse</strong> da
                 pruže kvalitetnu uslugu vlasnicima.
               </p>
@@ -233,7 +233,7 @@ export default function PostaniSetacPage() {
             <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">Spreman da počneš?</h2>
             <p className="text-white/80 text-lg mb-8 leading-relaxed">
               Registracija je besplatna i traje manje od 2 minuta.
-              Postani deo Paws zajednice i počni da zarađuješ radeći ono što voliš.
+              Postani deo PawsApp zajednice i počni da zarađuješ radeći ono što voliš.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link to="/register" className="inline-flex items-center justify-center font-bold px-8 py-3.5 rounded-full transition-all hover:opacity-90 bg-white" style={{ color: '#00BF8F' }}>

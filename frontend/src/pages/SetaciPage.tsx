@@ -3,8 +3,9 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getWalkers, toggleFavorite } from '../api/users'
+import { getReservations } from '../api/reservations'
 import { useAuth } from '../context/AuthContext'
-import type { Walker } from '../types'
+import type { Walker, Reservation } from '../types'
 import Reveal from '../components/Reveal'
 
 type WalkerWithDistance = Walker
@@ -15,11 +16,11 @@ const SERVICES = [
   { val: 'boarding', label: 'Čuvanje' },
 ]
 
-const SIZES = [
-  { val: '', label: 'Sve veličine' },
-  { val: 'small', label: 'Mali (do 10kg)' },
-  { val: 'medium', label: 'Srednji (10–25kg)' },
-  { val: 'large', label: 'Veliki (25kg+)' },
+const MIN_RATINGS = [
+  { val: '', label: 'Sve ocene' },
+  { val: '3', label: '3+ zvezdice' },
+  { val: '4', label: '4+ zvezdice' },
+  { val: '4.5', label: '4.5+ zvezdice' },
 ]
 
 const SORTS = [
@@ -53,7 +54,7 @@ export default function SetaciPage() {
   const queryClient = useQueryClient()
   const [params] = useSearchParams()
   const [service, setService] = useState(params.get('usluga') || '')
-  const [size, setSize] = useState('')
+  const [minRating, setMinRating] = useState('')
   const [maxRate, setMaxRate] = useState('')
   const [sort, setSort] = useState('rating')
   const [search, setSearch] = useState('')
@@ -62,6 +63,34 @@ export default function SetaciPage() {
   const [locationLoading, setLocationLoading] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const filterRef = useRef<HTMLDivElement>(null)
+
+  const isWalker = user?.role === 'walker'
+
+  const { data: myReservations } = useQuery<Reservation[]>({
+    queryKey: ['my-reservations'],
+    queryFn: getReservations,
+    enabled: isWalker,
+  })
+
+  const walkerStats = useMemo(() => {
+    if (!myReservations) return null
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const completed = myReservations.filter(r => r.status === 'completed')
+    const thisMonth = myReservations.filter(r =>
+      new Date(r.start_time) >= monthStart && (r.status === 'confirmed' || r.status === 'completed' || r.status === 'in_progress')
+    )
+    const upcoming = myReservations.filter(r =>
+      (r.status === 'confirmed' || r.status === 'in_progress') && new Date(r.start_time) >= now
+    )
+    return {
+      completedCount: completed.length,
+      thisMonthCount: thisMonth.length,
+      upcomingCount: upcoming.length,
+      rating: user?.walker_profile?.average_rating ?? 0,
+      reviewCount: user?.walker_profile?.review_count ?? 0,
+    }
+  }, [myReservations, user])
 
   const favMutation = useMutation({
     mutationFn: toggleFavorite,
@@ -76,11 +105,10 @@ export default function SetaciPage() {
     return () => document.removeEventListener('mousedown', handler)
   }, [filterOpen])
 
-  const activeFilterCount = [size, maxRate, sort !== 'rating' ? sort : ''].filter(Boolean).length
+  const activeFilterCount = [minRating, maxRate, sort !== 'rating' ? sort : ''].filter(Boolean).length
 
   const queryParams: Record<string, string> = {}
   if (service) queryParams.usluga = service
-  if (size) queryParams.velicina = size
   if (maxRate) queryParams.cena_max = maxRate
   if (search.trim()) queryParams.search = search.trim()
   if (myLocation) {
@@ -112,7 +140,7 @@ export default function SetaciPage() {
     )
   }
 
-  const clearFilters = () => { setSize(''); setMaxRate(''); setSort('rating') }
+  const clearFilters = () => { setMinRating(''); setMaxRate(''); setSort('rating') }
 
   const resultCount = (showFavOnly ? walkers?.filter(w => w.is_favorited) : walkers)?.length ?? 0
 
@@ -132,6 +160,52 @@ export default function SetaciPage() {
           </Reveal>
         </div>
       </section>
+
+      {/* Walker dashboard */}
+      {isWalker && walkerStats && (
+        <section className="px-4 py-6 bg-white border-b border-gray-100">
+          <div className="max-w-6xl mx-auto">
+            <Reveal>
+              <div className="rounded-2xl p-5 sm:p-6" style={{ background: 'linear-gradient(135deg, #00BF8F 0%, #00a67d 100%)' }}>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+                  </div>
+                  <div>
+                    <h2 className="text-white font-black text-lg">Tvoj učinak</h2>
+                    <p className="text-white/70 text-xs">Pregled tvoje aktivnosti na PawsApp-u</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                    <div className="text-2xl sm:text-3xl font-black text-white">{walkerStats.completedCount}</div>
+                    <div className="text-white/70 text-xs font-medium mt-0.5">Završeno</div>
+                  </div>
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                    <div className="text-2xl sm:text-3xl font-black text-white flex items-center justify-center gap-1">
+                      {walkerStats.rating > 0 ? walkerStats.rating.toFixed(1) : '0.0'}
+                      <svg className="w-4 h-4" fill={walkerStats.rating > 0 ? '#FAAB43' : '#ffffff40'} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                    </div>
+                    <div className="text-white/70 text-xs font-medium mt-0.5">Ocena</div>
+                  </div>
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                    <div className="text-2xl sm:text-3xl font-black text-white">{walkerStats.reviewCount}</div>
+                    <div className="text-white/70 text-xs font-medium mt-0.5">Recenzija</div>
+                  </div>
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                    <div className="text-2xl sm:text-3xl font-black text-white">{walkerStats.thisMonthCount}</div>
+                    <div className="text-white/70 text-xs font-medium mt-0.5">Ovog meseca</div>
+                  </div>
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                    <div className="text-2xl sm:text-3xl font-black text-white">{walkerStats.upcomingCount}</div>
+                    <div className="text-white/70 text-xs font-medium mt-0.5">Predstojeće</div>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      )}
 
       {/* Search & Filters */}
       <div className="sticky top-16 z-30 bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
@@ -205,12 +279,15 @@ export default function SetaciPage() {
                 <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 bg-white rounded-xl border border-gray-200 z-50 p-4 w-64"
                   style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.1)', animation: 'fadeDown 0.15s ease' }}>
 
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Veličina psa</p>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Minimalna ocena</p>
                   <div className="flex flex-col gap-0.5 mb-4">
-                    {SIZES.map(s => (
-                      <button key={s.val} onClick={() => setSize(s.val)}
-                        className="text-left px-3 py-1.5 rounded-lg text-sm transition-colors"
-                        style={size === s.val ? { backgroundColor: '#e6f9f3', color: '#059669', fontWeight: 600 } : { color: '#374151' }}>
+                    {MIN_RATINGS.map(s => (
+                      <button key={s.val} onClick={() => setMinRating(s.val)}
+                        className="text-left px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-2"
+                        style={minRating === s.val ? { backgroundColor: '#e6f9f3', color: '#059669', fontWeight: 600 } : { color: '#374151' }}>
+                        {s.val && (
+                          <svg className="w-3.5 h-3.5" fill="#FAAB43" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                        )}
                         {s.label}
                       </button>
                     ))}
@@ -265,8 +342,8 @@ export default function SetaciPage() {
               <span className="text-xs text-red-500 font-medium shrink-0">{locationError}</span>
             )}
 
-            {/* Favorites */}
-            {user && (
+            {/* Favorites - only for owners */}
+            {user && user.role === 'owner' && (
               <button
                 onClick={() => setShowFavOnly(v => !v)}
                 className="flex items-center gap-1.5 text-sm font-medium border rounded-lg px-3 py-1.5 transition-colors shrink-0"
@@ -325,7 +402,10 @@ export default function SetaciPage() {
                 if (service === 'boarding' || wp.services === 'boarding') return Number(wp.daily_rate) || Number(wp.hourly_rate)
                 return Number(wp.hourly_rate)
               }
-              return [...(walkers ?? [])].filter(w => !showFavOnly || w.is_favorited).sort((a, b) => {
+              return [...(walkers ?? [])]
+                .filter(w => !showFavOnly || w.is_favorited)
+                .filter(w => !minRating || (w.walker_profile?.average_rating ?? 0) >= Number(minRating))
+                .sort((a, b) => {
                 const featuredDiff = (b.walker_profile?.is_featured ? 1 : 0) - (a.walker_profile?.is_featured ? 1 : 0)
                 if (featuredDiff !== 0) return featuredDiff
                 if (sort === 'rating') return (b.walker_profile?.average_rating ?? 0) - (a.walker_profile?.average_rating ?? 0)
@@ -333,7 +413,7 @@ export default function SetaciPage() {
                 if (sort === 'price_desc') return priceOf(b) - priceOf(a)
                 return 0
               })
-            }, [walkers, showFavOnly, sort, service]).map((w, idx) => {
+            }, [walkers, showFavOnly, sort, service, minRating]).map((w, idx) => {
               const wp = w.walker_profile
               const bgColor = INITIALS_BG[w.id % INITIALS_BG.length]
 
@@ -360,8 +440,8 @@ export default function SetaciPage() {
                         </div>
                       )}
 
-                      {/* Favorite */}
-                      {user && (
+                      {/* Favorite - only for owners */}
+                      {user && user.role === 'owner' && (
                         <button
                           onClick={e => { e.preventDefault(); e.stopPropagation(); favMutation.mutate(w.id) }}
                           className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all bg-white/80 backdrop-blur-sm hover:bg-white z-10"

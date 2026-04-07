@@ -48,8 +48,8 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-5">
       <div className="w-full max-w-sm">
         <Link to="/" className="flex items-center gap-2 mb-8 justify-center">
-          <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
-          <span className="text-xl font-black text-gray-900">Paws</span>
+          <img src={logoImg} alt="PawsApp" className="w-9 h-9 rounded-xl object-cover" />
+          <span className="text-xl font-black text-gray-900">PawsApp</span>
         </Link>
 
         {done ? (
@@ -63,7 +63,7 @@ export default function ResetPasswordPage() {
         ) : (
           <>
             <h1 className="text-2xl font-black text-gray-900 mb-1">Nova lozinka</h1>
-            <p className="text-gray-500 text-sm mb-7">Unesite novu lozinku za vaš Paws nalog.</p>
+            <p className="text-gray-500 text-sm mb-7">Unesite novu lozinku za vaš PawsApp nalog.</p>
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-5">{error}</div>

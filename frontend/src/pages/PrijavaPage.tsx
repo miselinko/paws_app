@@ -75,8 +75,8 @@ export default function PrijavaPage() {
 
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-            <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
-            <span className="text-xl font-black text-gray-900">Paws</span>
+            <img src={logoImg} alt="PawsApp" className="w-9 h-9 rounded-xl object-cover" />
+            <span className="text-xl font-black text-gray-900">PawsApp</span>
           </Link>
 
           <h1 className="text-2xl font-black text-gray-900 mb-1">Prijavi se</h1>

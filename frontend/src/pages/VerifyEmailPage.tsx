@@ -33,8 +33,8 @@ export default function VerifyEmailPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-5">
       <div className="w-full max-w-sm text-center">
         <Link to="/" className="flex items-center gap-2 mb-8 justify-center">
-          <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
-          <span className="text-xl font-black text-gray-900">Paws</span>
+          <img src={logoImg} alt="PawsApp" className="w-9 h-9 rounded-xl object-cover" />
+          <span className="text-xl font-black text-gray-900">PawsApp</span>
         </Link>
 
         {status === 'loading' && (

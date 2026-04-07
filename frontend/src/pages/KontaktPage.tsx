@@ -12,7 +12,7 @@ export default function KontaktPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const subject = encodeURIComponent(`Paws kontakt: ${name}`)
+    const subject = encodeURIComponent(`PawsApp kontakt: ${name}`)
     const body = encodeURIComponent(`Ime: ${name}\nEmail: ${email}\n\n${message}`)
     window.location.href = `mailto:info@paws.rs?subject=${subject}&body=${body}`
     setSent(true)

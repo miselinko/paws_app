@@ -35,7 +35,7 @@ const REASONS = [
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>
     ),
     title: 'Web i mobilna aplikacija',
-    desc: 'Koristi Paws na računaru ili telefonu - sve funkcionalnosti dostupne na oba mesta. Android aplikacija sa push notifikacijama za rezervacije i poruke.',
+    desc: 'Koristi PawsApp na računaru ili telefonu - sve funkcionalnosti dostupne na oba mesta. Android aplikacija sa push notifikacijama za rezervacije i poruke.',
     bg: '#fff5e6',
     color: '#FAAB43',
   },
@@ -83,18 +83,18 @@ export default function ZastoPawsPage() {
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
           <Reveal>
             <div>
-              <p className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#00BF8F' }}>Zašto Paws</p>
+              <p className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#00BF8F' }}>Zašto PawsApp</p>
               <h1 className="text-3xl sm:text-5xl font-black text-gray-900 mb-5 leading-tight">
                 Jedina platforma koja nudi{' '}
                 <span style={{ color: '#00BF8F' }}>kompletno iskustvo</span>
               </h1>
               <p className="text-gray-500 text-lg leading-relaxed mb-4">
-                Od pretrage šetača do praćenja šetnje uživo - Paws nudi sve što ti
+                Od pretrage šetača do praćenja šetnje uživo - PawsApp nudi sve što ti
                 treba za brigu o tvom ljubimcu. Funkcionalnosti koje nećeš naći na
                 oglasnicima i klasičnim sajtovima.
               </p>
               <p className="text-gray-500 leading-relaxed">
-                Paws je jedina <strong className="text-gray-700">specijalizovana platforma za šetanje i čuvanje pasa u Srbiji</strong> sa
+                PawsApp je jedina <strong className="text-gray-700">specijalizovana platforma za šetanje i čuvanje pasa u Srbiji</strong> sa
                 ugrađenim GPS praćenjem, chat-om, ocenama, AI asistentom i mobilnom aplikacijom.
               </p>
             </div>
@@ -122,7 +122,7 @@ export default function ZastoPawsPage() {
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Šta nas izdvaja</h2>
               <p className="text-gray-500 text-lg max-w-2xl mx-auto">
                 Funkcionalnosti koje nećeš naći na oglasnicima i klasičnim sajtovima.
-                Paws je dizajniran da ti pruži <strong className="text-gray-700">potpunu kontrolu i sigurnost</strong>.
+                PawsApp je dizajniran da ti pruži <strong className="text-gray-700">potpunu kontrolu i sigurnost</strong>.
               </p>
             </div>
           </Reveal>
@@ -147,7 +147,7 @@ export default function ZastoPawsPage() {
         <div className="max-w-4xl mx-auto text-center">
           <Reveal>
             <p className="text-white text-lg sm:text-xl leading-relaxed">
-              Paws je <strong className="font-black">potpuno besplatna platforma</strong> -bez provizije, bez skrivenih troškova.
+              PawsApp je <strong className="font-black">potpuno besplatna platforma</strong> -bez provizije, bez skrivenih troškova.
               Registracija traje manje od 2 minuta, a pristup svim funkcionalnostima je{' '}
               <strong className="font-black">100% besplatan</strong> i za vlasnike i za šetače.
             </p>
@@ -161,14 +161,14 @@ export default function ZastoPawsPage() {
           <div className="grid lg:grid-cols-2 gap-10 items-start">
             <Reveal>
               <div>
-                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">Paws vs. klasični oglasnici</h2>
+                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">PawsApp vs. klasični oglasnici</h2>
                 <p className="text-gray-600 leading-relaxed mb-4">
-                  Uporedi mogućnosti Paws platforme sa Halo Oglasima, Supersiterkom i sličnim servisima.
-                  Dok oglasnici nude samo kontakt podatke, <strong className="text-gray-800">Paws pruža kompletan ekosistem</strong> za
+                  Uporedi mogućnosti PawsApp platforme sa Halo Oglasima, Supersiterkom i sličnim servisima.
+                  Dok oglasnici nude samo kontakt podatke, <strong className="text-gray-800">PawsApp pruža kompletan ekosistem</strong> za
                   zakazivanje, komunikaciju, praćenje i ocenjivanje.
                 </p>
                 <p className="text-gray-600 leading-relaxed">
-                  Sa Paws-om, ne moraš da brineš o pouzdanosti -sistem ocena i recenzija
+                  Sa PawsApp-om, ne moraš da brineš o pouzdanosti -sistem ocena i recenzija
                   osigurava da uvek biraš <strong className="text-gray-800">proverene šetače</strong> sa dokazanim iskustvom.
                 </p>
               </div>
@@ -179,7 +179,7 @@ export default function ZastoPawsPage() {
                   <thead>
                     <tr className="border-b border-gray-100">
                       <th className="text-left py-4 px-5 font-bold text-gray-900">Funkcionalnost</th>
-                      <th className="py-4 px-4 font-black text-center" style={{ color: '#00BF8F' }}>Paws</th>
+                      <th className="py-4 px-4 font-black text-center" style={{ color: '#00BF8F' }}>PawsApp</th>
                       <th className="py-4 px-4 font-bold text-gray-400 text-center">Ostali</th>
                     </tr>
                   </thead>

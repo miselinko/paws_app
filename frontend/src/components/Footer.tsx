@@ -3,7 +3,7 @@ import logoImg from '../assets/logo.png'
 
 const EXPLORE = [
   { to: '/o-nama', label: 'O nama' },
-  { to: '/zasto-paws', label: 'Zašto Paws' },
+  { to: '/zasto-paws', label: 'Zašto PawsApp' },
   { to: '/kako-funkcionise', label: 'Kako funkcioniše' },
   { to: '/postani-setac', label: 'Postani šetač' },
   { to: '/faq', label: 'FAQ' },

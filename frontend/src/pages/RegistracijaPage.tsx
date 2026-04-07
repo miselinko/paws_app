@@ -177,7 +177,7 @@ export default function RegistracijaPage() {
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#00BF8F' }}>
             <span className="text-white text-xl font-black">P</span>
           </div>
-          <span className="text-2xl font-black text-white">Paws</span>
+          <span className="text-2xl font-black text-white">PawsApp</span>
         </Link>
 
         <div key={role} style={{ animation: 'fadeUp 0.35s ease' }}>
@@ -206,8 +206,8 @@ export default function RegistracijaPage() {
 
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-            <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
-            <span className="text-xl font-black text-gray-900">Paws</span>
+            <img src={logoImg} alt="PawsApp" className="w-9 h-9 rounded-xl object-cover" />
+            <span className="text-xl font-black text-gray-900">PawsApp</span>
           </Link>
 
           <h1 className="text-2xl font-black text-gray-900 mb-1">Kreiraj nalog</h1>
