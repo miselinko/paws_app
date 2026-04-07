@@ -1,8 +1,8 @@
 import { imgUrl } from '../config'
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getWalkers, toggleFavorite } from '../api/users'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getWalkersPaginated, toggleFavorite } from '../api/users'
 import { getReservations } from '../api/reservations'
 import { useAuth } from '../context/AuthContext'
 import type { Walker, Reservation } from '../types'
@@ -118,7 +118,7 @@ export default function SetaciPage() {
 
   const activeFilterCount = [minRating, maxRate, sort !== 'rating' ? sort : ''].filter(Boolean).length
 
-  const queryParams: Record<string, string> = { page_size: '100' }
+  const queryParams: Record<string, string> = {}
   if (service) queryParams.usluga = service
   if (maxRate) queryParams.cena_max = maxRate
   if (search.trim()) queryParams.search = search.trim()
@@ -128,10 +128,34 @@ export default function SetaciPage() {
     queryParams.radius = '25'
   }
 
-  const { data: walkers, isLoading } = useQuery<WalkerWithDistance[]>({
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['walkers', queryParams],
-    queryFn: () => getWalkers(queryParams),
+    queryFn: ({ pageParam = 1 }) => getWalkersPaginated({ ...queryParams, page: String(pageParam) }),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.next) return undefined
+      const url = new URL(lastPage.next, window.location.origin)
+      return Number(url.searchParams.get('page')) || undefined
+    },
+    initialPageParam: 1,
   })
+
+  const walkers = useMemo(() => data?.pages.flatMap(p => p.results ?? p) ?? [], [data])
+
+  // Infinite scroll observer
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+
+  useEffect(() => {
+    const el = loadMoreRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(handleObserver, { rootMargin: '200px' })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [handleObserver])
 
   const [locationError, setLocationError] = useState('')
 
@@ -159,7 +183,8 @@ export default function SetaciPage() {
     }, { replace: true })
   }
 
-  const resultCount = (showFavOnly ? walkers?.filter(w => w.is_favorited) : walkers)?.length ?? 0
+  const totalCount = data?.pages[0]?.count ?? walkers.length
+  const resultCount = showFavOnly ? walkers.filter(w => w.is_favorited).length : totalCount
 
   return (
     <div className="min-h-screen bg-white">
@@ -418,7 +443,7 @@ export default function SetaciPage() {
                 if (service === 'boarding' || wp.services === 'boarding') return Number(wp.daily_rate) || Number(wp.hourly_rate)
                 return Number(wp.hourly_rate)
               }
-              return [...(walkers ?? [])]
+              return [...walkers]
                 .filter(w => !showFavOnly || w.is_favorited)
                 .filter(w => !minRating || (w.walker_profile?.average_rating ?? 0) >= Number(minRating))
                 .sort((a, b) => {
@@ -557,6 +582,19 @@ export default function SetaciPage() {
                 </Reveal>
               )
             })}
+          </div>
+
+          {/* Infinite scroll trigger */}
+          <div ref={loadMoreRef} className="py-6 text-center">
+            {isFetchingNextPage && (
+              <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Učitavanje...
+              </div>
+            )}
           </div>
         </div>
       </section>

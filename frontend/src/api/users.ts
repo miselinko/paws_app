@@ -8,6 +8,7 @@ export const uploadProfileImage = (file: File) => {
   return api.patch('/users/profile/image/', fd).then(r => r.data)
 }
 export const getWalkers = (params?: Record<string, string>) => api.get('/users/walkers/', { params }).then(r => r.data.results ?? r.data)
+export const getWalkersPaginated = (params?: Record<string, string>) => api.get('/users/walkers/', { params }).then(r => r.data)
 export const getWalker = (id: number) => api.get(`/users/walkers/${id}/`).then(r => r.data)
 export const forgotPassword = (email: string) => api.post('/users/forgot-password/', { email }).then(r => r.data)
 export const resetPassword = (token: string, password: string) => api.post('/users/reset-password/', { token, password }).then(r => r.data)
