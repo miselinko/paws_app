@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Reveal from '../components/Reveal'
@@ -7,7 +7,6 @@ export default function HomePage() {
   useEffect(() => { document.title = 'PawsApp - Šetanje i čuvanje pasa u Srbiji' }, [])
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [selectedService, setSelectedService] = useState('walking')
 
   return (
     <div className="bg-white">
