@@ -148,22 +148,9 @@ export default function SetaciPage() {
     <div className="min-h-screen bg-white">
       <style>{`@keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}`}</style>
 
-      {/* Header */}
-      <section className="py-8 sm:py-12 px-4" style={{ backgroundColor: '#f8faf9' }}>
-        <div className="max-w-6xl mx-auto">
-          <Reveal>
-            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">Pronađi šetača</h1>
-            <p className="text-gray-500 text-sm sm:text-base">
-              {isLoading ? 'Učitavanje...' : `${resultCount} ${resultCount === 1 ? 'rezultat' : 'rezultata'}`}
-              {myLocation && <span className="ml-1" style={{ color: '#00BF8F' }}>· u vašoj blizini</span>}
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Walker dashboard */}
+      {/* Walker dashboard - above header */}
       {isWalker && walkerStats && (
-        <section className="px-4 py-6 bg-white border-b border-gray-100">
+        <section className="px-4 pt-8 pb-4" style={{ backgroundColor: '#f8faf9' }}>
           <div className="max-w-6xl mx-auto">
             <Reveal>
               <div className="rounded-2xl p-5 sm:p-6" style={{ background: 'linear-gradient(135deg, #00BF8F 0%, #00a67d 100%)' }}>
@@ -177,28 +164,28 @@ export default function SetaciPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center text-center">
                     <div className="text-2xl sm:text-3xl font-black text-white">{walkerStats.completedCount}</div>
-                    <div className="text-white/70 text-xs font-medium mt-0.5">Završeno</div>
+                    <div className="text-white/70 text-xs font-medium mt-1">Završeno</div>
                   </div>
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center text-center">
                     <div className="text-2xl sm:text-3xl font-black text-white flex items-center justify-center gap-1">
                       {walkerStats.rating > 0 ? walkerStats.rating.toFixed(1) : '0.0'}
                       <svg className="w-4 h-4" fill={walkerStats.rating > 0 ? '#FAAB43' : '#ffffff40'} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                     </div>
-                    <div className="text-white/70 text-xs font-medium mt-0.5">Ocena</div>
+                    <div className="text-white/70 text-xs font-medium mt-1">Ocena</div>
                   </div>
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center text-center">
                     <div className="text-2xl sm:text-3xl font-black text-white">{walkerStats.reviewCount}</div>
-                    <div className="text-white/70 text-xs font-medium mt-0.5">Recenzija</div>
+                    <div className="text-white/70 text-xs font-medium mt-1">Recenzija</div>
                   </div>
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center text-center">
                     <div className="text-2xl sm:text-3xl font-black text-white">{walkerStats.thisMonthCount}</div>
-                    <div className="text-white/70 text-xs font-medium mt-0.5">Ovog meseca</div>
+                    <div className="text-white/70 text-xs font-medium mt-1">Ovog meseca</div>
                   </div>
-                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center">
+                  <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3.5 flex flex-col items-center justify-center text-center">
                     <div className="text-2xl sm:text-3xl font-black text-white">{walkerStats.upcomingCount}</div>
-                    <div className="text-white/70 text-xs font-medium mt-0.5">Predstojeće</div>
+                    <div className="text-white/70 text-xs font-medium mt-1">Predstojeće</div>
                   </div>
                 </div>
               </div>
@@ -206,6 +193,19 @@ export default function SetaciPage() {
           </div>
         </section>
       )}
+
+      {/* Header */}
+      <section className={`${isWalker && walkerStats ? 'py-6' : 'py-8 sm:py-12'} px-4`} style={{ backgroundColor: '#f8faf9' }}>
+        <div className="max-w-6xl mx-auto">
+          <Reveal>
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-1">Pronađi šetača</h1>
+            <p className="text-gray-500 text-sm sm:text-base">
+              {isLoading ? 'Učitavanje...' : `${resultCount} ${resultCount === 1 ? 'rezultat' : 'rezultata'}`}
+              {myLocation && <span className="ml-1" style={{ color: '#00BF8F' }}>· u vašoj blizini</span>}
+            </p>
+          </Reveal>
+        </div>
+      </section>
 
       {/* Search & Filters */}
       <div className="sticky top-16 z-30 bg-white border-b border-gray-100" style={{ boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
