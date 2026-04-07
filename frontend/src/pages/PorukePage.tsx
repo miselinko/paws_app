@@ -54,7 +54,7 @@ function BotChat() {
         <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"
           style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}><svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg></div>
         <div>
-          <div className="font-bold text-gray-900">Paws Asistent</div>
+          <div className="font-bold text-gray-900">PawsApp Asistent</div>
           <div className="text-xs" style={{ color: '#00BF8F' }}>● Online</div>
         </div>
       </div>
@@ -66,7 +66,7 @@ function BotChat() {
             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: '#f0fdf9', color: '#00BF8F' }}>
               <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
             </div>
-            <p className="font-bold text-gray-700">Zdravo! Ja sam Paws Asistent.</p>
+            <p className="font-bold text-gray-700">Zdravo! Ja sam PawsApp Asistent.</p>
             <p className="text-sm text-gray-400">Pitaj me bilo šta o rezervacijama, šetačima ili kako koristiti aplikaciju.</p>
             <div className="flex flex-col gap-2 mt-4">
               {['Kako da rezervišem šetnju?', 'Kako da otkažem rezervaciju?', 'Kako funkcioniše plaćanje?'].map(q => (
@@ -116,7 +116,7 @@ function BotChat() {
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-          placeholder="Pitaj Paws Asistenta..."
+          placeholder="Pitaj PawsApp Asistenta..."
           className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors"
           style={{ borderColor: text ? '#00BF8F' : '' }}
         />
@@ -315,7 +315,7 @@ export default function PorukePage() {
                 style={{ backgroundColor: '#f0fdf9', border: '2px solid #00BF8F', color: '#00BF8F' }}><svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg></div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
-                  <span className="font-semibold text-sm text-gray-900">Paws Asistent</span>
+                  <span className="font-semibold text-sm text-gray-900">PawsApp Asistent</span>
                   <span className="text-xs font-bold" style={{ color: '#00BF8F' }}>Bot</span>
                 </div>
                 <p className="text-xs text-gray-400 truncate">Pitaj me nešto o aplikaciji...</p>

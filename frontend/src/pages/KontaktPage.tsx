@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
 
 export default function KontaktPage() {
-  useEffect(() => { document.title = 'Kontakt - Paws' }, [])
+  useEffect(() => { document.title = 'Kontakt - PawsApp' }, [])
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')

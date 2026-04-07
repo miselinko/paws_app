@@ -25,8 +25,8 @@ export default function Footer() {
           {/* Branding */}
           <div>
             <Link to="/" className="flex items-center gap-2.5 mb-4">
-              <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
-              <span className="text-xl font-black text-white tracking-tight">Paws</span>
+              <img src={logoImg} alt="PawsApp" className="w-9 h-9 rounded-xl object-cover" />
+              <span className="text-xl font-black text-white tracking-tight">PawsApp</span>
             </Link>
             <p className="text-sm leading-relaxed text-gray-400">
               Platforma za šetanje i čuvanje pasa u Srbiji. Povezujemo vlasnike sa proverenim šetačima.
@@ -83,7 +83,7 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 text-center text-xs text-gray-500">
-          &copy; {new Date().getFullYear()} Paws. Sva prava zadržana.
+          &copy; {new Date().getFullYear()} PawsApp. Sva prava zadržana.
         </div>
       </div>
     </footer>

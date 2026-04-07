@@ -3,7 +3,7 @@ import Reveal from '../components/Reveal'
 import { useEffect } from 'react'
 
 export default function ONamaPage() {
-  useEffect(() => { document.title = 'O nama - Paws' }, [])
+  useEffect(() => { document.title = 'O nama - PawsApp' }, [])
 
   return (
     <div className="bg-white">

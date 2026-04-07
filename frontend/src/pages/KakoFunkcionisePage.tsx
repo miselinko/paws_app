@@ -3,7 +3,7 @@ import Reveal from '../components/Reveal'
 import { useEffect } from 'react'
 
 export default function KakoFunkcionisePage() {
-  useEffect(() => { document.title = 'Kako funkcioniše - Paws' }, [])
+  useEffect(() => { document.title = 'Kako funkcioniše - PawsApp' }, [])
 
   return (
     <div className="bg-white">
@@ -15,11 +15,11 @@ export default function KakoFunkcionisePage() {
             <div>
               <p className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#00BF8F' }}>Kako funkcioniše</p>
               <h1 className="text-3xl sm:text-5xl font-black text-gray-900 mb-5 leading-tight">
-                Koristi Paws aplikaciju,<br />
+                Koristi PawsApp,<br />
                 rezervacija je <span style={{ color: '#00BF8F' }}>brza i jednostavna</span>
               </h1>
               <p className="text-gray-500 text-lg leading-relaxed">
-                Korišćenjem Paws platforme, rezervacija termina za šetanje ili čuvanje psa je brza i
+                Korišćenjem PawsApp platforme, rezervacija termina za šetanje ili čuvanje psa je brza i
                 jednostavna procedura. Pronađi šetača u svom komšiluku, zakaži termin
                 i prati šetnju u realnom vremenu - sve na jednom mestu.
               </p>
@@ -84,85 +84,52 @@ export default function KakoFunkcionisePage() {
         <div className="max-w-6xl mx-auto">
           <Reveal>
             <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Kako se koristi Paws?</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">Kako se koristi PawsApp?</h2>
               <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-                Korišćenjem Paws platforme, proces pronalaženja šetača je brz i jednostavan.
+                Korišćenjem PawsApp platforme, proces pronalaženja šetača je brz i jednostavan.
                 Evo detaljnog vodiča za vlasnike i šetače.
               </p>
             </div>
           </Reveal>
 
-          {/* Korak 1 */}
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 items-center mb-12 sm:mb-16">
-            <Reveal>
-              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop" alt="Psi na šetnji" className="w-full h-56 sm:h-72 object-cover" />
-              </div>
-            </Reveal>
-            <Reveal delay={100}>
-              <div>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm mb-4" style={{ backgroundColor: '#00BF8F' }}>1</div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3">Pretraži šetače u blizini</h3>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  Prvo, na platformi nalaziš <strong className="text-gray-800">listu partnerskih šetača</strong> u svom
-                  gradu ili komšiluku. Filtriraj po lokaciji, usluzi (šetanje ili čuvanje),
-                  maksimalnoj ceni i prosečnoj oceni.
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  Pogledaj profil svakog šetača - opise, slike, recenzije drugih vlasnika i
-                  dostupne termine. Sve informacije su ti na dlanu.
-                </p>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Korak 2 */}
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 items-center mb-12 sm:mb-16">
-            <Reveal delay={100}>
-              <div className="order-2 lg:order-1">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm mb-4" style={{ backgroundColor: '#00BF8F' }}>2</div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3">Rezerviši termin koji ti odgovara</h3>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  Zatim, jednostavno pregledaš <strong className="text-gray-800">dostupne termine</strong> u
-                  interaktivnom kalendaru. Kada pronađeš termin koji ti odgovara, jednostavno
-                  izabereš željeni datum i vreme i potvrdite svoju rezervaciju.
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  Šetač potvrđuje ili odbija rezervaciju, a ti dobijaš <strong className="text-gray-800">push notifikaciju</strong> o statusu.
-                  Možeš i da komuniciraš sa šetačem kroz ugrađeni chat pre i posle rezervacije.
-                </p>
-              </div>
-            </Reveal>
-            <Reveal>
-              <div className="rounded-xl overflow-hidden order-1 lg:order-2" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop" alt="Šetanje psa" className="w-full h-56 sm:h-72 object-cover" />
-              </div>
-            </Reveal>
-          </div>
-
-          {/* Korak 3 */}
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 items-center">
-            <Reveal>
-              <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                <img src="https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?q=80&w=700&auto=format&fit=crop" alt="Šetnja sa psom u prirodi" className="w-full h-56 sm:h-72 object-cover" />
-              </div>
-            </Reveal>
-            <Reveal delay={100}>
-              <div>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm mb-4" style={{ backgroundColor: '#00BF8F' }}>3</div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3">Prati šetnju i oceni iskustvo</h3>
-                <p className="text-gray-600 leading-relaxed mb-3">
-                  Dok traje šetnja, pratiš <strong className="text-gray-800">lokaciju šetača na mapi u realnom vremenu</strong>.
-                  Uvek znaš gde je tvoj pas i koliko je šetnja trajala.
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  Paws omogućava da brzo i efikasno organizuješ brigu o svom ljubimcu,
-                  a posle šetnje ostaviš ocenu i recenziju. Tako pomažeš drugim vlasnicima
-                  da pronađu najbolje šetače u svojoj blizini.
-                </p>
-              </div>
-            </Reveal>
-          </div>
+          {[
+            {
+              num: '1',
+              title: 'Pretraži šetače u blizini',
+              text: <>Prvo, na platformi nalaziš <strong className="text-gray-800">listu partnerskih šetača</strong> u svom gradu ili komšiluku. Filtriraj po lokaciji, usluzi (šetanje ili čuvanje), maksimalnoj ceni i prosečnoj oceni.<br /><br />Pogledaj profil svakog šetača - opise, slike, recenzije drugih vlasnika i dostupne termine. Sve informacije su ti na dlanu.</>,
+              img: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop',
+              alt: 'Psi na šetnji',
+            },
+            {
+              num: '2',
+              title: 'Rezerviši termin koji ti odgovara',
+              text: <>Jednostavno pregledaš <strong className="text-gray-800">dostupne termine</strong> u interaktivnom kalendaru. Kada pronađeš termin koji ti odgovara, izabereš željeni datum i vreme i potvrdiš rezervaciju.<br /><br />Šetač potvrđuje ili odbija rezervaciju, a ti dobijaš <strong className="text-gray-800">push notifikaciju</strong> o statusu. Možeš i da komuniciraš sa šetačem kroz ugrađeni chat pre i posle rezervacije.</>,
+              img: 'https://images.unsplash.com/photo-1601758003122-53c40e686a19?q=80&w=700&auto=format&fit=crop',
+              alt: 'Šetanje psa',
+            },
+            {
+              num: '3',
+              title: 'Prati šetnju i oceni iskustvo',
+              text: <>Dok traje šetnja, pratiš <strong className="text-gray-800">lokaciju šetača na mapi u realnom vremenu</strong>. Uvek znaš gde je tvoj pas i koliko je šetnja trajala.<br /><br />PawsApp omogućava da brzo i efikasno organizuješ brigu o svom ljubimcu, a posle šetnje ostaviš ocenu i recenziju. Tako pomažeš drugim vlasnicima da pronađu najbolje šetače u svojoj blizini.</>,
+              img: 'https://images.unsplash.com/photo-1522276498395-f4f68f7f8454?q=80&w=700&auto=format&fit=crop',
+              alt: 'Šetnja sa psom u prirodi',
+            },
+          ].map((step, i) => (
+            <div key={step.num} className={`flex flex-col ${i % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-8 sm:gap-10 items-center ${i < 2 ? 'mb-12 sm:mb-16' : ''}`}>
+              <Reveal>
+                <div className="rounded-xl overflow-hidden w-full lg:w-auto lg:min-w-[340px]" style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+                  <img src={step.img} alt={step.alt} className="w-full h-56 sm:h-72 object-cover" />
+                </div>
+              </Reveal>
+              <Reveal delay={100}>
+                <div>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm mb-4" style={{ backgroundColor: '#00BF8F' }}>{step.num}</div>
+                  <h3 className="text-2xl font-black text-gray-900 mb-3">{step.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{step.text}</p>
+                </div>
+              </Reveal>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -171,7 +138,7 @@ export default function KakoFunkcionisePage() {
         <div className="max-w-4xl mx-auto text-center">
           <Reveal>
             <p className="text-white text-lg sm:text-xl leading-relaxed">
-              Paws omogućava da <strong className="font-black">brzo i efikasno</strong> organizuješ
+              PawsApp omogućava da <strong className="font-black">brzo i efikasno</strong> organizuješ
               brigu o svom ljubimcu. Naši šetači prolaze kroz sistem ocena
               koji pruža <strong className="font-black">jednostavnost i pouzdanost</strong> u
               celom procesu zakazivanja.

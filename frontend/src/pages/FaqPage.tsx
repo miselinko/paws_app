@@ -39,7 +39,7 @@ const FAQS: FaqItem[] = [
 ]
 
 export default function FaqPage() {
-  useEffect(() => { document.title = 'FAQ - Paws' }, [])
+  useEffect(() => { document.title = 'FAQ - PawsApp' }, [])
 
   const [activeCat, setActiveCat] = useState('all')
   const [openItems, setOpenItems] = useState<Set<number>>(new Set())

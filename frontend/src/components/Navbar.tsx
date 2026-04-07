@@ -51,8 +51,8 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src={logoImg} alt="Paws" className="w-9 h-9 rounded-xl object-cover" />
-          <span className="text-xl font-black text-gray-900">Paws</span>
+          <img src={logoImg} alt="PawsApp" className="w-9 h-9 rounded-xl object-cover" />
+          <span className="text-xl font-black text-gray-900">PawsApp</span>
         </Link>
 
         {/* Desktop nav */}

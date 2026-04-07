@@ -73,7 +73,7 @@ const COMPARISON = [
 
 
 export default function ZastoPawsPage() {
-  useEffect(() => { document.title = 'Zašto Paws - Paws' }, [])
+  useEffect(() => { document.title = 'Zašto PawsApp - PawsApp' }, [])
 
   return (
     <div className="bg-white">

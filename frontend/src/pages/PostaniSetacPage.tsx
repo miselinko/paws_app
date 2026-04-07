@@ -3,7 +3,7 @@ import Reveal from '../components/Reveal'
 import { useEffect } from 'react'
 
 export default function PostaniSetacPage() {
-  useEffect(() => { document.title = 'Postani šetač - Paws' }, [])
+  useEffect(() => { document.title = 'Postani šetač - PawsApp' }, [])
 
   return (
     <div className="bg-white">

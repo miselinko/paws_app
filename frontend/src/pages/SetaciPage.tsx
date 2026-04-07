@@ -29,6 +29,8 @@ const SORTS = [
 ]
 
 const INITIALS_BG = ['#00BF8F', '#FAAB43', '#6366f1', '#ec4899', '#0ea5e9']
+const DAY_LABELS = ['P', 'U', 'S', 'Č', 'P', 'S', 'N']
+const DAY_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 function Stars({ rating, count }: { rating: number; count: number }) {
   if (count === 0) {
@@ -46,7 +48,7 @@ function Stars({ rating, count }: { rating: number; count: number }) {
 }
 
 export default function SetaciPage() {
-  useEffect(() => { document.title = 'Pronađi šetača - Paws' }, [])
+  useEffect(() => { document.title = 'Pronađi šetača - PawsApp' }, [])
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [params] = useSearchParams()
@@ -157,7 +159,7 @@ export default function SetaciPage() {
           </div>
 
           {/* Filter row */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+          <div className="flex items-center gap-2 flex-wrap">
 
             {/* Service select */}
             <select
@@ -408,25 +410,50 @@ export default function SetaciPage() {
                         <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">{wp.bio}</p>
                       )}
 
-                      {/* Services + Price */}
-                      <div className="mt-auto flex items-end justify-between gap-2">
-                        <div className="flex flex-wrap gap-1">
-                          {(wp.services === 'both' ? ['walking', 'boarding'] : [wp.services]).map(s => (
-                            <span key={s} className="text-[11px] px-2 py-0.5 rounded font-medium"
-                              style={s === 'walking'
-                                ? { backgroundColor: '#e6f9f3', color: '#059669' }
-                                : { backgroundColor: '#fff5e6', color: '#b45309' }}>
-                              {s === 'walking' ? 'Šetanje' : 'Čuvanje'}
-                            </span>
-                          ))}
+                      {/* Availability - weekly dots */}
+                      {wp.availability && Object.keys(wp.availability).length > 0 && (
+                        <div className="mb-3">
+                          <div className="flex items-center gap-[3px]">
+                            {DAY_KEYS.map((key, i) => {
+                              const day = wp.availability[key]
+                              const isActive = day?.active
+                              return (
+                                <div key={key} className="flex flex-col items-center gap-0.5">
+                                  <span className="text-[9px] font-medium" style={{ color: isActive ? '#059669' : '#d1d5db' }}>{DAY_LABELS[i]}</span>
+                                  <div className="w-[22px] h-[6px] rounded-full" style={{ backgroundColor: isActive ? '#00BF8F' : '#f3f4f6' }} />
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
-                        <div className="text-right shrink-0">
-                          {showHourly && (
-                            <div className="text-sm font-bold text-gray-900">{Number(wp.hourly_rate).toLocaleString()} <span className="text-xs font-normal text-gray-400">RSD/h</span></div>
-                          )}
-                          {showDaily && (
-                            <div className="text-sm font-bold" style={{ color: '#FAAB43' }}>{Number(wp.daily_rate).toLocaleString()} <span className="text-xs font-normal text-gray-400">RSD/dan</span></div>
-                          )}
+                      )}
+
+                      {/* Divider + Services & Prices */}
+                      <div className="mt-auto pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex flex-wrap gap-1.5">
+                            {(wp.services === 'both' ? ['walking', 'boarding'] as const : [wp.services]).map(s => (
+                              <span key={s} className="text-[11px] px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1"
+                                style={s === 'walking'
+                                  ? { backgroundColor: '#e6f9f3', color: '#059669' }
+                                  : { backgroundColor: '#fff5e6', color: '#b45309' }}>
+                                {s === 'walking' ? (
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                ) : (
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" /></svg>
+                                )}
+                                {s === 'walking' ? 'Šetanje' : 'Čuvanje'}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="text-right shrink-0">
+                            {showHourly && (
+                              <div className="text-sm font-bold text-gray-900">{Number(wp.hourly_rate).toLocaleString()} <span className="text-[10px] font-normal text-gray-400">RSD/h</span></div>
+                            )}
+                            {showDaily && (
+                              <div className="text-sm font-bold" style={{ color: '#b45309' }}>{Number(wp.daily_rate).toLocaleString()} <span className="text-[10px] font-normal text-gray-400">RSD/dan</span></div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
