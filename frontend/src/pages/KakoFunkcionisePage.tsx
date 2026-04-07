@@ -96,7 +96,7 @@ export default function KakoFunkcionisePage() {
             {
               num: '1',
               title: 'Pretraži šetače u blizini',
-              text: <>Prvo, na platformi nalaziš <strong className="text-gray-800">listu partnerskih šetača</strong> u svom gradu ili komšiluku. Filtriraj po lokaciji, usluzi (šetanje ili čuvanje), maksimalnoj ceni i prosečnoj oceni.<br /><br />Pogledaj profil svakog šetača - opise, slike, recenzije drugih vlasnika i dostupne termine. Sve informacije su ti na dlanu.</>,
+              text: <>Prvo, na platformi nalaziš <strong className="text-gray-800">listu šetača</strong> u svom gradu ili komšiluku. Filtriraj po lokaciji, usluzi (šetanje ili čuvanje), maksimalnoj ceni i prosečnoj oceni.<br /><br />Pogledaj profil svakog šetača - opise, slike, recenzije drugih vlasnika i dostupne termine. Sve informacije su ti na dlanu.</>,
               img: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=700&auto=format&fit=crop',
               alt: 'Psi na šetnji',
             },

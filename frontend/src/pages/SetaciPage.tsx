@@ -52,13 +52,24 @@ export default function SetaciPage() {
   useEffect(() => { document.title = 'Pronađi šetača - PawsApp' }, [])
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [params] = useSearchParams()
-  const [service, setService] = useState(params.get('usluga') || '')
-  const [minRating, setMinRating] = useState('')
-  const [maxRate, setMaxRate] = useState('')
-  const [sort, setSort] = useState('rating')
-  const [search, setSearch] = useState('')
-  const [showFavOnly, setShowFavOnly] = useState(false)
+  const [params, setParams] = useSearchParams()
+
+  const service = params.get('usluga') || ''
+  const minRating = params.get('ocena') || ''
+  const maxRate = params.get('cena') || ''
+  const sort = params.get('sort') || 'rating'
+  const search = params.get('q') || ''
+  const showFavOnly = params.get('fav') === '1'
+
+  const setFilter = (key: string, value: string) => {
+    setParams(prev => {
+      const next = new URLSearchParams(prev)
+      if (value) next.set(key, value)
+      else next.delete(key)
+      return next
+    }, { replace: true })
+  }
+
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -107,7 +118,7 @@ export default function SetaciPage() {
 
   const activeFilterCount = [minRating, maxRate, sort !== 'rating' ? sort : ''].filter(Boolean).length
 
-  const queryParams: Record<string, string> = {}
+  const queryParams: Record<string, string> = { page_size: '100' }
   if (service) queryParams.usluga = service
   if (maxRate) queryParams.cena_max = maxRate
   if (search.trim()) queryParams.search = search.trim()
@@ -140,7 +151,13 @@ export default function SetaciPage() {
     )
   }
 
-  const clearFilters = () => { setMinRating(''); setMaxRate(''); setSort('rating') }
+  const clearFilters = () => {
+    setParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.delete('ocena'); next.delete('cena'); next.delete('sort')
+      return next
+    }, { replace: true })
+  }
 
   const resultCount = (showFavOnly ? walkers?.filter(w => w.is_favorited) : walkers)?.length ?? 0
 
@@ -218,12 +235,12 @@ export default function SetaciPage() {
             <input
               type="text"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => setFilter('q', e.target.value)}
               placeholder="Pretraži po imenu ili lokaciji..."
               className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-gray-400 bg-gray-50"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setFilter('q', '')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -237,7 +254,7 @@ export default function SetaciPage() {
             {/* Service select */}
             <select
               value={service}
-              onChange={e => setService(e.target.value)}
+              onChange={e => setFilter('usluga', e.target.value)}
               className="text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-gray-400 cursor-pointer appearance-none pr-7 shrink-0"
               style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
             >
@@ -247,7 +264,7 @@ export default function SetaciPage() {
             {/* Sort select */}
             <select
               value={sort}
-              onChange={e => setSort(e.target.value)}
+              onChange={e => setFilter('sort', e.target.value === 'rating' ? '' : e.target.value)}
               className="text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-gray-400 cursor-pointer appearance-none pr-7 shrink-0"
               style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
             >
@@ -281,7 +298,7 @@ export default function SetaciPage() {
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Minimalna ocena</p>
                   <div className="flex flex-col gap-0.5 mb-4">
                     {MIN_RATINGS.map(s => (
-                      <button key={s.val} onClick={() => setMinRating(s.val)}
+                      <button key={s.val} onClick={() => setFilter('ocena', s.val)}
                         className="text-left px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-2"
                         style={minRating === s.val ? { backgroundColor: '#e6f9f3', color: '#059669', fontWeight: 600 } : { color: '#374151' }}>
                         {s.val && (
@@ -298,10 +315,10 @@ export default function SetaciPage() {
                   <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 mb-4"
                     style={maxRate ? { borderColor: '#00BF8F' } : {}}>
                     <input type="number" inputMode="numeric" value={maxRate}
-                      onChange={e => setMaxRate(e.target.value)} placeholder="npr. 2000"
+                      onChange={e => setFilter('cena', e.target.value)} placeholder="npr. 2000"
                       className="flex-1 text-sm text-gray-700 focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                     {maxRate && (
-                      <button onClick={() => setMaxRate('')} className="text-gray-400 hover:text-gray-600 ml-2">
+                      <button onClick={() => setFilter('cena', '')} className="text-gray-400 hover:text-gray-600 ml-2">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -344,7 +361,7 @@ export default function SetaciPage() {
             {/* Favorites - only for owners */}
             {user && user.role === 'owner' && (
               <button
-                onClick={() => setShowFavOnly(v => !v)}
+                onClick={() => setFilter('fav', showFavOnly ? '' : '1')}
                 className="flex items-center gap-1.5 text-sm font-medium border rounded-lg px-3 py-1.5 transition-colors shrink-0"
                 style={showFavOnly
                   ? { backgroundColor: '#fef2f2', color: '#ef4444', borderColor: '#fca5a5' }

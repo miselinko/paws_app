@@ -48,123 +48,17 @@ export default function HomePage() {
           </Reveal>
           <Reveal delay={150}>
             <div className="relative flex justify-center items-center py-6 sm:py-0">
-              {/* Slika psa u pozadini */}
-              <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                <img
-                  src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=600&auto=format&fit=crop"
-                  alt=""
-                  className="absolute w-full h-full object-cover opacity-[0.12] scale-110 blur-[1px]"
-                />
-              </div>
+              {/* Dekoracija */}
+              <div className="absolute -top-2 -right-2 sm:top-0 sm:-right-4 w-20 h-20 sm:w-28 sm:h-28 rounded-full opacity-15" style={{ backgroundColor: '#FAAB43' }} />
+              <div className="absolute -bottom-2 -left-2 sm:bottom-2 sm:-left-4 w-14 h-14 sm:w-20 sm:h-20 rounded-full opacity-15" style={{ backgroundColor: '#00BF8F' }} />
 
-              {/* Blob pozadina */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <svg viewBox="0 0 400 500" className="w-[320px] h-[400px] sm:w-[380px] sm:h-[480px]" fill="none">
-                  <path d="M200 40c70 0 130 30 155 85s30 120 0 175-90 95-155 105-120-15-155-75S20 200 50 135 130 40 200 40z" fill="#00BF8F" opacity="0.08" />
-                  <path d="M200 70c55 0 105 25 125 65s25 95 5 140-65 75-130 85-100-10-125-55-15-100 5-135S145 70 200 70z" fill="#FAAB43" opacity="0.06" />
-                </svg>
-              </div>
-
-              {/* Šapice */}
-              <div className="absolute pointer-events-none" style={{ top: '8%', left: '5%', opacity: 0.12 }}>
-                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="#00BF8F"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
-              </div>
-              <div className="absolute pointer-events-none" style={{ bottom: '12%', right: '8%', opacity: 0.1, transform: 'rotate(25deg)' }}>
-                <svg className="w-10 h-10" viewBox="0 0 24 24" fill="#FAAB43"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
-              </div>
-              <div className="absolute pointer-events-none" style={{ top: '45%', right: '2%', opacity: 0.08, transform: 'rotate(-15deg)' }}>
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="#00BF8F"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
-              </div>
-
-              {/* Dekorativni krugovi */}
-              <div className="absolute top-2 right-0 sm:-right-2 w-16 h-16 sm:w-24 sm:h-24 rounded-full" style={{ backgroundColor: '#FAAB43', opacity: 0.12 }} />
-              <div className="absolute bottom-2 left-2 sm:-left-1 w-10 h-10 sm:w-16 sm:h-16 rounded-full" style={{ backgroundColor: '#00BF8F', opacity: 0.12 }} />
-
-              {/* Phone mockup */}
-              <div className="relative w-[220px] sm:w-[240px]" style={{ filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.2))' }}>
-                <div className="bg-[#1a1a2e] rounded-[2.2rem] p-[6px]">
-                  {/* Dynamic Island */}
-                  <div className="flex justify-center pt-1.5 pb-0.5">
-                    <div className="w-[72px] h-[20px] bg-black rounded-full" />
-                  </div>
-                  {/* Screen */}
-                  <div className="bg-[#f8faf9] rounded-[1.8rem] overflow-hidden">
-                    {/* Status bar */}
-                    <div className="px-5 pt-1.5 pb-0.5 flex items-center justify-between">
-                      <span className="text-[10px] font-semibold text-gray-800">9:41</span>
-                      <div className="flex gap-1 items-center">
-                        <svg className="w-3 h-3 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M1 9l2 2c5.5-5.5 14.5-5.5 20 0l2-2C18.3 2.3 5.7 2.3 1 9zm8 8l3 3 3-3c-1.6-1.6-4.4-1.6-6 0zm-4-4l2 2c3.3-3.3 8.7-3.3 12 0l2-2c-4.4-4.4-11.6-4.4-16 0z" /></svg>
-                        <svg className="w-3 h-3 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z" /></svg>
-                      </div>
-                    </div>
-                    {/* App header */}
-                    <div className="px-3.5 pt-2 pb-2.5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#00BF8F' }}>
-                          <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="6" rx="2" ry="2.5"/><ellipse cx="16" cy="6" rx="2" ry="2.5"/><ellipse cx="4.5" cy="12" rx="2" ry="2.5"/><ellipse cx="19.5" cy="12" rx="2" ry="2.5"/><path d="M12 22c-3.5 0-6-2.2-6-5 0-2.5 2-4.5 3.5-6 .7-.7 1.5-1 2.5-1s1.8.3 2.5 1c1.5 1.5 3.5 3.5 3.5 6 0 2.8-2.5 5-6 5z"/></svg>
-                        </div>
-                        <div>
-                          <div className="font-black text-gray-900 text-xs leading-none">Pronađi šetača</div>
-                          <div className="text-[8px] text-gray-400 mt-0.5">3 šetača u blizini</div>
-                        </div>
-                      </div>
-                      {/* Search */}
-                      <div className="bg-white rounded-lg px-2.5 py-2 flex items-center gap-2 border border-gray-100">
-                        <svg className="w-3.5 h-3.5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-                        <span className="text-[9px] text-gray-300">Pretraži po gradu...</span>
-                      </div>
-                    </div>
-                    {/* Walker cards */}
-                    <div className="px-3 pb-2 space-y-2">
-                      {[
-                        { name: 'Marko J.', loc: 'Beograd, Vračar', rate: '500', stars: '4.9', color: '#00BF8F', reviews: 24 },
-                        { name: 'Ana P.', loc: 'Novi Sad, Liman', rate: '400', stars: '4.8', color: '#FAAB43', reviews: 18 },
-                        { name: 'Stefan M.', loc: 'Beograd, Dorćol', rate: '600', stars: '5.0', color: '#6366f1', reviews: 31 },
-                      ].map((w, i) => (
-                        <div key={i} className="bg-white p-2.5 rounded-xl border border-gray-100 flex items-center gap-2"
-                          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                            style={{ backgroundColor: w.color }}>
-                            {w.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[10px] font-bold text-gray-900 leading-tight">{w.name}</div>
-                            <div className="text-[8px] text-gray-400 mt-px">{w.loc}</div>
-                            <div className="flex items-center gap-0.5 mt-0.5">
-                              {[1,2,3,4,5].map(s => (
-                                <span key={s} className="text-[7px]" style={{ color: '#FAAB43' }}>★</span>
-                              ))}
-                              <span className="text-[7px] text-gray-400 ml-0.5">{w.stars} ({w.reviews})</span>
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <div className="text-[11px] font-black" style={{ color: '#00BF8F' }}>{w.rate}</div>
-                            <div className="text-[7px] text-gray-400">RSD/h</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Bottom nav */}
-                    <div className="mx-3 mb-3 py-2 rounded-xl flex justify-around" style={{ backgroundColor: 'white', boxShadow: '0 -1px 6px rgba(0,0,0,0.04)' }}>
-                      {[
-                        { label: 'Šetači', active: true, d: 'M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z' },
-                        { label: 'Termini', active: false, d: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5' },
-                        { label: 'Chat', active: false, d: 'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z' },
-                        { label: 'Profil', active: false, d: 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z' },
-                      ].map(tab => (
-                        <div key={tab.label} className="flex flex-col items-center gap-0.5">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={tab.active ? '#00BF8F' : '#9ca3af'} strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d={tab.d} /></svg>
-                          <span className="text-[7px] font-semibold" style={{ color: tab.active ? '#00BF8F' : '#9ca3af' }}>{tab.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                {/* Home indicator */}
-                <div className="flex justify-center mt-1">
-                  <div className="w-24 h-1 bg-gray-500 rounded-full" />
-                </div>
-              </div>
+              {/* Telefon */}
+              <img
+                src="/hero-phone.png"
+                alt="PawsApp mobilna aplikacija"
+                className="relative w-[230px] sm:w-[270px]"
+                style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.18))' }}
+              />
             </div>
           </Reveal>
         </div>
@@ -297,7 +191,7 @@ export default function HomePage() {
             {
               num: '1',
               title: 'Pronađi šetača u blizini',
-              text: <>Na platformi nalaziš <strong className="text-gray-800">listu partnerskih šetača</strong> u svom gradu. Filtriraj po lokaciji, usluzi, ceni i ocenama. Pogledaj profil, recenzije i dostupne termine svakog šetača.</>,
+              text: <>Na platformi nalaziš <strong className="text-gray-800">listu šetača</strong> u svom gradu. Filtriraj po lokaciji, usluzi, ceni i ocenama. Pogledaj profil, recenzije i dostupne termine svakog šetača.</>,
               img: 'https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?q=80&w=700&auto=format&fit=crop',
               alt: 'Pretraga šetača',
             },
