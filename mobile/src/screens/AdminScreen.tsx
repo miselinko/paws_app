@@ -24,15 +24,16 @@ const roleBadgeColor: Record<string, { bg: string; text: string }> = {
   admin: { bg: '#ede9fe', text: '#7c3aed' },
 }
 const statusColor: Record<string, { bg: string; text: string }> = {
-  pending: { bg: '#fef9c3', text: '#a16207' },
-  confirmed: { bg: '#dbeafe', text: '#1d4ed8' },
-  completed: { bg: '#dcfce7', text: '#15803d' },
-  cancelled: { bg: '#fee2e2', text: '#dc2626' },
-  rejected: { bg: '#f3f4f6', text: '#6b7280' },
+  pending:     { bg: '#fef9c3', text: '#a16207' },
+  confirmed:   { bg: '#dbeafe', text: '#1d4ed8' },
+  in_progress: { bg: '#d1fae5', text: '#065f46' },
+  completed:   { bg: '#dcfce7', text: '#15803d' },
+  cancelled:   { bg: '#fee2e2', text: '#dc2626' },
+  rejected:    { bg: '#f3f4f6', text: '#6b7280' },
 }
 const statusLabel: Record<string, string> = {
-  pending: 'Na čekanju', confirmed: 'Potvrđeno', completed: 'Završeno',
-  cancelled: 'Otkazano', rejected: 'Odbijeno',
+  pending: 'Na čekanju', confirmed: 'Potvrđeno', in_progress: 'U toku',
+  completed: 'Završeno', cancelled: 'Otkazano', rejected: 'Odbijeno',
 }
 const sizeLabel: Record<string, string> = { small: 'Mali', medium: 'Srednji', large: 'Veliki' }
 const genderLabel: Record<string, string> = { male: 'Mužjak', female: 'Ženka' }
@@ -476,7 +477,7 @@ function ReservationsTab() {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBarHorizontal}>
-        {['', 'pending', 'confirmed', 'completed', 'cancelled'].map(s => (
+        {['', 'pending', 'confirmed', 'in_progress', 'completed', 'cancelled'].map(s => (
           <TouchableOpacity
             key={s}
             onPress={() => { setStatus(s); setPage(1) }}

@@ -128,7 +128,13 @@ BOT_TOOLS = [
 
 def execute_tool(name, args, user):
     if name == "get_walkers":
-        walkers = User.objects.filter(role=User.WALKER, walker_profile__active=True).select_related('walker_profile')
+        from django.db.models import Avg, Count
+        walkers = User.objects.filter(
+            role=User.WALKER, walker_profile__active=True
+        ).select_related('walker_profile').annotate(
+            avg_rating=Avg('received_reviews__rating'),
+            num_reviews=Count('received_reviews'),
+        )
         svc = args.get('service_type')
         if svc:
             walkers = walkers.filter(
@@ -145,8 +151,8 @@ def execute_tool(name, args, user):
                 'cena_po_satu': str(wp.hourly_rate) if wp.hourly_rate else None,
                 'cena_po_danu': str(wp.daily_rate) if wp.daily_rate else None,
                 'bio': wp.bio[:150] if wp.bio else '',
-                'ocena': float(wp.average_rating) if wp.average_rating else None,
-                'broj_recenzija': wp.review_count,
+                'ocena': round(float(w.avg_rating), 1) if w.avg_rating else None,
+                'broj_recenzija': w.num_reviews,
                 'dostupnost': wp.availability,
             })
         return result

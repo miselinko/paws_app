@@ -30,6 +30,7 @@ const roleBadge: Record<string, string> = {
 const statusColor: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700',
   confirmed: 'bg-blue-100 text-blue-700',
+  in_progress: 'bg-emerald-100 text-emerald-700',
   completed: 'bg-green-100 text-green-700',
   cancelled: 'bg-red-100 text-red-700',
   rejected: 'bg-gray-100 text-gray-600',
@@ -37,6 +38,7 @@ const statusColor: Record<string, string> = {
 const statusLabel: Record<string, string> = {
   pending: 'Na čekanju',
   confirmed: 'Potvrđeno',
+  in_progress: 'U toku',
   completed: 'Završeno',
   cancelled: 'Otkazano',
   rejected: 'Odbijeno',
@@ -505,6 +507,7 @@ function ReservationsTable({ initialStatus }: { initialStatus?: string }) {
           <option value="">Svi statusi</option>
           <option value="pending">Na čekanju</option>
           <option value="confirmed">Potvrđeno</option>
+          <option value="in_progress">U toku</option>
           <option value="completed">Završeno</option>
           <option value="cancelled">Otkazano</option>
           <option value="rejected">Odbijeno</option>

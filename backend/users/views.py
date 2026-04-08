@@ -469,6 +469,7 @@ class AdminDashboardView(APIView):
             'inactive_users': users.filter(is_active=False).count(),
             'total_reservations': reservations.count(),
             'pending_reservations': reservations.filter(status='pending').count(),
+            'in_progress_reservations': reservations.filter(status='in_progress').count(),
             'completed_reservations': reservations.filter(status='completed').count(),
             'cancelled_reservations': reservations.filter(status='cancelled').count(),
             'total_reviews': Review.objects.count(),
@@ -571,7 +572,7 @@ class AdminReservationListView(APIView):
         qs = Reservation.objects.select_related('owner', 'walker').order_by('-created_at')
 
         status_filter = request.query_params.get('status')
-        if status_filter in ('pending', 'confirmed', 'completed', 'cancelled', 'rejected'):
+        if status_filter in ('pending', 'confirmed', 'in_progress', 'completed', 'cancelled', 'rejected'):
             qs = qs.filter(status=status_filter)
 
         service = request.query_params.get('service_type')
