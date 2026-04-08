@@ -87,7 +87,7 @@ function OsmTileMap({ lat, lng }: { lat: number; lng: number }) {
   }
 
   return (
-    <View style={{ width: '100%', height: 220, overflow: 'hidden' }}>
+    <View style={{ width: '100%', height: 240, overflow: 'hidden' }}>
       <View style={{ position: 'absolute', left: -offsetX, top: -offsetY, width: mapW, height: mapH }}>
         {tiles.map((t, i) => (
           <Image
@@ -549,10 +549,13 @@ const styles = StyleSheet.create({
   // Live tracking card (owner)
   liveCard: {
     backgroundColor: '#f0fdf9',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 0,
+    paddingTop: 16,
+    paddingBottom: 16,
     marginBottom: 12,
-    borderWidth: 1.5,
+    marginHorizontal: -16,
+    borderTopWidth: 1.5,
+    borderBottomWidth: 1.5,
     borderColor: GREEN + '50',
   },
   liveCardHeader: {
@@ -560,14 +563,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
+    paddingHorizontal: 16,
   },
   liveCardTitle: { fontSize: 15, fontWeight: '800', color: '#065f46' },
   liveCardDuration: { fontSize: 12, fontWeight: '600', color: GREEN },
   mapContainer: {
-    borderRadius: 0,
     overflow: 'hidden',
     marginBottom: 10,
-    marginHorizontal: -16,
   },
   map: {
     width: '100%',
@@ -578,11 +580,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
+    marginHorizontal: 16,
   },
   openMapsBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   locatingRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: '#fff', borderRadius: 10, padding: 12,
+    marginHorizontal: 16,
   },
   locatingText: { fontSize: 13, color: '#6b7280', fontWeight: '500' },
 

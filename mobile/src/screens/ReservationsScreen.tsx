@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
   View, Text, FlatList, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Animated,
+  StyleSheet, ActivityIndicator, Animated, ScrollView,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useQuery } from '@tanstack/react-query'
@@ -162,30 +162,32 @@ export default function ReservationsScreen() {
         </View>
       )}
 
-      {/* Filter tabovi — jednaka širina, bez skrolovanja */}
+      {/* Filter tabovi */}
       <View style={styles.filterBarWrap}>
-        {FILTERS.map(f => {
-          const count = f.val === 'sve'
-            ? reservations.length
-            : reservations.filter(r => r.status === f.val).length
-          const active = filter === f.val
-          return (
-            <TouchableOpacity
-              key={f.val}
-              style={[styles.filterBtn, active && styles.filterBtnActive]}
-              onPress={() => setFilter(f.val)}
-            >
-              <Text style={[styles.filterText, active && styles.filterTextActive]}>
-                {f.label}
-              </Text>
-              {count > 0 && (
-                <View style={[styles.filterCount, active && styles.filterCountActive]}>
-                  <Text style={[styles.filterCountText, active && { color: '#fff' }]}>{count}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          )
-        })}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBarContent}>
+          {FILTERS.map(f => {
+            const count = f.val === 'sve'
+              ? reservations.length
+              : reservations.filter(r => r.status === f.val).length
+            const active = filter === f.val
+            return (
+              <TouchableOpacity
+                key={f.val}
+                style={[styles.filterBtn, active && styles.filterBtnActive]}
+                onPress={() => setFilter(f.val)}
+              >
+                <Text style={[styles.filterText, active && styles.filterTextActive]}>
+                  {f.label}
+                </Text>
+                {count > 0 && (
+                  <View style={[styles.filterCount, active && styles.filterCountActive]}>
+                    <Text style={[styles.filterCountText, active && { color: '#fff' }]}>{count}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
       </View>
 
       {/* Lista */}
@@ -240,14 +242,15 @@ const styles = StyleSheet.create({
 
   filterBarWrap: {
     backgroundColor: '#fff',
-    flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
+  filterBarContent: {
+    paddingHorizontal: 4,
+  },
   filterBtn: {
-    flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 3, paddingVertical: 11,
+    gap: 3, paddingVertical: 11, paddingHorizontal: 12,
     borderBottomWidth: 2, borderBottomColor: 'transparent',
   },
   filterBtnActive: { borderBottomColor: GREEN },

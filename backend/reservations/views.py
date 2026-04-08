@@ -121,6 +121,15 @@ class ReservationListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
+
+        # Auto-complete expired in_progress reservations (end_time passed by 1+ hour)
+        now = timezone.now()
+        Reservation.objects.filter(
+            Q(walker=user) | Q(owner=user),
+            status=Reservation.IN_PROGRESS,
+            end_time__lt=now - timedelta(hours=1),
+        ).update(status=Reservation.COMPLETED)
+
         if user.role == User.OWNER:
             return Reservation.objects.filter(owner=user).select_related('walker').prefetch_related('dogs')
         elif user.role == User.WALKER:

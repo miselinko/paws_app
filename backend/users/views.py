@@ -251,7 +251,13 @@ class WalkerListView(generics.ListAPIView):
 
         max_rate = self.request.query_params.get('cena_max')
         if max_rate:
-            qs = qs.filter(walker_profile__hourly_rate__lte=max_rate)
+            if service == 'boarding':
+                qs = qs.filter(walker_profile__daily_rate__lte=max_rate)
+            else:
+                qs = qs.filter(
+                    Q(walker_profile__hourly_rate__lte=max_rate) |
+                    Q(walker_profile__hourly_rate__isnull=True, walker_profile__daily_rate__lte=max_rate)
+                )
 
         # Min rating: ?min_rating=4
         min_rating = self.request.query_params.get('min_rating')
@@ -275,9 +281,11 @@ class WalkerListView(generics.ListAPIView):
         def sort_key(w):
             featured = not w.walker_profile.is_featured  # featured first
             if ordering == 'price_asc':
-                return (featured, w.walker_profile.hourly_rate or 9999)
+                rate = w.walker_profile.hourly_rate or w.walker_profile.daily_rate or 9999
+                return (featured, float(rate))
             elif ordering == 'price_desc':
-                return (featured, -(w.walker_profile.hourly_rate or 0))
+                rate = w.walker_profile.hourly_rate or w.walker_profile.daily_rate or 0
+                return (featured, -float(rate))
             else:  # rating (default)
                 return (featured, -(w.avg_rating or 0))
 

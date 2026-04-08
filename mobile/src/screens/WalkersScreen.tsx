@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   gridWrap: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: CARD_PADDING, gap: CARD_GAP, paddingTop: 8 },
 
   // Card (vertical)
-  cardOuter: { width: CARD_W },
+  cardOuter: { width: CARD_W, height: 270 },
   card: {
     flex: 1,
     backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden',
