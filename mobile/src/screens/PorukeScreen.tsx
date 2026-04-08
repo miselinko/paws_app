@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   TextInput, KeyboardAvoidingView, Platform, ActivityIndicator,
-  Image, Alert, ScrollView, Keyboard,
+  Image, Alert, ScrollView,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -75,7 +75,6 @@ function BotChatView({ onBack }: { onBack: () => void }) {
   async function send(msg?: string) {
     const t = (msg ?? text).trim()
     if (!t || loading) return
-    Keyboard.dismiss()
     const userMsg: BotMessage = { id: Date.now(), role: 'user', content: t }
     setHistory(h => [...h, userMsg])
     setText('')
@@ -195,6 +194,8 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
   const [olderMessages, setOlderMessages] = useState<Message[]>([])
   const [hasMoreOlder, setHasMoreOlder] = useState(false)
   const [loadingOlder, setLoadingOlder] = useState(false)
+  const shouldAutoScroll = useRef(true)
+  const prevMessageCount = useRef(0)
 
   const { data: messagesData, isLoading } = useQuery<MessagesResponse>({
     queryKey: ['messages', userId],
@@ -205,9 +206,17 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
   const latestMessages = messagesData?.results ?? []
   const messages = [...olderMessages, ...latestMessages]
 
+  // Mark as read: invalidate unread count when messages are fetched/refetched
+  useEffect(() => {
+    if (messagesData) {
+      queryClient.invalidateQueries({ queryKey: ['unreadCount'] })
+    }
+  }, [messagesData])
+
   useEffect(() => {
     setOlderMessages([])
     setHasMoreOlder(false)
+    shouldAutoScroll.current = true
   }, [userId])
 
   useEffect(() => {
@@ -216,10 +225,19 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
     }
   }, [messagesData?.has_more])
 
+  // Auto-scroll when new messages arrive (not when loading older)
+  useEffect(() => {
+    if (messages.length > prevMessageCount.current && shouldAutoScroll.current) {
+      setTimeout(() => flatRef.current?.scrollToEnd({ animated: messages.length > 1 }), 50)
+    }
+    prevMessageCount.current = messages.length
+  }, [messages.length])
+
   async function loadOlderMessages() {
     if (loadingOlder) return
     const oldest = olderMessages.length > 0 ? olderMessages[0].id : latestMessages[0]?.id
     if (!oldest) return
+    shouldAutoScroll.current = false
     setLoadingOlder(true)
     try {
       const res = await getMessages(userId, oldest)
@@ -227,6 +245,8 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
       setHasMoreOlder(res.has_more)
     } finally {
       setLoadingOlder(false)
+      // Re-enable auto-scroll after a short delay
+      setTimeout(() => { shouldAutoScroll.current = true }, 500)
     }
   }
 
@@ -235,22 +255,16 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages', userId] })
       queryClient.invalidateQueries({ queryKey: ['conversations'] })
+      queryClient.invalidateQueries({ queryKey: ['unreadCount'] })
       setText('')
     },
   })
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100)
-    }
-  }, [messages])
 
   const activeUser = conversations?.find((c: Conversation) => c.user.id === userId)?.user
 
   function doSend() {
     const t = text.trim()
     if (!t || mutation.isPending) return
-    Keyboard.dismiss()
     mutation.mutate(t)
   }
 
@@ -281,6 +295,10 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
           data={messages}
           keyExtractor={m => String(m.id)}
           contentContainerStyle={styles.messageList}
+          onLayout={() => flatRef.current?.scrollToEnd({ animated: false })}
+          onContentSizeChange={() => {
+            if (shouldAutoScroll.current) flatRef.current?.scrollToEnd({ animated: false })
+          }}
           ListHeaderComponent={hasMoreOlder ? (
             <TouchableOpacity onPress={loadOlderMessages} disabled={loadingOlder}
               style={{ alignSelf: 'center', marginBottom: 12, paddingHorizontal: 16, paddingVertical: 6,
