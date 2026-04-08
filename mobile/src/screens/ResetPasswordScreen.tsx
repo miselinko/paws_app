@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, Image,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../navigation/RootNavigator'
@@ -45,7 +46,7 @@ export default function ResetPasswordScreen() {
   if (!token) {
     return (
       <View style={[styles.container, styles.centerAll]}>
-        <Text style={styles.bigIcon}>⚠️</Text>
+        <Ionicons name="warning-outline" size={48} color="#f59e0b" style={{ marginBottom: 16 }} />
         <Text style={styles.sub}>Nevažeći link za resetovanje.</Text>
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={styles.backBtnText}>Zatraži novi link</Text>
@@ -66,7 +67,7 @@ export default function ResetPasswordScreen() {
 
         {done ? (
           <View style={styles.center}>
-            <Text style={styles.bigIcon}>✅</Text>
+            <Ionicons name="checkmark-circle" size={48} color="#00BF8F" style={{ marginBottom: 16 }} />
             <Text style={styles.title}>Lozinka promenjena!</Text>
             <Text style={styles.sub}>Preusmeravamo te na prijavu...</Text>
           </View>

@@ -238,11 +238,11 @@ class WalkerListView(generics.ListAPIView):
                 Favorite.objects.filter(user=self.request.user).values_list('walker_id', flat=True)
             )
 
-        # Name search: ?search=marko
+        # Name / address search: ?search=marko
         search = self.request.query_params.get('search', '').strip()
         if search:
             qs = qs.filter(
-                Q(first_name__icontains=search) | Q(last_name__icontains=search)
+                Q(first_name__icontains=search) | Q(last_name__icontains=search) | Q(address__icontains=search)
             )
 
         service = self.request.query_params.get('usluga')
@@ -253,13 +253,33 @@ class WalkerListView(generics.ListAPIView):
         if max_rate:
             qs = qs.filter(walker_profile__hourly_rate__lte=max_rate)
 
+        # Min rating: ?min_rating=4
+        min_rating = self.request.query_params.get('min_rating')
+        if min_rating:
+            try:
+                qs = qs.filter(avg_rating__gte=float(min_rating))
+            except (ValueError, TypeError):
+                pass
+
         if self.request.query_params.get('istaknuti') == 'true':
             qs = qs.filter(walker_profile__is_featured=True)
+
+        # Ordering: ?ordering=rating|price_asc|price_desc
+        ordering = self.request.query_params.get('ordering', 'rating')
 
         # Distance filter: ?lat=44.8&lng=20.4&radius=10 (km)
         lat = self.request.query_params.get('lat')
         lng = self.request.query_params.get('lng')
         radius = self.request.query_params.get('radius', '10')
+
+        def sort_key(w):
+            featured = not w.walker_profile.is_featured  # featured first
+            if ordering == 'price_asc':
+                return (featured, w.walker_profile.hourly_rate or 9999)
+            elif ordering == 'price_desc':
+                return (featured, -(w.walker_profile.hourly_rate or 0))
+            else:  # rating (default)
+                return (featured, -(w.avg_rating or 0))
 
         if lat and lng:
             try:
@@ -273,7 +293,6 @@ class WalkerListView(generics.ListAPIView):
                             w.distance = round(d, 1)
                             results.append(w)
                 results.sort(key=lambda w: (not w.walker_profile.is_featured, w.distance))
-                # Store for manual pagination in list()
                 self._distance_results = results
                 self._fav_ids = fav_ids
                 return results
@@ -283,7 +302,7 @@ class WalkerListView(generics.ListAPIView):
         walkers = list(qs)
         for w in walkers:
             w._is_favorited = w.id in fav_ids
-        return sorted(walkers, key=lambda w: not w.walker_profile.is_featured)
+        return sorted(walkers, key=sort_key)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()

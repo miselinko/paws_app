@@ -58,6 +58,13 @@ export async function getWalkers(filters?: WalkerFilters): Promise<User[]> {
   return data.results ?? data
 }
 
+export async function getWalkersPaginated(params?: Record<string, string>): Promise<{
+  count: number; next: string | null; previous: string | null; results: User[]
+}> {
+  const { data } = await client.get('/users/walkers/', { params })
+  return data
+}
+
 export async function getWalker(id: number): Promise<User> {
   const { data } = await client.get(`/users/walkers/${id}/`)
   return data

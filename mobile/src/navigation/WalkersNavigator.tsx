@@ -23,7 +23,7 @@ const HEADER_OPTS = {
 export default function WalkersNavigator() {
   return (
     <Stack.Navigator screenOptions={HEADER_OPTS}>
-      <Stack.Screen name="Walkers" component={WalkersScreen} options={{ title: 'Pronađi šetača 🐕' }} />
+      <Stack.Screen name="Walkers" component={WalkersScreen} options={{ title: 'Pronađi šetača' }} />
       <Stack.Screen name="WalkerDetail" component={WalkerDetailScreen} options={{ title: 'Profil šetača' }} />
       <Stack.Screen name="CreateReservation" component={CreateReservationScreen} options={{ title: 'Nova rezervacija' }} />
     </Stack.Navigator>

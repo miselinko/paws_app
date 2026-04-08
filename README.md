@@ -31,7 +31,7 @@ paws_app_git/
 │   └── src/pages/          # 14 pages (home, walkers, reservations, chat, admin...)
 ├── mobile/                 # React Native / Expo
 │   └── src/
-│       ├── screens/        # 13 screens
+│       ├── screens/        # 18 screens
 │       ├── navigation/     # Tab + Stack navigation
 │       ├── api/            # API client with token refresh mutex
 │       ├── context/        # Auth context, Query client
@@ -137,7 +137,10 @@ EXPO_PUBLIC_API_URL=https://paws-app.onrender.com/api
 - Profile photo upload (Cloudinary)
 
 ### Walkers
-- Search by location (haversine formula), service type (walking/sitting), max price
+- Search by name, address, and location (haversine formula)
+- Filter by service type (walking/boarding), max price, minimum rating
+- Server-side sorting: best rated, price ascending/descending
+- Infinite scroll pagination (20 per page) on both web and mobile
 - Featured walker badge — toggled by admin
 - Average rating and review count on profiles
 - Favorites — owners can save preferred walkers
@@ -221,7 +224,7 @@ GET    /api/users/verify-email/            Email verification (?token=)
 POST   /api/users/resend-verification/     Resend verification email
 POST   /api/users/forgot-password/         Request password reset
 POST   /api/users/reset-password/          Reset password with token
-GET    /api/users/walkers/                 Walker list (?lat, ?lng, ?radius, ?usluga, ?cena_max, ?istaknuti)
+GET    /api/users/walkers/                 Walker list (?search, ?lat, ?lng, ?radius, ?usluga, ?cena_max, ?min_rating, ?ordering, ?istaknuti)
 GET    /api/users/walkers/:id/             Walker profile
 GET    /api/users/profile/                 My profile
 PATCH  /api/users/profile/                 Update profile

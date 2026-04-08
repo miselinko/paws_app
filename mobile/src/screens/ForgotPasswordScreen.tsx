@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, Image,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../navigation/RootNavigator'
@@ -49,7 +50,7 @@ export default function ForgotPasswordScreen() {
 
         {sent ? (
           <View style={styles.center}>
-            <Text style={styles.bigIcon}>📧</Text>
+            <Ionicons name="mail-outline" size={48} color={GREEN} style={{ marginBottom: 16 }} />
             <Text style={styles.title}>Proveri email</Text>
             <Text style={styles.sub}>
               Ako ovaj email postoji u sistemu, poslaćemo ti link za resetovanje lozinke.
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13,
     fontSize: 15, color: '#111',
   },
-  btn: { backgroundColor: GREEN, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  btn: { backgroundColor: GREEN, borderRadius: 25, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
   btnDisabled: { opacity: 0.55 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   backLink: { marginTop: 24, alignItems: 'center' },

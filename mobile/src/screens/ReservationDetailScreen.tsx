@@ -4,6 +4,7 @@ import {
   TouchableOpacity, Alert, ActivityIndicator, TextInput, Linking, Platform,
   Image,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRoute, RouteProp, useNavigation, CompositeNavigationProp } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -22,13 +23,13 @@ type Nav = NativeStackNavigationProp<ReservationsStackParamList, 'ReservationDet
 const GREEN = '#00BF8F'
 const GOLD  = '#FAAB43'
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; icon: string }> = {
-  pending:     { label: 'Na čekanju',  bg: '#fffbeb', color: '#b45309', icon: '⏳' },
-  confirmed:   { label: 'Potvrđeno',   bg: '#f0fdf9', color: '#065f46', icon: '✅' },
-  in_progress: { label: 'U toku',      bg: '#f0fdf9', color: GREEN,     icon: '🐾' },
-  rejected:    { label: 'Odbijeno',    bg: '#fef2f2', color: '#991b1b', icon: '❌' },
-  completed:   { label: 'Završeno',    bg: '#f9fafb', color: '#374151', icon: '🏁' },
-  cancelled:   { label: 'Otkazano',    bg: '#f9fafb', color: '#9ca3af', icon: '🚫' },
+const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; icon: keyof typeof Ionicons.glyphMap }> = {
+  pending:     { label: 'Na čekanju',  bg: '#fffbeb', color: '#b45309', icon: 'time-outline' },
+  confirmed:   { label: 'Potvrđeno',   bg: '#f0fdf9', color: '#065f46', icon: 'checkmark-circle-outline' },
+  in_progress: { label: 'U toku',      bg: '#f0fdf9', color: GREEN,     icon: 'paw-outline' },
+  rejected:    { label: 'Odbijeno',    bg: '#fef2f2', color: '#991b1b', icon: 'close-circle-outline' },
+  completed:   { label: 'Završeno',    bg: '#f9fafb', color: '#374151', icon: 'checkmark-done-outline' },
+  cancelled:   { label: 'Otkazano',    bg: '#f9fafb', color: '#9ca3af', icon: 'ban-outline' },
 }
 
 const DOG_SIZE: Record<string, string> = { small: 'Mali', medium: 'Srednji', large: 'Veliki' }
@@ -100,7 +101,7 @@ function OsmTileMap({ lat, lng }: { lat: number; lng: number }) {
         ))}
       </View>
       <View style={{ position: 'absolute', left: '50%', top: '50%', marginLeft: -12, marginTop: -24 }}>
-        <Text style={{ fontSize: 24 }}>📍</Text>
+        <Ionicons name="location" size={24} color="#ef4444" />
       </View>
     </View>
   )
@@ -281,7 +282,7 @@ export default function ReservationDetailScreen() {
 
       {/* Status banner */}
       <View style={[styles.statusBanner, { backgroundColor: cfg.bg }]}>
-        <Text style={styles.statusIcon}>{cfg.icon}</Text>
+        <Ionicons name={cfg.icon} size={28} color={cfg.color} />
         <View style={{ flex: 1 }}>
           <Text style={styles.statusLabel}>STATUS REZERVACIJE</Text>
           <Text style={[styles.statusValue, { color: cfg.color }]}>{cfg.label}</Text>
@@ -293,7 +294,7 @@ export default function ReservationDetailScreen() {
         )}
         {reservation.status === 'in_progress' && (
           <View style={[styles.upcomingBadge, { backgroundColor: GREEN + '25' }]}>
-            <Text style={[styles.upcomingBadgeText, { color: GREEN }]}>Aktivna 🔴</Text>
+            <Text style={[styles.upcomingBadgeText, { color: GREEN }]}>Aktivna</Text>
           </View>
         )}
       </View>
@@ -302,7 +303,7 @@ export default function ReservationDetailScreen() {
       {isOwner && reservation.status === 'in_progress' && (
         <View style={styles.liveCard}>
           <View style={styles.liveCardHeader}>
-            <Text style={styles.liveCardTitle}>🐾 Šetnja je u toku</Text>
+            <Text style={styles.liveCardTitle}>Šetnja je u toku</Text>
             {reservation.walk_started_at ? (
               <Text style={styles.liveCardDuration}>{walkDuration(reservation.walk_started_at)}</Text>
             ) : null}
@@ -317,7 +318,7 @@ export default function ReservationDetailScreen() {
                 style={styles.openMapsBtn}
                 onPress={() => openInMaps(walkLocation.lat!, walkLocation.lng!)}
               >
-                <Text style={styles.openMapsBtnText}>🗺️  Otvori u Maps aplikaciji</Text>
+                <Text style={styles.openMapsBtnText}>Otvori u Maps aplikaciji</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -332,7 +333,7 @@ export default function ReservationDetailScreen() {
       {/* ── WALKER: GPS tracking status when in_progress ─────────────────── */}
       {isWalker && reservation.status === 'in_progress' && (
         <View style={[styles.gpsActiveCard, gpsError && { borderColor: '#fca5a5' }]}>
-          <Text style={styles.gpsActiveIcon}>{gpsError ? '⚠️' : '📡'}</Text>
+          <Ionicons name={gpsError ? 'warning-outline' : 'radio-outline'} size={22} color={gpsError ? '#dc2626' : GREEN} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.gpsActiveTitle, gpsError && { color: '#dc2626' }]}>
               {gpsError ? 'Problem sa GPS-om' : 'Lokacija se šalje vlasniku'}
@@ -374,7 +375,7 @@ export default function ReservationDetailScreen() {
               })
             }}
           >
-            <Text style={styles.addressIcon}>📍</Text>
+            <Ionicons name="location-outline" size={18} color="#9ca3af" />
             <View style={{ flex: 1 }}>
               <Text style={styles.addressLabel}>Adresa</Text>
               <Text style={styles.addressValue}>{other.address}</Text>
@@ -386,7 +387,7 @@ export default function ReservationDetailScreen() {
 
       {/* Detalji usluge */}
       <Section title="DETALJI USLUGE">
-        <Row label="Usluga" value={reservation.service_type === 'walking' ? '🦮 Šetanje' : '🏠 Čuvanje'} />
+        <Row label="Usluga" value={reservation.service_type === 'walking' ? 'Šetanje' : 'Čuvanje'} />
         {reservation.duration ? <Row label="Trajanje" value={`${reservation.duration} min`} /> : null}
         <Row label="Datum" value={dateStr} />
         <Row label="Vreme" value={timeStr} />
@@ -400,7 +401,7 @@ export default function ReservationDetailScreen() {
             onPress={() => navigation.navigate('DogProfile', { dogId: dog.id })}
             activeOpacity={0.7}>
             <View style={styles.dogHeader}>
-              <Text style={styles.dogName}>🐕 {dog.name}</Text>
+              <Text style={styles.dogName}>{dog.name}</Text>
               <Text style={styles.dogArrow}>→</Text>
             </View>
             <Text style={styles.dogBreed}>{dog.breed}</Text>
@@ -415,7 +416,7 @@ export default function ReservationDetailScreen() {
           <View style={styles.starsRow}>
             {[1, 2, 3, 4, 5].map(star => (
               <TouchableOpacity key={star} onPress={() => setReviewRating(star)} style={styles.starBtn}>
-                <Text style={[styles.star, reviewRating >= star && styles.starActive]}>★</Text>
+                <Ionicons name="star" size={32} color={reviewRating >= star ? GOLD : '#e5e7eb'} />
               </TouchableOpacity>
             ))}
             {reviewRating > 0 && <Text style={styles.ratingLabel}>{reviewRating}/5</Text>}
@@ -444,7 +445,7 @@ export default function ReservationDetailScreen() {
 
       {isOwner && reservation.status === 'completed' && reservation.has_review && (
         <View style={styles.reviewDone}>
-          <Text style={styles.reviewDoneText}>✓ Recenzija je poslata</Text>
+          <Text style={styles.reviewDoneText}>Recenzija je poslata</Text>
         </View>
       )}
 
@@ -459,7 +460,7 @@ export default function ReservationDetailScreen() {
             disabled={cancel.isPending}
           >
             <Text style={styles.cancelBtnText}>
-              {cancel.isPending ? 'Otkazujem...' : '✕  Otkaži rezervaciju'}
+              {cancel.isPending ? 'Otkazujem...' : 'Otkaži rezervaciju'}
             </Text>
           </TouchableOpacity>
         )}
@@ -472,14 +473,14 @@ export default function ReservationDetailScreen() {
               onPress={() => respond.mutate('confirmed')}
               disabled={respond.isPending}
             >
-              <Text style={styles.actionBtnText}>✓  Potvrdi</Text>
+              <Text style={styles.actionBtnText}>Potvrdi</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionBtn, styles.rejectBtn, { flex: 1 }, respond.isPending && { opacity: 0.5 }]}
               onPress={() => respond.mutate('rejected')}
               disabled={respond.isPending}
             >
-              <Text style={styles.actionBtnText}>✕  Odbij</Text>
+              <Text style={styles.actionBtnText}>Odbij</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -493,13 +494,13 @@ export default function ReservationDetailScreen() {
               disabled={startWalkMut.isPending}
             >
               <Text style={styles.actionBtnText}>
-                {startWalkMut.isPending ? 'Pokretanje...' : '🐾  Pokreni šetnju'}
+                {startWalkMut.isPending ? 'Pokretanje...' : 'Pokreni šetnju'}
               </Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.waitingBtn}>
               <Text style={styles.waitingBtnText}>
-                🕐 Čeka početak ({start.toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })})
+                Čeka početak ({start.toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })})
               </Text>
             </View>
           )
@@ -518,7 +519,7 @@ export default function ReservationDetailScreen() {
             disabled={complete.isPending}
           >
             <Text style={styles.actionBtnText}>
-              {complete.isPending ? 'Završavam...' : '🏁  Završi šetnju'}
+              {complete.isPending ? 'Završavam...' : 'Završi šetnju'}
             </Text>
           </TouchableOpacity>
         )}

@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   StyleSheet, ActivityIndicator, Modal, Alert, FlatList, Image,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
@@ -47,14 +48,14 @@ type Tab = 'dashboard' | 'users' | 'reservations' | 'reviews' | 'dogs'
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, icon, onPress }: { label: string; value: number; icon: string; onPress?: () => void }) {
+function StatCard({ label, value, icon, onPress }: { label: string; value: number; icon: keyof typeof Ionicons.glyphMap; onPress?: () => void }) {
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
       style={styles.statCard}
     >
-      <Text style={styles.statIcon}>{icon}</Text>
+      <Ionicons name={icon} size={20} color="#00BF8F" />
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </TouchableOpacity>
@@ -137,7 +138,7 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>Detalji korisnika</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-            <Text style={styles.closeBtnText}>✕</Text>
+            <Ionicons name="close" size={14} color="#374151" />
           </TouchableOpacity>
         </View>
 
@@ -206,7 +207,7 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
                   <View style={styles.infoCell}>
                     <Text style={[styles.infoLabel, { color: '#15803d' }]}>Ocena</Text>
                     <Text style={styles.infoValue}>
-                      {user.walker_profile.average_rating} ⭐ ({user.walker_profile.review_count})
+                      {user.walker_profile.average_rating} ({user.walker_profile.review_count})
                     </Text>
                   </View>
                 </View>
@@ -242,7 +243,7 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
                       <Image source={{ uri: imgUrl(d.image)! }} style={styles.dogThumb} />
                     ) : (
                       <View style={[styles.dogThumb, { backgroundColor: '#e5e7eb', justifyContent: 'center', alignItems: 'center' }]}>
-                        <Text style={{ fontSize: 18 }}>🐕</Text>
+                        <Ionicons name="paw-outline" size={18} color="#9ca3af" />
                       </View>
                     )}
                     <View>
@@ -299,7 +300,7 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
                     }]}
                   >
                     <Text style={[styles.actionBtnText, { color: user.walker_profile?.is_featured ? '#166534' : '#fff' }]}>
-                      {featuredMut.isPending ? 'Čekanje...' : user.walker_profile?.is_featured ? '✓ Ukloni istaknutog' : '⭐ Označi kao istaknutog'}
+                      {featuredMut.isPending ? 'Čekanje...' : user.walker_profile?.is_featured ? 'Ukloni istaknutog' : 'Označi kao istaknutog'}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -329,26 +330,26 @@ function DashboardTab({ stats, onNavigate }: { stats: AdminStats; onNavigate: (t
     <ScrollView contentContainerStyle={styles.tabContent}>
       <Text style={styles.tabSectionTitle}>Korisnici</Text>
       <View style={styles.statsGrid}>
-        <StatCard label="Ukupno" value={stats.total_users} icon="👥" onPress={() => onNavigate('users')} />
-        <StatCard label="Vlasnici" value={stats.owners} icon="🏠" onPress={() => onNavigate('users')} />
-        <StatCard label="Šetači" value={stats.walkers} icon="🐾" onPress={() => onNavigate('users')} />
-        <StatCard label="Admini" value={stats.admins} icon="🛡️" />
+        <StatCard label="Ukupno" value={stats.total_users} icon="people-outline" onPress={() => onNavigate('users')} />
+        <StatCard label="Vlasnici" value={stats.owners} icon="person-outline" onPress={() => onNavigate('users')} />
+        <StatCard label="Šetači" value={stats.walkers} icon="footsteps-outline" onPress={() => onNavigate('users')} />
+        <StatCard label="Admini" value={stats.admins} icon="shield-checkmark-outline" />
       </View>
 
       <Text style={styles.tabSectionTitle}>Rezervacije</Text>
       <View style={styles.statsGrid}>
-        <StatCard label="Ukupno" value={stats.total_reservations} icon="📅" onPress={() => onNavigate('reservations')} />
-        <StatCard label="Završene" value={stats.completed_reservations} icon="✅" onPress={() => onNavigate('reservations')} />
-        <StatCard label="Na čekanju" value={stats.pending_reservations} icon="⏳" onPress={() => onNavigate('reservations')} />
-        <StatCard label="Otkazane" value={stats.cancelled_reservations} icon="❌" onPress={() => onNavigate('reservations')} />
+        <StatCard label="Ukupno" value={stats.total_reservations} icon="calendar-outline" onPress={() => onNavigate('reservations')} />
+        <StatCard label="Završene" value={stats.completed_reservations} icon="checkmark-done-outline" onPress={() => onNavigate('reservations')} />
+        <StatCard label="Na čekanju" value={stats.pending_reservations} icon="time-outline" onPress={() => onNavigate('reservations')} />
+        <StatCard label="Otkazane" value={stats.cancelled_reservations} icon="close-circle-outline" onPress={() => onNavigate('reservations')} />
       </View>
 
       <Text style={styles.tabSectionTitle}>Ostalo</Text>
       <View style={styles.statsGrid}>
-        <StatCard label="Recenzije" value={stats.total_reviews} icon="⭐" onPress={() => onNavigate('reviews')} />
-        <StatCard label="Psi" value={stats.total_dogs} icon="🐕" onPress={() => onNavigate('dogs')} />
-        <StatCard label="Aktivni" value={stats.active_users} icon="🟢" onPress={() => onNavigate('users')} />
-        <StatCard label="Neaktivni" value={stats.inactive_users} icon="🔴" onPress={() => onNavigate('users')} />
+        <StatCard label="Recenzije" value={stats.total_reviews} icon="star-outline" onPress={() => onNavigate('reviews')} />
+        <StatCard label="Psi" value={stats.total_dogs} icon="paw-outline" onPress={() => onNavigate('dogs')} />
+        <StatCard label="Aktivni" value={stats.active_users} icon="checkmark-circle-outline" onPress={() => onNavigate('users')} />
+        <StatCard label="Neaktivni" value={stats.inactive_users} icon="alert-circle-outline" onPress={() => onNavigate('users')} />
       </View>
     </ScrollView>
   )
@@ -426,7 +427,7 @@ function UsersTab() {
                   </View>
                 )}
                 {item.walker_profile?.is_featured && (
-                  <Text style={{ fontSize: 11, color: GREEN, fontWeight: '700' }}>⭐ Istaknut</Text>
+                  <Text style={{ fontSize: 11, color: GREEN, fontWeight: '700' }}>Istaknut</Text>
                 )}
               </View>
             </TouchableOpacity>
@@ -557,7 +558,11 @@ function ReviewsTab() {
                   <Text style={styles.listCardTitle}>{item.owner_name} → {item.walker_name}</Text>
                   <Text style={styles.listCardMeta}>{item.comment || '—'}</Text>
                 </View>
-                <Text style={{ fontSize: 16 }}>{'⭐'.repeat(item.rating)}</Text>
+                <View style={{ flexDirection: 'row', gap: 1 }}>
+                  {Array.from({ length: item.rating }).map((_, i) => (
+                    <Ionicons key={i} name="star" size={14} color="#FAAB43" />
+                  ))}
+                </View>
               </View>
               <Text style={styles.listCardDate}>{fmtDate(item.created_at)}</Text>
             </View>
@@ -607,7 +612,7 @@ function DogsTab() {
                   <Image source={{ uri: imgUrl(item.image)! }} style={styles.dogThumb} />
                 ) : (
                   <View style={[styles.dogThumb, { backgroundColor: '#e5e7eb', justifyContent: 'center', alignItems: 'center' }]}>
-                    <Text style={{ fontSize: 18 }}>🐕</Text>
+                    <Ionicons name="paw-outline" size={18} color="#9ca3af" />
                   </View>
                 )}
                 <View style={{ flex: 1, marginLeft: 10 }}>
@@ -637,12 +642,12 @@ function DogsTab() {
 
 // ─── Main AdminScreen ─────────────────────────────────────────────────────────
 
-const TABS: { key: Tab; label: string; icon: string }[] = [
-  { key: 'dashboard', label: 'Pregled', icon: '📊' },
-  { key: 'users', label: 'Korisnici', icon: '👥' },
-  { key: 'reservations', label: 'Rezervacije', icon: '📅' },
-  { key: 'reviews', label: 'Recenzije', icon: '⭐' },
-  { key: 'dogs', label: 'Psi', icon: '🐕' },
+const TABS: { key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { key: 'dashboard', label: 'Pregled', icon: 'stats-chart-outline' },
+  { key: 'users', label: 'Korisnici', icon: 'people-outline' },
+  { key: 'reservations', label: 'Rezervacije', icon: 'calendar-outline' },
+  { key: 'reviews', label: 'Recenzije', icon: 'star-outline' },
+  { key: 'dogs', label: 'Psi', icon: 'paw-outline' },
 ]
 
 export default function AdminScreen() {
@@ -658,7 +663,7 @@ export default function AdminScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       {/* Top bar */}
       <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>🛡️ Admin panel</Text>
+        <Text style={styles.topBarTitle}>Admin panel</Text>
       </View>
 
       {/* Tab bar */}
@@ -669,7 +674,7 @@ export default function AdminScreen() {
             onPress={() => setActiveTab(t.key)}
             style={[styles.tabBarItem, activeTab === t.key && styles.tabBarItemActive]}
           >
-            <Text style={styles.tabBarIcon}>{t.icon}</Text>
+            <Ionicons name={t.icon} size={16} color={activeTab === t.key ? '#00BF8F' : '#6b7280'} />
             <Text style={[styles.tabBarLabel, activeTab === t.key && styles.tabBarLabelActive]}>{t.label}</Text>
           </TouchableOpacity>
         ))}

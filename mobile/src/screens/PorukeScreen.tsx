@@ -4,6 +4,7 @@ import {
   TextInput, KeyboardAvoidingView, Platform, ActivityIndicator,
   Image, Alert, ScrollView, Keyboard,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRoute, useNavigation, useScrollToTop } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -101,10 +102,10 @@ function BotChatView({ onBack }: { onBack: () => void }) {
           <Text style={styles.backBtnText}>‹</Text>
         </TouchableOpacity>
         <View style={[styles.botAvatar]}>
-          <Text style={{ fontSize: 20 }}>🐾</Text>
+          <Ionicons name="paw" size={20} color="#00BF8F" />
         </View>
         <View>
-          <Text style={styles.chatHeaderName}>Paws Asistent</Text>
+          <Text style={styles.chatHeaderName}>PawsApp Asistent</Text>
           <Text style={[styles.chatHeaderSub, { color: '#00BF8F' }]}>● Online</Text>
         </View>
       </View>
@@ -117,8 +118,8 @@ function BotChatView({ onBack }: { onBack: () => void }) {
         contentContainerStyle={styles.messageList}
         ListHeaderComponent={history.length === 0 ? (
           <View style={styles.botWelcome}>
-            <Text style={{ fontSize: 48, marginBottom: 12 }}>🐾</Text>
-            <Text style={styles.botWelcomeTitle}>Zdravo! Ja sam Paws Asistent.</Text>
+            <Ionicons name="paw" size={48} color="#00BF8F" style={{ marginBottom: 12 }} />
+            <Text style={styles.botWelcomeTitle}>Zdravo! Ja sam PawsApp Asistent.</Text>
             <Text style={styles.botWelcomeSub}>
               Pitaj me bilo šta o rezervacijama, šetačima ili kako koristiti aplikaciju.
             </Text>
@@ -135,7 +136,7 @@ function BotChatView({ onBack }: { onBack: () => void }) {
           if (item.id === 'loading') {
             return (
               <View style={[styles.msgRow, { alignItems: 'flex-start' }]}>
-                <View style={styles.botAvatarSmall}><Text style={{ fontSize: 14 }}>🐾</Text></View>
+                <View style={styles.botAvatarSmall}><Ionicons name="paw" size={14} color="#00BF8F" /></View>
                 <View style={styles.typingBubble}>
                   <ActivityIndicator size="small" color="#aaa" />
                 </View>
@@ -146,7 +147,7 @@ function BotChatView({ onBack }: { onBack: () => void }) {
           const isUser = m.role === 'user'
           return (
             <View style={[styles.msgRow, isUser ? styles.msgRowRight : styles.msgRowLeft]}>
-              {!isUser && <View style={styles.botAvatarSmall}><Text style={{ fontSize: 14 }}>🐾</Text></View>}
+              {!isUser && <View style={styles.botAvatarSmall}><Ionicons name="paw" size={14} color="#00BF8F" /></View>}
               <View style={[styles.bubble, isUser ? styles.bubbleMine : styles.bubbleTheirs]}>
                 <Text style={[styles.bubbleText, isUser && { color: '#fff' }]}>{m.content}</Text>
               </View>
@@ -161,7 +162,7 @@ function BotChatView({ onBack }: { onBack: () => void }) {
           style={[styles.msgInput, text.length > 0 && { borderColor: '#00BF8F' }]}
           value={text}
           onChangeText={setText}
-          placeholder="Pitaj Paws Asistenta..."
+          placeholder="Pitaj PawsApp Asistenta..."
           onSubmitEditing={() => send()}
           returnKeyType="send"
         />
@@ -265,7 +266,7 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
             <Avatar {...activeUser} id={activeUser.id} size={38} />
             <View>
               <Text style={styles.chatHeaderName}>{activeUser.first_name} {activeUser.last_name}</Text>
-              <Text style={styles.chatHeaderSub}>{activeUser.role === 'walker' ? '🦮 Šetač' : '🏠 Vlasnik'}</Text>
+              <Text style={styles.chatHeaderSub}>{activeUser.role === 'walker' ? 'Šetač' : 'Vlasnik'}</Text>
             </View>
           </>
         )}
@@ -451,11 +452,11 @@ export default function PorukeScreen() {
         {/* Bot pinned */}
         <TouchableOpacity style={[styles.convRow, styles.botRow]} onPress={() => setView('bot')}>
           <View style={styles.botAvatarLarge}>
-            <Text style={{ fontSize: 22 }}>🐾</Text>
+            <Ionicons name="paw" size={22} color="#00BF8F" />
           </View>
           <View style={styles.convInfo}>
             <View style={styles.convTopRow}>
-              <Text style={styles.convName}>Paws Asistent</Text>
+              <Text style={styles.convName}>PawsApp Asistent</Text>
               <Text style={[styles.convTime, { color: '#00BF8F', fontWeight: '700' }]}>Bot</Text>
             </View>
             <Text style={styles.convLast}>Pitaj me nešto o aplikaciji...</Text>

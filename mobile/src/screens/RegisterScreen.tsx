@@ -6,6 +6,7 @@ import {
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { Ionicons } from '@expo/vector-icons'
 import * as Location from 'expo-location'
 import { register } from '../api/auth'
 import { RootStackParamList } from '../navigation/RootNavigator'
@@ -33,10 +34,10 @@ function fmtAddress(r: NominatimResult): string {
   return [street, place].filter(Boolean).join(', ') || r.display_name.split(',').slice(0, 2).join(',').trim()
 }
 
-const SVC_OPTIONS = [
-  { val: 'walking' as const, icon: '🦮', title: 'Šetanje', desc: 'Vodim pse na šetnju' },
-  { val: 'boarding' as const, icon: '🏠', title: 'Čuvanje', desc: 'Čuvam pse kod kuće' },
-  { val: 'both' as const, icon: '🐾', title: 'Oboje', desc: 'Šetam i čuvam' },
+const SVC_OPTIONS: { val: 'walking' | 'boarding' | 'both'; icon: keyof typeof Ionicons.glyphMap; title: string; desc: string }[] = [
+  { val: 'walking', icon: 'footsteps-outline', title: 'Šetanje', desc: 'Vodim pse na šetnju' },
+  { val: 'boarding', icon: 'home-outline', title: 'Čuvanje', desc: 'Čuvam pse kod kuće' },
+  { val: 'both', icon: 'paw-outline', title: 'Oboje', desc: 'Šetam i čuvam' },
 ]
 
 type Services = 'walking' | 'boarding' | 'both'
@@ -202,15 +203,15 @@ export default function RegisterScreen() {
         <Text style={styles.label}>KO SI?</Text>
         <View style={styles.roleRow}>
           {([
-            { val: 'owner' as Role, icon: '🏠', title: 'Vlasnik psa', desc: 'Tražim šetača' },
-            { val: 'walker' as Role, icon: '🦮', title: 'Šetač / Čuvar', desc: 'Nudim usluge' },
+            { val: 'owner' as Role, icon: 'person-outline' as keyof typeof Ionicons.glyphMap, title: 'Vlasnik psa', desc: 'Tražim šetača' },
+            { val: 'walker' as Role, icon: 'footsteps-outline' as keyof typeof Ionicons.glyphMap, title: 'Šetač / Čuvar', desc: 'Nudim usluge' },
           ]).map(opt => (
             <TouchableOpacity
               key={opt.val}
               style={[styles.roleBtn, role === opt.val && styles.roleBtnActive]}
               onPress={() => setRole(opt.val)}
             >
-              <Text style={{ fontSize: 24 }}>{opt.icon}</Text>
+              <Ionicons name={opt.icon} size={24} color={role === opt.val ? GREEN : '#6b7280'} />
               <Text style={[styles.roleBtnTitle, role === opt.val && { color: GREEN }]}>{opt.title}</Text>
               <Text style={styles.roleBtnDesc}>{opt.desc}</Text>
             </TouchableOpacity>
@@ -228,7 +229,7 @@ export default function RegisterScreen() {
                   style={[styles.svcBtn, services === opt.val && styles.svcBtnActive]}
                   onPress={() => setServices(opt.val)}
                 >
-                  <Text style={{ fontSize: 22 }}>{opt.icon}</Text>
+                  <Ionicons name={opt.icon} size={22} color={services === opt.val ? '#059669' : '#6b7280'} />
                   <Text style={[styles.svcBtnTitle, services === opt.val && { color: '#059669' }]}>{opt.title}</Text>
                   <Text style={styles.svcBtnDesc}>{opt.desc}</Text>
                 </TouchableOpacity>
@@ -305,8 +306,8 @@ export default function RegisterScreen() {
               {isLocating
                 ? <ActivityIndicator size="small" color={GREEN} />
                 : addressCoords
-                  ? <Text style={{ fontSize: 16, color: GREEN }}>✓</Text>
-                  : <Text style={{ fontSize: 16 }}>📍</Text>
+                  ? <Ionicons name="checkmark-circle" size={18} color={GREEN} />
+                  : <Ionicons name="navigate-outline" size={18} color="#6b7280" />
               }
             </TouchableOpacity>
           </View>
@@ -343,7 +344,7 @@ export default function RegisterScreen() {
                 secureTextEntry={!pw1Visible}
               />
               <TouchableOpacity style={styles.pwToggle} onPress={() => setPw1Visible(v => !v)}>
-                <Text style={styles.pwToggleText}>{pw1Visible ? '🙈' : '👁'}</Text>
+                <Ionicons name={pw1Visible ? 'eye-off-outline' : 'eye-outline'} size={18} color="#9ca3af" />
               </TouchableOpacity>
             </View>
             {err('password')}
@@ -360,7 +361,7 @@ export default function RegisterScreen() {
                 secureTextEntry={!pw2Visible}
               />
               <TouchableOpacity style={styles.pwToggle} onPress={() => setPw2Visible(v => !v)}>
-                <Text style={styles.pwToggleText}>{pw2Visible ? '🙈' : '👁'}</Text>
+                <Ionicons name={pw2Visible ? 'eye-off-outline' : 'eye-outline'} size={18} color="#9ca3af" />
               </TouchableOpacity>
             </View>
             {err('password2')}
@@ -460,9 +461,8 @@ const styles = StyleSheet.create({
   pwWrap: { position: 'relative' },
   pwInput: { paddingRight: 44 },
   pwToggle: { position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' },
-  pwToggleText: { fontSize: 17 },
 
-  btn: { backgroundColor: GREEN, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  btn: { backgroundColor: GREEN, borderRadius: 25, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
   btnDisabled: { opacity: 0.55 },
   btnText: { color: '#fff', fontSize: 15, fontWeight: '800' },
 

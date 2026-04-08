@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Image,
   TextInput, Modal, ActivityIndicator, Alert, Switch, FlatList, Animated, Platform,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useScrollToTop } from '@react-navigation/native'
 import * as ImagePicker from 'expo-image-picker'
@@ -88,7 +89,7 @@ function DogCard({ dog, onEdit, onDelete, onDeleteImage }: {
         {photo ? (
           <Image source={{ uri: photo }} style={styles.cardBannerImage} />
         ) : (
-          <Text style={{ fontSize: 40 }}>🐕</Text>
+          <Ionicons name="paw-outline" size={40} color="#d1d5db" />
         )}
         {/* Size badge */}
         <View style={[styles.sizeBadge, { backgroundColor: sz.bg }]}>
@@ -98,14 +99,14 @@ function DogCard({ dog, onEdit, onDelete, onDeleteImage }: {
         <View style={styles.cardActions}>
           {dog.image && (
             <TouchableOpacity style={styles.cardActionBtn} onPress={onDeleteImage}>
-              <Text style={{ fontSize: 14 }}>🖼</Text>
+              <Ionicons name="image-outline" size={14} color="#374151" />
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.cardActionBtn} onPress={onEdit}>
-            <Text style={{ fontSize: 14 }}>✏️</Text>
+            <Ionicons name="create-outline" size={14} color="#374151" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.cardActionBtn} onPress={onDelete}>
-            <Text style={{ fontSize: 14 }}>🗑</Text>
+            <Ionicons name="trash-outline" size={14} color="#374151" />
           </TouchableOpacity>
         </View>
         {/* Name on photo */}
@@ -132,7 +133,7 @@ function DogCard({ dog, onEdit, onDelete, onDeleteImage }: {
         <View style={styles.cardTags}>
           {dog.neutered && (
             <View style={styles.tag}>
-              <Text style={[styles.tagText, { color: '#059669' }]}>✓ Kastriran</Text>
+              <Text style={[styles.tagText, { color: '#059669' }]}>Kastriran</Text>
             </View>
           )}
           {tags.slice(0, 3).map(t => (
@@ -150,7 +151,7 @@ function DogCard({ dog, onEdit, onDelete, onDeleteImage }: {
 
       {dog.notes ? (
         <View style={styles.cardNotes}>
-          <Text style={styles.cardNotesText}>📝 {dog.notes}</Text>
+          <Text style={styles.cardNotesText}>{dog.notes}</Text>
         </View>
       ) : null}
     </View>
@@ -329,7 +330,7 @@ export default function MojiPsiScreen() {
           onPress={formVisible ? closeForm : openCreate}
         >
           <Text style={formVisible ? styles.cancelBtnText : styles.addBtnText}>
-            {formVisible ? '✕ Otkaži' : '+ Dodaj psa'}
+            {formVisible ? 'Otkaži' : 'Dodaj psa'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -470,7 +471,7 @@ export default function MojiPsiScreen() {
                     </View>
                   ) : (
                     <>
-                      <Text style={{ fontSize: 32 }}>📸</Text>
+                      <Ionicons name="camera-outline" size={32} color="#9ca3af" />
                       <Text style={styles.photoHint}>Klikni da dodaš fotografiju</Text>
                       <Text style={[styles.photoHint, { color: '#aaa', fontSize: 12, marginTop: 2 }]}>
                         JPG, PNG — max 5MB
@@ -490,7 +491,7 @@ export default function MojiPsiScreen() {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={styles.submitBtnText}>
-                    {editingDog ? '✓ Sačuvaj izmene' : '+ Dodaj psa'}
+                    {editingDog ? 'Sačuvaj izmene' : 'Dodaj psa'}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -508,7 +509,7 @@ export default function MojiPsiScreen() {
         {/* Empty */}
         {!isLoading && dogs.length === 0 && !formVisible && (
           <View style={styles.empty}>
-            <Text style={{ fontSize: 56, marginBottom: 12 }}>🐕</Text>
+            <Ionicons name="paw-outline" size={56} color="#d1d5db" style={{ marginBottom: 12 }} />
             <Text style={styles.emptyTitle}>Još nema dodatih pasa</Text>
             <Text style={styles.emptySub}>Dodaj profil svog psa da bi rezervisao šetača</Text>
             <TouchableOpacity style={styles.submitBtn} onPress={openCreate}>
@@ -550,7 +551,7 @@ export default function MojiPsiScreen() {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Izaberi rasu</Text>
             <TouchableOpacity onPress={() => setBreedModalVisible(false)} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <Ionicons name="close" size={14} color="#374151" />
             </TouchableOpacity>
           </View>
           <View style={styles.searchWrap}>
@@ -571,7 +572,7 @@ export default function MojiPsiScreen() {
                 onPress={() => { setForm({ ...form, breed: item }); setBreedModalVisible(false) }}
               >
                 <Text style={[styles.breedItemText, form.breed === item && { color: '#00BF8F', fontWeight: '700' }]}>
-                  {form.breed === item ? '✓ ' : ''}{item}
+                  {item}
                 </Text>
               </TouchableOpacity>
             )}
@@ -587,7 +588,7 @@ export default function MojiPsiScreen() {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Veličina psa</Text>
             <TouchableOpacity onPress={() => setSizeModalVisible(false)} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <Ionicons name="close" size={14} color="#374151" />
             </TouchableOpacity>
           </View>
           <View style={{ padding: 16 }}>
@@ -598,7 +599,7 @@ export default function MojiPsiScreen() {
                 onPress={() => { setForm({ ...form, size: s.val }); setSizeModalVisible(false) }}
               >
                 <Text style={[styles.sizeOptionText, form.size === s.val && { color: '#00BF8F', fontWeight: '700' }]}>
-                  {form.size === s.val ? '✓ ' : ''}{s.label}
+                  {s.label}
                 </Text>
               </TouchableOpacity>
             ))}

@@ -122,6 +122,8 @@ export default function SetaciPage() {
   if (service) queryParams.usluga = service
   if (maxRate) queryParams.cena_max = maxRate
   if (search.trim()) queryParams.search = search.trim()
+  if (sort && sort !== 'rating') queryParams.ordering = sort
+  if (minRating) queryParams.min_rating = minRating
   if (myLocation) {
     queryParams.lat = String(myLocation.lat)
     queryParams.lng = String(myLocation.lng)
@@ -438,23 +440,9 @@ export default function SetaciPage() {
           {/* Walker cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {useMemo(() => {
-              const priceOf = (w: WalkerWithDistance) => {
-                const wp = w.walker_profile
-                if (service === 'boarding' || wp.services === 'boarding') return Number(wp.daily_rate) || Number(wp.hourly_rate)
-                return Number(wp.hourly_rate)
-              }
               return [...walkers]
                 .filter(w => !showFavOnly || w.is_favorited)
-                .filter(w => !minRating || (w.walker_profile?.average_rating ?? 0) >= Number(minRating))
-                .sort((a, b) => {
-                const featuredDiff = (b.walker_profile?.is_featured ? 1 : 0) - (a.walker_profile?.is_featured ? 1 : 0)
-                if (featuredDiff !== 0) return featuredDiff
-                if (sort === 'rating') return (b.walker_profile?.average_rating ?? 0) - (a.walker_profile?.average_rating ?? 0)
-                if (sort === 'price_asc') return priceOf(a) - priceOf(b)
-                if (sort === 'price_desc') return priceOf(b) - priceOf(a)
-                return 0
-              })
-            }, [walkers, showFavOnly, sort, service, minRating]).map((w, idx) => {
+            }, [walkers, showFavOnly]).map((w, idx) => {
               const wp = w.walker_profile
               const bgColor = INITIALS_BG[w.id % INITIALS_BG.length]
 

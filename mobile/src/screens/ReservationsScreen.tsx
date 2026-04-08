@@ -3,6 +3,7 @@ import {
   View, Text, FlatList, TouchableOpacity,
   StyleSheet, ActivityIndicator, Animated,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigation, useScrollToTop } from '@react-navigation/native'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
@@ -87,9 +88,9 @@ function ReservationCard({ reservation, role, onPress }: {
           <View style={styles.cardTopLeft}>
             <Text style={styles.cardName}>{other.first_name} {other.last_name}</Text>
             <Text style={styles.cardSub}>
-              {reservation.service_type === 'walking' ? '🦮 Šetanje' : '🏠 Čuvanje'}
+              {reservation.service_type === 'walking' ? 'Šetanje' : 'Čuvanje'}
               {' · '}
-              🐶 {reservation.dogs.map(d => d.name).join(', ')}
+              {reservation.dogs.map(d => d.name).join(', ')}
             </Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: cfg.bg }]}>
@@ -97,7 +98,7 @@ function ReservationCard({ reservation, role, onPress }: {
           </View>
         </View>
         <View style={styles.cardBottom}>
-          <Text style={styles.cardDate}>📅 {dateStr}</Text>
+          <Text style={styles.cardDate}>{dateStr}</Text>
           <Text style={styles.cardTime}>{timeStr}</Text>
         </View>
       </TouchableOpacity>
@@ -145,14 +146,14 @@ export default function ReservationsScreen() {
           {pendingCount > 0 && (
             <View style={[styles.summaryChip, { backgroundColor: '#fffbeb', borderColor: '#f59e0b' }]}>
               <Text style={[styles.summaryChipText, { color: '#b45309' }]}>
-                ⏳ {pendingCount} čeka odgovor
+                {pendingCount} čeka odgovor
               </Text>
             </View>
           )}
           {upcomingCount > 0 && (
             <View style={[styles.summaryChip, { backgroundColor: '#f0fdf9', borderColor: GREEN }]}>
               <Text style={[styles.summaryChipText, { color: '#065f46' }]}>
-                ✅ {upcomingCount} nadolaz.
+                {upcomingCount} nadolaz.
               </Text>
             </View>
           )}
@@ -205,7 +206,7 @@ export default function ReservationsScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.center}>
-            <Text style={styles.emptyIcon}>📅</Text>
+            <Ionicons name="calendar-outline" size={52} color="#d1d5db" style={{ marginBottom: 14 }} />
             <Text style={styles.emptyTitle}>Nema rezervacija</Text>
             <Text style={styles.emptyText}>
               {filter === 'sve' ? 'Još uvek nemaš rezervacija.' : `Nema rezervacija sa statusom "${FILTERS.find(f => f.val === filter)?.label}".`}

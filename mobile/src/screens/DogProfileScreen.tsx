@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useQuery } from '@tanstack/react-query'
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { getDogProfile } from '../api/dogs'
@@ -42,7 +43,7 @@ export default function DogProfileScreen() {
   if (error || !dog) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorIcon}>🔒</Text>
+        <Ionicons name="lock-closed-outline" size={48} color="#9ca3af" style={{ marginBottom: 12 }} />
         <Text style={styles.errorTitle}>Nema pristupa</Text>
         <Text style={styles.errorSub}>Nemate dozvolu da vidite profil ovog psa.</Text>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -62,7 +63,7 @@ export default function DogProfileScreen() {
         <Image source={{ uri: photo }} style={styles.photo} />
       ) : (
         <View style={styles.placeholder}>
-          <Text style={styles.placeholderEmoji}>🐕</Text>
+          <Ionicons name="paw-outline" size={48} color="#d1d5db" />
         </View>
       )}
 
@@ -83,7 +84,7 @@ export default function DogProfileScreen() {
           <Text style={styles.statLabel}>{dog.gender === 'male' ? 'Muški' : 'Ženski'}</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={styles.statValue}>{dog.neutered ? '✓' : '✗'}</Text>
+          <Text style={styles.statValue}>{dog.neutered ? 'Da' : 'Ne'}</Text>
           <Text style={styles.statLabel}>{dog.neutered ? 'Kastr.' : 'Nije'}</Text>
         </View>
       </View>

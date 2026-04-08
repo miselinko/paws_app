@@ -24,7 +24,7 @@ const HEADER_OPTS = {
 export default function ReservationsNavigator() {
   return (
     <Stack.Navigator screenOptions={HEADER_OPTS}>
-      <Stack.Screen name="Reservations" component={ReservationsScreen} options={{ title: 'Moje rezervacije 📅' }} />
+      <Stack.Screen name="Reservations" component={ReservationsScreen} options={{ title: 'Moje rezervacije' }} />
       <Stack.Screen name="ReservationDetail" component={ReservationDetailScreen} options={{ title: 'Detalji rezervacije' }} />
       <Stack.Screen name="DogProfile" component={DogProfileScreen} options={{ title: 'Profil psa' }} />
     </Stack.Navigator>

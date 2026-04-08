@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../context/AuthContext'
 import { RootStackParamList } from '../navigation/RootNavigator'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -61,7 +62,7 @@ export default function LoginScreen() {
         <View style={styles.bullets}>
           {['Provereni šetači', 'Kalendar rezervacija', 'Direktan chat', 'Ocene i recenzije'].map(item => (
             <View key={item} style={styles.bulletRow}>
-              <View style={styles.bulletDot}><Text style={styles.bulletCheck}>✓</Text></View>
+              <View style={styles.bulletDot}><Ionicons name="checkmark" size={11} color="#fff" /></View>
               <Text style={styles.bulletText}>{item}</Text>
             </View>
           ))}
@@ -104,7 +105,7 @@ export default function LoginScreen() {
               onSubmitEditing={handleLogin}
             />
             <TouchableOpacity style={styles.pwToggle} onPress={() => setPwVisible(v => !v)}>
-              <Text style={styles.pwToggleText}>{pwVisible ? '🙈' : '👁'}</Text>
+              <Ionicons name={pwVisible ? 'eye-off-outline' : 'eye-outline'} size={20} color="#9ca3af" />
             </TouchableOpacity>
           </View>
         </View>
@@ -149,7 +150,6 @@ const styles = StyleSheet.create({
   bullets: { marginBottom: 24, gap: 10 },
   bulletRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   bulletDot: { width: 20, height: 20, borderRadius: 10, backgroundColor: GREEN, justifyContent: 'center', alignItems: 'center' },
-  bulletCheck: { color: '#fff', fontSize: 10, fontWeight: '800' },
   bulletText: { fontSize: 13, color: '#374151' },
 
   errorBox: { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 12, padding: 12, marginBottom: 16 },
@@ -165,9 +165,8 @@ const styles = StyleSheet.create({
   pwWrap: { position: 'relative' },
   pwInput: { paddingRight: 48 },
   pwToggle: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
-  pwToggleText: { fontSize: 18 },
 
-  btn: { backgroundColor: GREEN, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  btn: { backgroundColor: GREEN, borderRadius: 25, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
   btnDisabled: { opacity: 0.55 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 

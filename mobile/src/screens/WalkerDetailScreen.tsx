@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, Image, TouchableOpacity,
   ActivityIndicator, Alert, TextInput, Modal, FlatList, Linking,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
 import { getWalker, toggleFavorite } from '../api/users'
@@ -218,7 +219,7 @@ function DogSelector({
   if (dogs.length === 0) {
     return (
       <View style={s.warningBox}>
-        <Text style={s.warningText}>⚠️ Dodaj psa pre rezervacije na web verziji.</Text>
+        <Text style={s.warningText}>Dodaj psa pre rezervacije na web verziji.</Text>
       </View>
     )
   }
@@ -232,7 +233,7 @@ function DogSelector({
           onPress={() => onChange(selected.includes(d.id) ? selected.filter(x => x !== d.id) : [...selected, d.id])}
         >
           <View style={[s.checkbox, selected.includes(d.id) && s.checkboxChecked]}>
-            {selected.includes(d.id) && <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>✓</Text>}
+            {selected.includes(d.id) && <Ionicons name="checkmark" size={12} color="#fff" />}
           </View>
           <View>
             <Text style={s.dogName}>{d.name}</Text>
@@ -302,7 +303,7 @@ function WalkingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
 
   if (success) return (
     <View style={s.successBox}>
-      <Text style={s.successEmoji}>🎉</Text>
+      <Ionicons name="checkmark-circle" size={56} color={GREEN} style={{ marginBottom: 16 }} />
       <Text style={s.successTitle}>Rezervacija poslata!</Text>
       <Text style={s.successSub}>Šetač će te uskoro kontaktirati.</Text>
       <TouchableOpacity style={s.greenBtn} onPress={() => navigation.getParent()?.navigate('ReservationsTab' as never)}>
@@ -347,7 +348,7 @@ function WalkingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
             </View>
           ) : (
             <View style={s.selectedTime}>
-              <Text style={s.selectedTimeText}>🕐 {timeFrom}</Text>
+              <Text style={s.selectedTimeText}>{timeFrom}</Text>
             </View>
           )}
         </View>
@@ -406,13 +407,13 @@ function WalkingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
       {canSubmit && (
         <View style={s.summaryBox}>
           <Text style={[s.sectionLabel, { color: GREEN }]}>PREGLED</Text>
-          <Text style={s.summaryRow}>🦮 Šetanje</Text>
-          <Text style={s.summaryRow}>📅 {formatNiceDate(date)}</Text>
-          <Text style={s.summaryRow}>🕐 {timeFrom} – {timeTo} ({durationLabel})</Text>
+          <Text style={s.summaryRow}>Šetanje</Text>
+          <Text style={s.summaryRow}>{formatNiceDate(date)}</Text>
+          <Text style={s.summaryRow}>{timeFrom} – {timeTo} ({durationLabel})</Text>
           {selectedDogs.length > 0 && (
-            <Text style={s.summaryRow}>🐕 {dogs.filter(d => selectedDogs.includes(d.id)).map(d => d.name).join(', ')}</Text>
+            <Text style={s.summaryRow}>{dogs.filter(d => selectedDogs.includes(d.id)).map(d => d.name).join(', ')}</Text>
           )}
-          {priceTotal && <Text style={[s.summaryRow, { color: GOLD, fontWeight: '800' }]}>💰 {priceTotal.toLocaleString()} RSD</Text>}
+          {priceTotal && <Text style={[s.summaryRow, { color: GOLD, fontWeight: '800' }]}>{priceTotal.toLocaleString()} RSD</Text>}
         </View>
       )}
 
@@ -512,7 +513,7 @@ function BoardingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
 
   if (success) return (
     <View style={s.successBox}>
-      <Text style={s.successEmoji}>🎉</Text>
+      <Ionicons name="checkmark-circle" size={56} color={GREEN} style={{ marginBottom: 16 }} />
       <Text style={s.successTitle}>Rezervacija poslata!</Text>
       <Text style={s.successSub}>Šetač će te uskoro kontaktirati.</Text>
       <TouchableOpacity style={s.greenBtn} onPress={() => navigation.getParent()?.navigate('ReservationsTab' as never)}>
@@ -529,15 +530,16 @@ function BoardingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
       <View>
         <Text style={s.sectionLabel}>TIP ČUVANJA</Text>
         <View style={s.typeRow}>
-          {[{ val: 'single', icon: '📅', label: 'Jedan dan' }, { val: 'multi', icon: '📆', label: 'Više dana' }].map(opt => (
+          {[{ val: 'single', icon: 'calendar-outline' as keyof typeof Ionicons.glyphMap, label: 'Jedan dan' }, { val: 'multi', icon: 'calendar' as keyof typeof Ionicons.glyphMap, label: 'Više dana' }].map(opt => (
             <TouchableOpacity
               key={opt.val}
               style={[s.typeBtn, boardingType === opt.val && s.typeBtnActive]}
               onPress={() => switchType(opt.val as 'single' | 'multi')}
             >
-              <Text style={[s.typeBtnText, boardingType === opt.val && s.typeBtnTextActive]}>
-                {opt.icon} {opt.label}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name={opt.icon} size={14} color={boardingType === opt.val ? '#fff' : '#6b7280'} />
+                <Text style={[s.typeBtnText, boardingType === opt.val && s.typeBtnTextActive]}>{opt.label}</Text>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -570,7 +572,7 @@ function BoardingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
       {hasDate && numDays > 0 && (
         <View style={s.daysBadge}>
           <Text style={s.daysBadgeText}>
-            🗓 {numDays === 1 ? '1 dan' : `${numDays} dana`}
+            {numDays === 1 ? '1 dan' : `${numDays} dana`}
             {!isSingle && boardingFrom && boardingTo ? `  (${formatNiceDate(boardingFrom)} – ${formatNiceDate(boardingTo)})` : ''}
           </Text>
         </View>
@@ -623,15 +625,15 @@ function BoardingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
       {canSubmit && (
         <View style={[s.summaryBox, { borderLeftColor: GOLD }]}>
           <Text style={[s.sectionLabel, { color: GOLD }]}>PREGLED</Text>
-          <Text style={s.summaryRow}>🏠 Čuvanje</Text>
+          <Text style={s.summaryRow}>Čuvanje</Text>
           <Text style={s.summaryRow}>
-            📅 {isSingle ? formatNiceDate(boardingFrom) : `${formatNiceDate(boardingFrom)} – ${formatNiceDate(boardingTo)}`} ({numDays === 1 ? '1 dan' : `${numDays} dana`})
+            {isSingle ? formatNiceDate(boardingFrom) : `${formatNiceDate(boardingFrom)} – ${formatNiceDate(boardingTo)}`} ({numDays === 1 ? '1 dan' : `${numDays} dana`})
           </Text>
-          <Text style={s.summaryRow}>🕐 Preuzimanje: {checkIn} · Vraćanje: {checkOut}</Text>
+          <Text style={s.summaryRow}>Preuzimanje: {checkIn} · Vraćanje: {checkOut}</Text>
           {selectedDogs.length > 0 && (
-            <Text style={s.summaryRow}>🐕 {dogs.filter(d => selectedDogs.includes(d.id)).map(d => d.name).join(', ')}</Text>
+            <Text style={s.summaryRow}>{dogs.filter(d => selectedDogs.includes(d.id)).map(d => d.name).join(', ')}</Text>
           )}
-          {price && <Text style={[s.summaryRow, { color: GOLD, fontWeight: '800' }]}>💰 {price.total.toLocaleString()} RSD</Text>}
+          {price && <Text style={[s.summaryRow, { color: GOLD, fontWeight: '800' }]}>{price.total.toLocaleString()} RSD</Text>}
         </View>
       )}
 
@@ -672,7 +674,7 @@ function BoardingBooking({ walker, dogs }: { walker: User; dogs: Dog[] }) {
                     }}
                   >
                     <Text style={[s.pickerItemText, selected && { color: GREEN, fontWeight: '700' }]}>{item}</Text>
-                    {selected && <Text style={{ color: GREEN }}>✓</Text>}
+                    {selected && <Ionicons name="checkmark" size={16} color={GREEN} />}
                   </TouchableOpacity>
                 )
               }}
@@ -708,7 +710,7 @@ function BookingWidget({ walker, dogs }: { walker: User; dogs: Dog[] }) {
               onPress={() => switchService(svc)}
             >
               <Text style={[s.serviceTabText, activeService === svc && s.serviceTabTextActive]}>
-                {svc === 'walking' ? '🦮 Šetanje' : '🏠 Čuvanje'}
+                {svc === 'walking' ? 'Šetanje' : 'Čuvanje'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -771,21 +773,24 @@ export default function WalkerDetailScreen() {
       <View style={s.header}>
         {photo
           ? <Image source={{ uri: photo }} style={s.avatar} />
-          : <View style={[s.avatar, s.avatarPlaceholder]}><Text style={{ fontSize: 44 }}>👤</Text></View>
+          : <View style={[s.avatar, s.avatarPlaceholder]}><Ionicons name="person" size={44} color="#d1d5db" /></View>
         }
         <Text style={s.name}>{walker.first_name} {walker.last_name}</Text>
 
         {/* Rating */}
         <View style={s.starsRow}>
           {[1,2,3,4,5].map(n => (
-            <Text key={n} style={{ fontSize: 16, color: n <= Math.round(walker.average_rating ?? 0) ? GOLD : '#e5e7eb' }}>★</Text>
+            <Ionicons key={n} name="star" size={16} color={n <= Math.round(walker.average_rating ?? 0) ? GOLD : '#e5e7eb'} />
           ))}
           <Text style={s.ratingText}>
             {walker.average_rating ? `${walker.average_rating.toFixed(1)} (${walker.review_count} recenzija)` : 'Još nema recenzija'}
           </Text>
         </View>
 
-        <Text style={s.address}>📍 {walker.address}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Ionicons name="location-outline" size={14} color="#9ca3af" />
+          <Text style={s.address}>{walker.address}</Text>
+        </View>
 
         {user && (
           <TouchableOpacity
@@ -799,7 +804,7 @@ export default function WalkerDetailScreen() {
               borderColor: walker.is_favorited ? '#fca5a5' : '#e5e7eb',
             }}
           >
-            <Text style={{ fontSize: 14 }}>{walker.is_favorited ? '❤️' : '🖤'}</Text>
+            <Ionicons name={walker.is_favorited ? 'heart' : 'heart-outline'} size={16} color={walker.is_favorited ? '#ef4444' : '#9ca3af'} />
             <Text style={{
               fontSize: 13, fontWeight: '700',
               color: walker.is_favorited ? '#ef4444' : '#374151',
@@ -815,13 +820,13 @@ export default function WalkerDetailScreen() {
         <View style={s.pricesRow}>
           {wp.hourly_rate ? (
             <View style={s.priceCard}>
-              <Text style={s.priceLabel}>🦮 Šetanje</Text>
+              <Text style={s.priceLabel}>Šetanje</Text>
               <Text style={s.priceValue}>{Number(wp.hourly_rate).toLocaleString()} RSD/h</Text>
             </View>
           ) : null}
           {wp.daily_rate ? (
             <View style={s.priceCard}>
-              <Text style={s.priceLabel}>🏠 Čuvanje</Text>
+              <Text style={s.priceLabel}>Čuvanje</Text>
               <Text style={s.priceValue}>{Number(wp.daily_rate).toLocaleString()} RSD/dan</Text>
             </View>
           ) : null}
@@ -838,7 +843,7 @@ export default function WalkerDetailScreen() {
       {/* Lokacija */}
       {(walker.address || (walker.lat && walker.lng)) && (
         <View style={s.locationBox}>
-          <Text style={s.locationTitle}>📍 Lokacija</Text>
+          <Text style={s.locationTitle}>Lokacija</Text>
           {walker.address ? (
             <Text style={s.locationAddress}>{walker.address}</Text>
           ) : null}
@@ -850,7 +855,7 @@ export default function WalkerDetailScreen() {
                 Linking.openURL(url)
               }}
             >
-              <Text style={s.mapsBtnText}>🗺  Otvori u mapi</Text>
+              <Text style={s.mapsBtnText}>Otvori u mapi</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -860,7 +865,7 @@ export default function WalkerDetailScreen() {
       {user?.role === 'owner' && wp && (
         <View>
           <View style={s.sectionHeader}>
-            <Text style={s.sectionHeaderTitle}>📅 Zakaži termin</Text>
+            <Text style={s.sectionHeaderTitle}>Zakaži termin</Text>
           </View>
           <BookingWidget walker={walker} dogs={dogs} />
         </View>
@@ -873,7 +878,7 @@ export default function WalkerDetailScreen() {
             style={s.msgBtn}
             onPress={() => navigation.getParent<any>()?.navigate('PorukeTab', { userId: walker.id })}
           >
-            <Text style={s.msgBtnText}>💬  Pošalji poruku</Text>
+            <Text style={s.msgBtnText}>Pošalji poruku</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -889,7 +894,7 @@ export default function WalkerDetailScreen() {
               <Text style={s.reviewName}>{r.owner_name}</Text>
               <View style={{ flexDirection: 'row' }}>
                 {[1,2,3,4,5].map(n => (
-                  <Text key={n} style={{ fontSize: 12, color: n <= r.rating ? GOLD : '#e5e7eb' }}>★</Text>
+                  <Ionicons key={n} name="star" size={12} color={n <= r.rating ? GOLD : '#e5e7eb'} />
                 ))}
               </View>
             </View>

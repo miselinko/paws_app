@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../navigation/RootNavigator'
@@ -52,7 +53,7 @@ export default function VerifyEmailScreen() {
 
       {status === 'success' && (
         <View style={styles.center}>
-          <Text style={styles.bigIcon}>✅</Text>
+          <Ionicons name="checkmark-circle" size={48} color="#00BF8F" style={{ marginBottom: 16 }} />
           <Text style={styles.title}>Email potvrđen!</Text>
           <Text style={styles.sub}>{message}</Text>
           <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('Login')}>
@@ -63,7 +64,7 @@ export default function VerifyEmailScreen() {
 
       {status === 'error' && (
         <View style={styles.center}>
-          <Text style={styles.bigIcon}>⚠️</Text>
+          <Ionicons name="warning-outline" size={48} color="#f59e0b" style={{ marginBottom: 16 }} />
           <Text style={styles.title}>Greška</Text>
           <Text style={styles.sub}>{message}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>

@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, Platform,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
@@ -197,7 +198,7 @@ export default function CreateReservationScreen() {
               onPress={() => { setServiceType(type); if (type === 'boarding') setDuration(null) }}
             >
               <Text style={[styles.optBtnText, serviceType === type && styles.optBtnTextActive]}>
-                {type === 'walking' ? '🦮 Šetanje' : '🏠 Čuvanje'}
+                {type === 'walking' ? 'Šetanje' : 'Čuvanje'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -234,9 +235,9 @@ export default function CreateReservationScreen() {
               style={[styles.dogRow, selectedDogs.includes(dog.id) && styles.dogRowActive]}
               onPress={() => toggleDog(dog.id)}
             >
-              <Text style={styles.dogName}>🐶 {dog.name}</Text>
+              <Text style={styles.dogName}>{dog.name}</Text>
               <Text style={styles.dogBreed}>{dog.breed}</Text>
-              {selectedDogs.includes(dog.id) && <Text style={styles.check}>✓</Text>}
+              {selectedDogs.includes(dog.id) && <Ionicons name="checkmark" size={16} color="#00BF8F" />}
             </TouchableOpacity>
           ))
         )}
@@ -247,20 +248,20 @@ export default function CreateReservationScreen() {
         <Text style={styles.label}>Početak</Text>
         <View style={styles.dateRow}>
           <TouchableOpacity style={[styles.pickerBtn, { flex: 2 }]} onPress={() => setShowPicker('startDate')}>
-            <Text style={styles.pickerBtnText}>📅 {fmtDate(startDateTime)}</Text>
+            <Text style={styles.pickerBtnText}>{fmtDate(startDateTime)}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.pickerBtn, { flex: 1 }]} onPress={() => setShowPicker('startTime')}>
-            <Text style={styles.pickerBtnText}>🕐 {fmtTime(startDateTime)}</Text>
+            <Text style={styles.pickerBtnText}>{fmtTime(startDateTime)}</Text>
           </TouchableOpacity>
         </View>
 
         <Text style={[styles.label, { marginTop: 12 }]}>Kraj</Text>
         <View style={styles.dateRow}>
           <TouchableOpacity style={[styles.pickerBtn, { flex: 2 }]} onPress={() => setShowPicker('endDate')}>
-            <Text style={styles.pickerBtnText}>📅 {fmtDate(endDateTime)}</Text>
+            <Text style={styles.pickerBtnText}>{fmtDate(endDateTime)}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.pickerBtn, { flex: 1 }]} onPress={() => setShowPicker('endTime')}>
-            <Text style={styles.pickerBtnText}>🕐 {fmtTime(endDateTime)}</Text>
+            <Text style={styles.pickerBtnText}>{fmtTime(endDateTime)}</Text>
           </TouchableOpacity>
         </View>
       </View>

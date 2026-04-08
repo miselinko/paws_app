@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, Image, TouchableOpacity,
   ActivityIndicator, TextInput, Switch, Modal, FlatList, Alert, Animated, Platform,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
 import * as Location from 'expo-location'
@@ -53,9 +54,9 @@ const defaultAvailability = (): Record<string, DaySchedule> =>
   Object.fromEntries(Array.from({ length: 7 }, (_, i) => [String(i), { active: false, from: '08:00', to: '20:00' }]))
 
 const SVC_OPTIONS = [
-  { val: 'walking' as const, icon: '🦮', label: 'Šetanje' },
-  { val: 'boarding' as const, icon: '🏠', label: 'Čuvanje' },
-  { val: 'both' as const, icon: '🐾', label: 'Sve' },
+  { val: 'walking' as const, label: 'Šetanje' },
+  { val: 'boarding' as const, label: 'Čuvanje' },
+  { val: 'both' as const, label: 'Sve' },
 ]
 
 // ─── Address autocomplete with GPS ───────────────────────────────────────────
@@ -139,8 +140,8 @@ function AdresaInput({ value, coords, onChange }: {
           {isLocating
             ? <ActivityIndicator size="small" color={GREEN} />
             : hasCoords
-              ? <Text style={{ fontSize: 16, color: GREEN }}>✓</Text>
-              : <Text style={{ fontSize: 16 }}>📍</Text>
+              ? <Ionicons name="checkmark-circle" size={18} color={GREEN} />
+              : <Ionicons name="navigate-outline" size={18} color="#6b7280" />
           }
         </TouchableOpacity>
       </View>
@@ -176,7 +177,7 @@ function SectionCard({ title, sub, onEdit, children }: {
         </View>
         {onEdit && (
           <TouchableOpacity onPress={onEdit} style={s.editBtn}>
-            <Text style={s.editBtnText}>✏️ Izmeni</Text>
+            <Text style={s.editBtnText}>Izmeni</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -317,12 +318,12 @@ export default function ProfileScreen() {
   const wp = profile.walker_profile
 
   const roleBadge = profile.role === 'owner'
-    ? { label: '🏠 Vlasnik psa', bg: '#dbeafe', color: '#1e40af' }
+    ? { label: 'Vlasnik psa', bg: '#dbeafe', color: '#1e40af' }
     : wp?.services === 'boarding'
-    ? { label: '🏠 Čuvar', bg: '#fef3c7', color: '#92400e' }
+    ? { label: 'Čuvar', bg: '#fef3c7', color: '#92400e' }
     : wp?.services === 'walking'
-    ? { label: '🦮 Šetač', bg: '#d1fae5', color: '#065f46' }
-    : { label: '🐾 Šetač & Čuvar', bg: '#d1fae5', color: '#065f46' }
+    ? { label: 'Šetač', bg: '#d1fae5', color: '#065f46' }
+    : { label: 'Šetač & Čuvar', bg: '#d1fae5', color: '#065f46' }
 
   // Get availability for time picker
   const tpDay = timePicker ? walkerForm.availability[String(timePicker.dayIdx)] : null
@@ -360,7 +361,7 @@ export default function ProfileScreen() {
             >
               {deleteImageM.isPending
                 ? <ActivityIndicator size="small" color="#ef4444" />
-                : <Text style={{ fontSize: 13 }}>🗑</Text>}
+                : <Ionicons name="trash-outline" size={13} color="#ef4444" />}
             </TouchableOpacity>
           )}
         </View>
@@ -384,7 +385,7 @@ export default function ProfileScreen() {
       {/* ── Flash ── */}
       {saved && (
         <View style={s.flashBox}>
-          <Text style={s.flashText}>✓ Izmene sačuvane</Text>
+          <Text style={s.flashText}>Izmene sačuvane</Text>
         </View>
       )}
 
@@ -451,7 +452,7 @@ export default function ProfileScreen() {
       {/* ── Walker profil ── */}
       {profile.role === 'walker' && wp && (
         <SectionCard
-          title="🦮 Profil šetača"
+          title="Profil šetača"
           sub="Vidljivo vlasnicima pasa"
           onEdit={!editingWalker ? () => setEditingWalker(true) : undefined}
         >
@@ -498,7 +499,7 @@ export default function ProfileScreen() {
               <View style={s.infoRow}>
                 <Text style={s.infoLabel}>Usluge</Text>
                 <Text style={s.infoValue}>
-                  {wp.services === 'walking' ? '🦮 Šetanje' : wp.services === 'boarding' ? '🏠 Čuvanje' : '🐾 Sve usluge'}
+                  {wp.services === 'walking' ? 'Šetanje' : wp.services === 'boarding' ? 'Čuvanje' : 'Sve usluge'}
                 </Text>
               </View>
 
@@ -556,7 +557,7 @@ export default function ProfileScreen() {
                     <TouchableOpacity key={opt.val}
                       style={[s.svcBtn, walkerForm.services === opt.val && s.svcBtnActive]}
                       onPress={() => setWalkerForm({ ...walkerForm, services: opt.val })}>
-                      <Text style={{ fontSize: 20 }}>{opt.icon}</Text>
+                      <Ionicons name={opt.val === 'walking' ? 'footsteps-outline' : opt.val === 'boarding' ? 'home-outline' : 'paw-outline'} size={20} color={walkerForm.services === opt.val ? '#059669' : '#6b7280'} />
                       <Text style={[s.svcBtnText, walkerForm.services === opt.val && { color: '#059669' }]}>{opt.label}</Text>
                     </TouchableOpacity>
                   ))}
@@ -657,7 +658,7 @@ export default function ProfileScreen() {
       {/* ── Recenzije šetača ── */}
       {profile.role === 'walker' && (
         <SectionCard
-          title={`⭐ Recenzije (${myReviews.length})`}
+          title={`Recenzije (${myReviews.length})`}
           sub={myReviews.length > 0 ? `Prosek: ${(myReviews.reduce((s, r) => s + r.rating, 0) / myReviews.length).toFixed(1)} / 5` : undefined}
         >
           <View style={s.cardBody}>
@@ -674,7 +675,11 @@ export default function ProfileScreen() {
                       <Text style={s.reviewerName}>{r.owner_name}</Text>
                       <Text style={s.reviewDate}>{new Date(r.created_at).toLocaleDateString('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' })}</Text>
                     </View>
-                    <Text style={s.reviewStars}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</Text>
+                    <View style={{ flexDirection: 'row' }}>
+                      {[1,2,3,4,5].map(n => (
+                        <Ionicons key={n} name="star" size={14} color={n <= r.rating ? '#FAAB43' : '#e5e7eb'} />
+                      ))}
+                    </View>
                   </View>
                   {r.comment ? <Text style={s.reviewComment}>{r.comment}</Text> : null}
                 </View>
@@ -698,7 +703,7 @@ export default function ProfileScreen() {
           {/* Obriši nalog */}
           {!deleteConfirm ? (
             <TouchableOpacity style={s.deleteBtn} onPress={() => setDeleteConfirm(true)}>
-              <Text style={s.deleteBtnText}>🗑 Obriši nalog</Text>
+              <Text style={s.deleteBtnText}>Obriši nalog</Text>
             </TouchableOpacity>
           ) : (
             <View style={s.deleteConfirm}>
@@ -728,7 +733,7 @@ export default function ProfileScreen() {
               {timePicker?.field === 'from' ? 'Početak' : 'Kraj'} — {timePicker !== null ? DAYS[timePicker.dayIdx] : ''}
             </Text>
             <TouchableOpacity onPress={() => setTimePicker(null)} style={s.closeBtn}>
-              <Text style={s.closeBtnText}>✕</Text>
+              <Ionicons name="close" size={14} color="#374151" />
             </TouchableOpacity>
           </View>
           <FlatList
@@ -745,7 +750,7 @@ export default function ProfileScreen() {
                   }}
                 >
                   <Text style={[s.timePickerItemText, isSelected && { color: GREEN, fontWeight: '700' }]}>
-                    {isSelected ? '✓  ' : '    '}{item}
+                    {item}
                   </Text>
                 </TouchableOpacity>
               )

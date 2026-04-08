@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 
 export default function OfflineBanner() {
   const [isOffline, setIsOffline] = useState(false)
@@ -29,7 +30,8 @@ export default function OfflineBanner() {
 
   return (
     <View style={styles.banner}>
-      <Text style={styles.text}>⚠️  Nema internet konekcije</Text>
+      <Ionicons name="cloud-offline-outline" size={16} color="#78350f" style={{ marginRight: 6 }} />
+      <Text style={styles.text}>Nema internet konekcije</Text>
     </View>
   )
 }
@@ -40,6 +42,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   text: { fontSize: 13, fontWeight: '700', color: '#78350f' },
 })

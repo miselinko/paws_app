@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Text, View, StyleSheet, Platform, Animated } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
+import { Ionicons } from '@expo/vector-icons'
 import WalkersNavigator from './WalkersNavigator'
 import ReservationsNavigator from './ReservationsNavigator'
 import ProfileNavigator from './ProfileNavigator'
@@ -16,7 +17,7 @@ import { getPendingCount } from '../api/reservations'
 const Tab = createBottomTabNavigator()
 const GREEN = '#00BF8F'
 
-function TabIcon({ icon, focused, badge }: { icon: string; focused: boolean; badge?: number }) {
+function TabIcon({ name, focused, badge }: { name: keyof typeof Ionicons.glyphMap; focused: boolean; badge?: number }) {
   const scale = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
@@ -31,9 +32,7 @@ function TabIcon({ icon, focused, badge }: { icon: string; focused: boolean; bad
   return (
     <View style={styles.iconWrap}>
       <Animated.View style={{ transform: [{ scale }] }}>
-        <Text style={[styles.iconEmoji, { opacity: focused ? 1 : 0.45 }]}>
-          {icon}
-        </Text>
+        <Ionicons name={name} size={22} color={focused ? GREEN : '#9ca3af'} />
       </Animated.View>
       {badge != null && badge > 0 && (
         <View style={styles.badge}>
@@ -84,7 +83,7 @@ export default function MainTabs() {
         component={WalkersNavigator}
         options={{
           tabBarLabel: 'Šetači',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🐕" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'search' : 'search-outline'} focused={focused} />,
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
@@ -102,7 +101,7 @@ export default function MainTabs() {
         component={ReservationsNavigator}
         options={{
           tabBarLabel: 'Rezervacije',
-          tabBarIcon: ({ focused }) => <TabIcon icon="📅" focused={focused} badge={pendingCount} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'calendar' : 'calendar-outline'} focused={focused} badge={pendingCount} />,
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
@@ -121,7 +120,7 @@ export default function MainTabs() {
           component={MojiPsiScreen}
           options={{
             tabBarLabel: 'Moji psi',
-            tabBarIcon: ({ focused }) => <TabIcon icon="🦴" focused={focused} />,
+            tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'paw' : 'paw-outline'} focused={focused} />,
             headerShown: false,
           }}
         />
@@ -131,7 +130,7 @@ export default function MainTabs() {
         component={PorukeScreen}
         options={{
           tabBarLabel: 'Poruke',
-          tabBarIcon: ({ focused }) => <TabIcon icon="💬" focused={focused} badge={unreadCount} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} focused={focused} badge={unreadCount} />,
           headerShown: false,
         }}
       />
@@ -141,7 +140,7 @@ export default function MainTabs() {
           component={AdminScreen}
           options={{
             tabBarLabel: 'Admin',
-            tabBarIcon: ({ focused }) => <TabIcon icon="🛡️" focused={focused} />,
+            tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'shield-checkmark' : 'shield-checkmark-outline'} focused={focused} />,
             headerShown: false,
           }}
         />
@@ -151,7 +150,7 @@ export default function MainTabs() {
         component={ProfileNavigator}
         options={{
           tabBarLabel: 'Profil',
-          tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} />,
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
@@ -193,10 +192,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 26,
     width: 32,
-  },
-  iconEmoji: {
-    fontSize: 22,
-    lineHeight: 26,
   },
   badge: {
     position: 'absolute',
