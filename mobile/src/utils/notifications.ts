@@ -7,7 +7,7 @@ export async function registerPushToken(): Promise<void> {
   try {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
-        name: 'Paws obaveštenja',
+        name: 'PawsApp obaveštenja',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#00BF8F',

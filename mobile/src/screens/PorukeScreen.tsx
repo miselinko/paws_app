@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRoute, useNavigation, useScrollToTop } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
+import * as Notifications from 'expo-notifications'
 import {
   getConversations, getMessages, sendMessage, sendBotMessage, deleteConversation,
   Conversation, Message, MessagesResponse,
@@ -194,8 +195,6 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
   const [olderMessages, setOlderMessages] = useState<Message[]>([])
   const [hasMoreOlder, setHasMoreOlder] = useState(false)
   const [loadingOlder, setLoadingOlder] = useState(false)
-  const shouldAutoScroll = useRef(true)
-  const prevMessageCount = useRef(0)
 
   const { data: messagesData, isLoading } = useQuery<MessagesResponse>({
     queryKey: ['messages', userId],
@@ -206,17 +205,25 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
   const latestMessages = messagesData?.results ?? []
   const messages = [...olderMessages, ...latestMessages]
 
-  // Mark as read: invalidate unread count when messages are fetched/refetched
+  // Inverted FlatList needs data reversed: newest first (index 0 = bottom of screen)
+  const displayMessages = [...messages].reverse()
+
+  // Dismiss push notifications & invalidate unread count when entering chat / messages refresh
   useEffect(() => {
     if (messagesData) {
       queryClient.invalidateQueries({ queryKey: ['unreadCount'] })
+      Notifications.dismissAllNotificationsAsync().catch(() => {})
     }
   }, [messagesData])
+
+  // Also dismiss on mount
+  useEffect(() => {
+    Notifications.dismissAllNotificationsAsync().catch(() => {})
+  }, [])
 
   useEffect(() => {
     setOlderMessages([])
     setHasMoreOlder(false)
-    shouldAutoScroll.current = true
   }, [userId])
 
   useEffect(() => {
@@ -225,19 +232,10 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
     }
   }, [messagesData?.has_more])
 
-  // Auto-scroll when new messages arrive (not when loading older)
-  useEffect(() => {
-    if (messages.length > prevMessageCount.current && shouldAutoScroll.current) {
-      setTimeout(() => flatRef.current?.scrollToEnd({ animated: messages.length > 1 }), 50)
-    }
-    prevMessageCount.current = messages.length
-  }, [messages.length])
-
   async function loadOlderMessages() {
     if (loadingOlder) return
     const oldest = olderMessages.length > 0 ? olderMessages[0].id : latestMessages[0]?.id
     if (!oldest) return
-    shouldAutoScroll.current = false
     setLoadingOlder(true)
     try {
       const res = await getMessages(userId, oldest)
@@ -245,8 +243,6 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
       setHasMoreOlder(res.has_more)
     } finally {
       setLoadingOlder(false)
-      // Re-enable auto-scroll after a short delay
-      setTimeout(() => { shouldAutoScroll.current = true }, 500)
     }
   }
 
@@ -292,16 +288,13 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
       ) : (
         <FlatList
           ref={flatRef}
-          data={messages}
+          data={displayMessages}
+          inverted
           keyExtractor={m => String(m.id)}
-          contentContainerStyle={styles.messageList}
-          onLayout={() => flatRef.current?.scrollToEnd({ animated: false })}
-          onContentSizeChange={() => {
-            if (shouldAutoScroll.current) flatRef.current?.scrollToEnd({ animated: false })
-          }}
-          ListHeaderComponent={hasMoreOlder ? (
+          contentContainerStyle={styles.messageListInverted}
+          ListFooterComponent={hasMoreOlder ? (
             <TouchableOpacity onPress={loadOlderMessages} disabled={loadingOlder}
-              style={{ alignSelf: 'center', marginBottom: 12, paddingHorizontal: 16, paddingVertical: 6,
+              style={{ alignSelf: 'center', marginTop: 12, paddingHorizontal: 16, paddingVertical: 6,
                 borderRadius: 20, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff' }}>
               <Text style={{ fontSize: 12, color: '#6b7280' }}>
                 {loadingOlder ? 'Učitavam...' : 'Učitaj starije poruke'}
@@ -309,7 +302,7 @@ function ChatView({ userId, onBack }: { userId: number; onBack: () => void }) {
             </TouchableOpacity>
           ) : null}
           ListEmptyComponent={
-            <View style={styles.center}>
+            <View style={[styles.center, { transform: [{ scaleY: -1 }] }]}>
               <Text style={styles.emptyText}>Započni razgovor</Text>
             </View>
           }
@@ -565,6 +558,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   messageList: { padding: 16, paddingBottom: 8, gap: 10, flexGrow: 1 },
+  messageListInverted: { padding: 16, paddingTop: 8, gap: 10, flexGrow: 1 },
   msgRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
   msgRowLeft: { justifyContent: 'flex-start' },
   msgRowRight: { justifyContent: 'flex-end' },
