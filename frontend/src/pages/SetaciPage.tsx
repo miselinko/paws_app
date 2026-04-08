@@ -5,7 +5,7 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { getWalkersPaginated, toggleFavorite } from '../api/users'
 import { getReservations } from '../api/reservations'
 import { useAuth } from '../context/AuthContext'
-import type { Walker, Reservation } from '../types'
+import type { Reservation } from '../types'
 import Reveal from '../components/Reveal'
 
 const SERVICES = [
