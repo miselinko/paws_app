@@ -87,7 +87,7 @@ function OsmTileMap({ lat, lng }: { lat: number; lng: number }) {
   }
 
   return (
-    <View style={{ width: '100%', height: 200, overflow: 'hidden' }}>
+    <View style={{ width: '100%', height: 220, overflow: 'hidden' }}>
       <View style={{ position: 'absolute', left: -offsetX, top: -offsetY, width: mapW, height: mapH }}>
         {tiles.map((t, i) => (
           <Image
@@ -564,9 +564,10 @@ const styles = StyleSheet.create({
   liveCardTitle: { fontSize: 15, fontWeight: '800', color: '#065f46' },
   liveCardDuration: { fontSize: 12, fontWeight: '600', color: GREEN },
   mapContainer: {
-    borderRadius: 12,
+    borderRadius: 0,
     overflow: 'hidden',
     marginBottom: 10,
+    marginHorizontal: -16,
   },
   map: {
     width: '100%',

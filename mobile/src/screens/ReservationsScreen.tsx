@@ -18,17 +18,19 @@ type Nav = NativeStackNavigationProp<ReservationsStackParamList, 'Reservations'>
 const GREEN = '#00BF8F'
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
-  pending:   { label: 'Na čekanju', bg: '#fffbeb', color: '#b45309', border: '#f59e0b' },
-  confirmed: { label: 'Potvrđeno',  bg: '#f0fdf9', color: '#065f46', border: GREEN },
-  rejected:  { label: 'Odbijeno',   bg: '#fef2f2', color: '#991b1b', border: '#f87171' },
-  completed: { label: 'Završeno',   bg: '#f9fafb', color: '#374151', border: '#d1d5db' },
-  cancelled: { label: 'Otkazano',   bg: '#f9fafb', color: '#9ca3af', border: '#e5e7eb' },
+  pending:     { label: 'Na čekanju',  bg: '#fffbeb', color: '#b45309', border: '#f59e0b' },
+  confirmed:   { label: 'Potvrđeno',   bg: '#f0fdf9', color: '#065f46', border: GREEN },
+  in_progress: { label: 'U toku',      bg: '#f0fdf9', color: GREEN,     border: GREEN },
+  rejected:    { label: 'Odbijeno',    bg: '#fef2f2', color: '#991b1b', border: '#f87171' },
+  completed:   { label: 'Završeno',    bg: '#f9fafb', color: '#374151', border: '#d1d5db' },
+  cancelled:   { label: 'Otkazano',    bg: '#f9fafb', color: '#9ca3af', border: '#e5e7eb' },
 }
 
 const FILTERS = [
   { val: 'sve', label: 'Sve' },
   { val: 'pending', label: 'Čekanje' },
   { val: 'confirmed', label: 'Potvrđeno' },
+  { val: 'in_progress', label: 'U toku' },
   { val: 'completed', label: 'Završeno' },
   { val: 'cancelled', label: 'Otkazano' },
 ]

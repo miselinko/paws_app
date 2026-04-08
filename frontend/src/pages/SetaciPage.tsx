@@ -8,8 +8,6 @@ import { useAuth } from '../context/AuthContext'
 import type { Walker, Reservation } from '../types'
 import Reveal from '../components/Reveal'
 
-type WalkerWithDistance = Walker
-
 const SERVICES = [
   { val: '', label: 'Sve usluge' },
   { val: 'walking', label: 'Šetanje' },

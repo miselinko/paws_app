@@ -4,12 +4,14 @@ import {
   Image, ActivityIndicator, Modal, TextInput, ScrollView,
   Alert, Animated, Dimensions,
 } from 'react-native'
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigation, useScrollToTop } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
 import * as Location from 'expo-location'
 import { getWalkersPaginated, toggleFavorite } from '../api/users'
+import { getReservations } from '../api/reservations'
+import { Reservation } from '../types'
 import { imgUrl } from '../api/config'
 import { User } from '../types'
 import { WalkersStackParamList } from '../navigation/WalkersNavigator'
@@ -246,8 +248,36 @@ export default function WalkersScreen() {
   const activeFilterCount = [minRating, maxRate, sort !== 'rating' ? sort : ''].filter(Boolean).length
 
   const isOwner = user?.role === 'owner'
+  const isWalker = user?.role === 'walker'
   const insets = useSafeAreaInsets()
   const tabBarHeight = useBottomTabBarHeight()
+
+  // Walker dashboard stats
+  const { data: myReservations } = useQuery<Reservation[]>({
+    queryKey: ['reservations'],
+    queryFn: getReservations,
+    enabled: isWalker,
+  })
+
+  const walkerStats = useMemo(() => {
+    if (!myReservations) return null
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const completed = myReservations.filter(r => r.status === 'completed')
+    const thisMonth = myReservations.filter(r =>
+      new Date(r.start_time) >= monthStart && ['confirmed', 'completed', 'in_progress'].includes(r.status)
+    )
+    const upcoming = myReservations.filter(r =>
+      ['confirmed', 'in_progress'].includes(r.status) && new Date(r.start_time) >= now
+    )
+    return {
+      completedCount: completed.length,
+      thisMonthCount: thisMonth.length,
+      upcomingCount: upcoming.length,
+      rating: user?.average_rating ?? 0,
+      reviewCount: user?.review_count ?? 0,
+    }
+  }, [myReservations, user])
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: !isOwner })
@@ -294,6 +324,41 @@ export default function WalkersScreen() {
           <Text style={styles.heroGreeting}>{greeting()}{user?.first_name ? `, ${user.first_name}` : ''}</Text>
           <Text style={styles.heroTitle}>Pronađi šetača za svog psa</Text>
         </Animated.View>
+      )}
+
+      {/* ── Walker dashboard ── */}
+      {isWalker && walkerStats && (
+        <View style={styles.dashboard}>
+          <View style={styles.dashHeader}>
+            <Ionicons name="stats-chart-outline" size={18} color="#fff" />
+            <View>
+              <Text style={styles.dashTitle}>Tvoj učinak</Text>
+              <Text style={styles.dashSub}>Pregled aktivnosti na PawsApp-u</Text>
+            </View>
+          </View>
+          <View style={styles.dashGrid}>
+            <View style={styles.dashStat}>
+              <Text style={styles.dashStatValue}>{walkerStats.completedCount}</Text>
+              <Text style={styles.dashStatLabel}>Završeno</Text>
+            </View>
+            <View style={styles.dashStat}>
+              <Text style={styles.dashStatValue}>{walkerStats.rating > 0 ? walkerStats.rating.toFixed(1) : '0.0'}</Text>
+              <Text style={styles.dashStatLabel}>Ocena</Text>
+            </View>
+            <View style={styles.dashStat}>
+              <Text style={styles.dashStatValue}>{walkerStats.reviewCount}</Text>
+              <Text style={styles.dashStatLabel}>Recenzija</Text>
+            </View>
+            <View style={styles.dashStat}>
+              <Text style={styles.dashStatValue}>{walkerStats.thisMonthCount}</Text>
+              <Text style={styles.dashStatLabel}>Ovog mes.</Text>
+            </View>
+            <View style={styles.dashStat}>
+              <Text style={styles.dashStatValue}>{walkerStats.upcomingCount}</Text>
+              <Text style={styles.dashStatLabel}>Predstojeće</Text>
+            </View>
+          </View>
+        </View>
       )}
 
       {/* ── Search bar ── */}
@@ -538,6 +603,26 @@ const styles = StyleSheet.create({
   heroGreeting: { fontSize: 14, fontWeight: '600', color: '#9ca3af', marginBottom: 4 },
   heroTitle: { fontSize: 24, fontWeight: '900', color: '#111', letterSpacing: -0.5 },
 
+  // Walker dashboard
+  dashboard: {
+    backgroundColor: GREEN,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 16,
+  },
+  dashHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14,
+  },
+  dashTitle: { fontSize: 16, fontWeight: '900', color: '#fff' },
+  dashSub: { fontSize: 11, color: 'rgba(255,255,255,0.65)' },
+  dashGrid: { flexDirection: 'row', gap: 8 },
+  dashStat: {
+    flex: 1, backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12, paddingVertical: 10, alignItems: 'center',
+  },
+  dashStatValue: { fontSize: 20, fontWeight: '900', color: '#fff' },
+  dashStatLabel: { fontSize: 9, color: 'rgba(255,255,255,0.7)', fontWeight: '600', marginTop: 2 },
+
   // Search bar
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
@@ -594,6 +679,7 @@ const styles = StyleSheet.create({
   // Card (vertical)
   cardOuter: { width: CARD_W },
   card: {
+    flex: 1,
     backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden',
     shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 10,
     shadowOffset: { width: 0, height: 3 }, elevation: 3,
