@@ -1,0 +1,22 @@
+# Drži Render backend budnim tokom dana (Free plan ga uspava posle ~15 min bez saobraćaja).
+# Pinguje samo /api/health/ (bez baze, bez upisa). Noću ne pinguje, da bi ukupna
+# potrošnja ostala ispod 750 besplatnih sati mesečno (deli se sa drugim free servisima).
+# Repo je javan, pa su GitHub Actions minuti besplatni.
+name: Keep backend awake
+
+on:
+  schedule:
+    # Svakih 10 min, 06:00–21:59 UTC (07–23h po zimskom vremenu u Srbiji)
+    - cron: "*/10 6-21 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping health check
+        run: |
+          curl -fsS --retry 3 --retry-delay 20 --max-time 90 https://paws-app.onrender.com/api/health/ || echo "Backend se još budi"
