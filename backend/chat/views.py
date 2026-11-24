@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.throttling import UserRateThrottle
+from config.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -17,6 +17,7 @@ import json
 import logging
 import re
 import threading
+from users.views import run_in_background
 import unicodedata
 
 logger = logging.getLogger(__name__)
@@ -129,8 +130,9 @@ BOT_TOOLS = [
 def execute_tool(name, args, user):
     if name == "get_walkers":
         from django.db.models import Avg, Count
-        walkers = User.objects.filter(
-            role=User.WALKER, walker_profile__active=True
+        from users.visibility import visible_walkers
+        walkers = visible_walkers(User.objects.all()).filter(
+            walker_profile__active=True
         ).select_related('walker_profile').annotate(
             avg_rating=Avg('received_reviews__rating'),
             num_reviews=Count('received_reviews'),
@@ -164,7 +166,8 @@ def execute_tool(name, args, user):
     elif name == "create_reservation":
         try:
             walker_id = int(args['walker_id'])
-            walker = User.objects.get(pk=walker_id, role=User.WALKER)
+            from users.visibility import visible_walkers
+            walker = visible_walkers(User.objects.all()).get(pk=walker_id)
             # Verify walker is active
             if hasattr(walker, 'walker_profile') and not walker.walker_profile.active:
                 return {'greska': 'Šetač trenutno nije aktivan.'}
@@ -372,7 +375,7 @@ class ConversationView(APIView):
 
     def post(self, request, user_id):
         try:
-            recipient = User.objects.get(pk=user_id)
+            recipient = User.objects.get(pk=user_id, is_active=True)
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=404)
 
@@ -390,11 +393,7 @@ class ConversationView(APIView):
         from users.views import send_push_notification
         sender_name = f'{request.user.first_name} {request.user.last_name}'
         preview = text if len(text) <= 80 else text[:77] + '...'
-        threading.Thread(
-            target=send_push_notification,
-            args=([recipient], sender_name, preview),
-            daemon=True,
-        ).start()
+        run_in_background(send_push_notification, [recipient], sender_name, preview)
         serializer = MessageSerializer(message)
         return Response(serializer.data, status=201)
 

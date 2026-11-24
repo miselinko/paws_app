@@ -16,6 +16,8 @@ export interface AdminStats {
 }
 
 export interface AdminUser {
+  is_protected?: boolean
+  is_email_verified?: boolean
   id: number
   email: string
   first_name: string

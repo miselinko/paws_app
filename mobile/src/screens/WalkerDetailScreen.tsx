@@ -14,6 +14,7 @@ import { imgUrl } from '../api/config'
 import { useAuth } from '../context/AuthContext'
 import { User, Dog } from '../types'
 import { WalkersStackParamList } from '../navigation/WalkersNavigator'
+import { usePtrControl } from '../hooks/usePtrControl'
 
 type Route = RouteProp<WalkersStackParamList, 'WalkerDetail'>
 
@@ -742,7 +743,7 @@ export default function WalkerDetailScreen() {
   })
 
   const { data: dogs = [] } = useQuery({
-    queryKey: ['dogs'],
+    queryKey: ['myDogs'],
     queryFn: getDogs,
     enabled: user?.role === 'owner',
   })
@@ -751,6 +752,7 @@ export default function WalkerDetailScreen() {
     queryKey: ['reviews', walkerId],
     queryFn: () => getWalkerReviews(walkerId),
   })
+  const ptr = usePtrControl([['walker', walkerId], ['reviews', walkerId], ['myDogs']])
 
   const favMutation = useMutation({
     mutationFn: () => toggleFavorite(walkerId),
@@ -768,7 +770,7 @@ export default function WalkerDetailScreen() {
   const photo = imgUrl(walker.profile_image)
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={{ paddingBottom: 48 }}>
+    <ScrollView refreshControl={ptr} style={s.container} contentContainerStyle={{ paddingBottom: 48 }}>
       {/* Header */}
       <View style={s.header}>
         {photo

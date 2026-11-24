@@ -10,7 +10,7 @@ import {
   getAdminDogs,
   toggleUserActive,
   toggleWalkerFeatured,
-  deleteUser,
+  deleteUserPermanently,
   type AdminStats,
   type AdminUser,
   type AdminUserDetail,
@@ -137,25 +137,33 @@ function UserDetail({ userId, onClose }: { userId: number; onClose: () => void }
     queryFn: () => getAdminUser(userId),
   })
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmEmail, setConfirmEmail] = useState('')
+  const [actionError, setActionError] = useState('')
+
+  // Posle svake admin izmene osveži sve admin liste/statistiku i javne liste šetača.
+  const syncAll = () => {
+    qc.invalidateQueries({ predicate: q => String(q.queryKey[0]).startsWith('admin') })
+    qc.invalidateQueries({ queryKey: ['walkers'] })
+  }
+  const onError = (e: unknown) => {
+    const err = e as { response?: { data?: { detail?: string } } }
+    setActionError(err.response?.data?.detail || 'Akcija nije uspela. Pokušaj ponovo.')
+  }
 
   const toggleMut = useMutation({
     mutationFn: (active: boolean) => toggleUserActive(userId, active),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-user', userId] })
-      qc.refetchQueries({ queryKey: ['admin-users'] })
-      qc.refetchQueries({ queryKey: ['admin-stats'] })
-    },
+    onSuccess: () => { setActionError(''); syncAll() },
+    onError,
   })
   const featuredMut = useMutation({
     mutationFn: (featured: boolean) => toggleWalkerFeatured(userId, featured),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-user', userId] })
-      qc.refetchQueries({ queryKey: ['admin-users'] })
-    },
+    onSuccess: () => { setActionError(''); syncAll() },
+    onError,
   })
   const deleteMut = useMutation({
-    mutationFn: () => deleteUser(userId),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); qc.invalidateQueries({ queryKey: ['admin-stats'] }); onClose() },
+    mutationFn: () => deleteUserPermanently(userId, confirmEmail),
+    onSuccess: () => { qc.removeQueries({ queryKey: ['admin-user', userId] }); syncAll(); onClose() },
+    onError,
   })
 
   if (isLoading || !user) return (
@@ -287,8 +295,12 @@ function UserDetail({ userId, onClose }: { userId: number; onClose: () => void }
           )}
 
           {/* Actions */}
-          {user.role !== 'admin' && (
+          {user.role !== 'admin' && !user.is_protected && (
             <div className="border-t border-gray-100 pt-5 space-y-3">
+              {actionError && <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{actionError}</p>}
+              <p className="text-xs text-gray-500">
+                Deaktivacija blokira prijavu i sakriva nalog, a podaci ostaju i nalog može ponovo da se aktivira.
+              </p>
               <button
                 onClick={() => toggleMut.mutate(!user.is_active)}
                 disabled={toggleMut.isPending}
@@ -309,15 +321,25 @@ function UserDetail({ userId, onClose }: { userId: number; onClose: () => void }
                 </button>
               )}
               {!confirmDelete ? (
-                <button onClick={() => setConfirmDelete(true)} className="w-full py-2.5 rounded-xl text-sm font-bold bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
-                  Obriši korisnika
+                <button onClick={() => { setConfirmDelete(true); setConfirmEmail(''); setActionError('') }} className="w-full py-2.5 rounded-xl text-sm font-bold bg-white text-red-600 border border-red-200 hover:bg-red-50 transition-colors">
+                  Trajno obriši nalog…
                 </button>
               ) : (
-                <div className="bg-red-50 rounded-xl p-4">
-                  <p className="text-sm text-red-700 mb-3">Da li ste sigurni? Ova akcija je nepovratna.</p>
+                <div className="bg-red-50 rounded-xl p-4 space-y-3">
+                  <p className="text-sm text-red-700">
+                    <b>Trajno brisanje je nepovratno.</b> Brišu se nalog, psi, rezervacije, poruke i recenzije ovog korisnika.
+                    Ako samo želiš da blokiraš nalog, koristi „Deaktiviraj korisnika”. Dozvoljeno samo glavnom administratoru.
+                  </p>
+                  <label className="block text-xs font-semibold text-red-800">
+                    Za potvrdu upiši email korisnika: <span className="font-mono">{user.email}</span>
+                    <input value={confirmEmail} onChange={e => setConfirmEmail(e.target.value)} autoComplete="off"
+                      className="mt-1 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-normal text-gray-900 focus:outline-none focus:border-red-400" />
+                  </label>
                   <div className="flex gap-2">
-                    <button onClick={() => deleteMut.mutate()} disabled={deleteMut.isPending} className="flex-1 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700">
-                      {deleteMut.isPending ? 'Brisanje...' : 'Da, obriši'}
+                    <button onClick={() => deleteMut.mutate()}
+                      disabled={deleteMut.isPending || confirmEmail.trim().toLowerCase() !== user.email.toLowerCase()}
+                      className="flex-1 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                      {deleteMut.isPending ? 'Brisanje...' : 'Trajno obriši'}
                     </button>
                     <button onClick={() => setConfirmDelete(false)} className="flex-1 py-2 rounded-lg text-sm font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50">
                       Otkaži

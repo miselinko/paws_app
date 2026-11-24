@@ -6,6 +6,7 @@ import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { getDogProfile } from '../api/dogs'
 import { imgUrl } from '../api/config'
 import { ReservationsStackParamList } from '../navigation/ReservationsNavigator'
+import { usePtrControl } from '../hooks/usePtrControl'
 
 type Route = RouteProp<ReservationsStackParamList, 'DogProfile'>
 
@@ -31,6 +32,7 @@ export default function DogProfileScreen() {
     queryKey: ['dogProfile', params.dogId],
     queryFn: () => getDogProfile(params.dogId),
   })
+  const ptr = usePtrControl([['dogProfile', params.dogId]])
 
   if (isLoading) {
     return (
@@ -57,7 +59,7 @@ export default function DogProfileScreen() {
   const photo = imgUrl(dog.image)
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView refreshControl={ptr} style={styles.container} contentContainerStyle={styles.content}>
       {/* Photo */}
       {photo ? (
         <Image source={{ uri: photo }} style={styles.photo} />

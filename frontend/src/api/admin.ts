@@ -16,6 +16,8 @@ export interface AdminStats {
 }
 
 export interface AdminUser {
+  is_protected?: boolean
+  is_email_verified?: boolean
   id: number
   email: string
   first_name: string
@@ -88,8 +90,13 @@ export const toggleUserActive = (id: number, is_active: boolean) =>
 export const toggleWalkerFeatured = (id: number, is_featured: boolean) =>
   api.patch<AdminUserDetail>(`/users/admin/users/${id}/`, { is_featured }).then(r => r.data)
 
+/** Deaktivacija naloga (reverzibilno). */
 export const deleteUser = (id: number) =>
   api.delete(`/users/admin/users/${id}/`)
+
+/** TRAJNO brisanje — samo glavni admin, uz potvrdu email adresom korisnika. */
+export const deleteUserPermanently = (id: number, confirmEmail: string) =>
+  api.delete(`/users/admin/users/${id}/`, { params: { permanent: 'true' }, data: { confirm_email: confirmEmail } })
 
 // Reservations
 export interface AdminReservation {

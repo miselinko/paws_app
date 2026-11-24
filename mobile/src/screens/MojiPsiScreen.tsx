@@ -12,6 +12,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import { getMyDogs, createDog, updateDog, deleteDog, deleteDogImage } from '../api/dogs'
 import { imgUrl } from '../api/config'
 import { Dog } from '../types'
+import { usePtrControl } from '../hooks/usePtrControl'
 
 // ─── Konstante ────────────────────────────────────────────────────────────────
 
@@ -167,6 +168,7 @@ export default function MojiPsiScreen() {
   const tabBarHeight = useBottomTabBarHeight()
   const fadeAnim = useRef(new Animated.Value(0)).current
   const scrollRef = useRef<ScrollView>(null)
+  const ptr = usePtrControl([['myDogs']])
   useScrollToTop(scrollRef)
   const [formVisible, setFormVisible] = useState(false)
 
@@ -335,7 +337,7 @@ export default function MojiPsiScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView ref={scrollRef} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 8 }]} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} refreshControl={ptr} contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 8 }]} keyboardShouldPersistTaps="handled">
         {/* Form */}
         {formVisible && (
           <View style={styles.form}>

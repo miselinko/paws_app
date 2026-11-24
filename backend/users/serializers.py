@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Avg
 from .models import WalkerProfile
@@ -33,10 +36,15 @@ class AdminUserListSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'phone',
-            'profile_image', 'role', 'address', 'is_active',
+            'profile_image', 'role', 'address', 'is_active', 'is_email_verified',
             'created_at', 'dogs_count', 'reservations_count',
-            'reviews_count', 'walker_profile',
+            'reviews_count', 'walker_profile', 'is_protected',
         ]
+
+    is_protected = serializers.SerializerMethodField()
+
+    def get_is_protected(self, obj):
+        return obj.role == 'admin' or obj.email.lower() in settings.PROTECTED_ADMIN_EMAILS
 
     def get_walker_profile(self, obj):
         if hasattr(obj, 'walker_profile'):
@@ -64,9 +72,14 @@ class AdminUserDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'first_name', 'last_name', 'phone',
             'profile_image', 'role', 'address', 'lat', 'lng',
-            'is_active', 'created_at',
+            'is_active', 'is_email_verified', 'created_at', 'is_protected',
             'walker_profile', 'dogs', 'recent_reservations', 'stats',
         ]
+
+    is_protected = serializers.SerializerMethodField()
+
+    def get_is_protected(self, obj):
+        return obj.role == 'admin' or obj.email.lower() in settings.PROTECTED_ADMIN_EMAILS
 
     def get_walker_profile(self, obj):
         if obj.role != 'walker':
@@ -150,9 +163,34 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Role must be owner or walker.')
         return value
 
+    def validate_email(self, value):
+        value = value.strip().lower()
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError('Nalog sa ovom email adresom već postoji.')
+        return value
+
+    def _validate_name(self, value):
+        value = value.strip()
+        if not value or len(value) > 60:
+            raise serializers.ValidationError('Unesi ispravno ime (do 60 karaktera).')
+        if any(c in value for c in '<>{}[]/\\@'):
+            raise serializers.ValidationError('Ime sadrži nedozvoljene znakove.')
+        return value
+
+    def validate_first_name(self, value):
+        return self._validate_name(value)
+
+    def validate_last_name(self, value):
+        return self._validate_name(value)
+
     def validate(self, data):
         if data['password'] != data['password2']:
-            raise serializers.ValidationError({'password': 'Passwords do not match.'})
+            raise serializers.ValidationError({'password': 'Lozinke se ne poklapaju.'})
+        candidate = User(email=data.get('email', ''), first_name=data.get('first_name', ''), last_name=data.get('last_name', ''))
+        try:
+            validate_password(data['password'], user=candidate)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({'password': list(e.messages)})
         return data
 
     def create(self, validated_data):

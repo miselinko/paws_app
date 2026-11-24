@@ -7,6 +7,7 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRoute, useNavigation, useScrollToTop } from '@react-navigation/native'
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import * as Notifications from 'expo-notifications'
@@ -16,6 +17,7 @@ import {
 } from '../api/chat'
 import { imgUrl } from '../api/config'
 import { useAuth } from '../context/AuthContext'
+import { usePtrControl } from '../hooks/usePtrControl'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -411,9 +413,10 @@ export default function PorukeScreen() {
   const insets = useSafeAreaInsets()
   const tabBarHeight = useBottomTabBarHeight()
   const route = useRoute<any>()
-  const navigation = useNavigation()
+  const navigation = useNavigation<BottomTabNavigationProp<Record<string, object | undefined>>>()
   const [view, setView] = useState<ScreenView>('list')
   const queryClient = useQueryClient()
+  const ptr = usePtrControl([['conversations'], ['unreadCount']])
   const scrollRef = useRef<ScrollView>(null)
   useScrollToTop(scrollRef)
 
@@ -459,7 +462,7 @@ export default function PorukeScreen() {
         )}
       </View>
 
-      <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: tabBarHeight + 8 }}>
+      <ScrollView ref={scrollRef} refreshControl={ptr} contentContainerStyle={{ paddingBottom: tabBarHeight + 8 }}>
         {/* Bot pinned */}
         <TouchableOpacity style={[styles.convRow, styles.botRow]} onPress={() => setView('bot')}>
           <View style={styles.botAvatarLarge}>

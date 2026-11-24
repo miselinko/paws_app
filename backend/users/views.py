@@ -3,11 +3,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.throttling import AnonRateThrottle
+from config.throttling import AnonRateThrottle
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db import transaction
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Avg, Count, Q
 from .serializers import (
     RegisterSerializer, UserSerializer, WalkerListSerializer,
@@ -15,10 +17,19 @@ from .serializers import (
 )
 from .permissions import IsAdmin
 from .models import PasswordResetToken, EmailVerificationToken, PushToken, AuditLog, Favorite
+from .antispam import verify_turnstile, client_ip, HONEYPOT_FIELD
+from .visibility import visible_walkers
 import logging
 import math, threading, urllib.request, urllib.error, json as json_lib
 
 logger = logging.getLogger(__name__)
+
+
+def run_in_background(target, *args, **kwargs):
+    """Email/push u pozadinskoj niti; u testovima sinhrono (izolovana baza, bez zaključavanja)."""
+    if getattr(settings, 'RUNNING_TESTS', False):
+        return target(*args, **kwargs)
+    threading.Thread(target=target, args=args, kwargs=kwargs, daemon=True).start()
 
 
 ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
@@ -44,6 +55,14 @@ class PasswordResetThrottle(AnonRateThrottle):
 
 class RegisterThrottle(AnonRateThrottle):
     scope = 'register'
+
+
+class RegisterDailyThrottle(AnonRateThrottle):
+    scope = 'register_daily'
+
+
+class ResendVerificationThrottle(AnonRateThrottle):
+    scope = 'resend_verification'
 
 class WalkerPagination(PageNumberPagination):
     page_size = 20
@@ -113,11 +132,23 @@ def send_verification_email(user):
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
-    throttle_classes = [RegisterThrottle]
+    throttle_classes = [RegisterThrottle, RegisterDailyThrottle]
+
+    def create(self, request, *args, **kwargs):
+        ip = client_ip(request)
+        # Honeypot: pravi korisnik ne vidi ovo polje.
+        if str(request.data.get(HONEYPOT_FIELD, '')).strip():
+            logger.warning('Registration honeypot triggered from %s', ip)
+            return Response({'detail': 'Registracija nije uspela. Pokušaj ponovo.'}, status=400)
+        ok, reason = verify_turnstile(request.data.get('captcha_token', ''), ip)
+        if not ok:
+            logger.warning('Registration CAPTCHA failed (%s) from %s', reason, ip)
+            return Response({'detail': 'Potvrdi da nisi robot (CAPTCHA) i pokušaj ponovo.', 'code': 'captcha'}, status=400)
+        return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         user = serializer.save()
-        threading.Thread(target=send_verification_email, args=(user,), daemon=True).start()
+        run_in_background(send_verification_email, user)
 
 
 class VerifyEmailView(APIView):
@@ -144,7 +175,7 @@ class VerifyEmailView(APIView):
 
 class ResendVerificationView(APIView):
     permission_classes = [permissions.AllowAny]
-    throttle_classes = [PasswordResetThrottle]
+    throttle_classes = [ResendVerificationThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -152,10 +183,12 @@ class ResendVerificationView(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({'detail': 'Ako nalog postoji, email je poslat.'})
-        if user.is_email_verified:
-            return Response({'detail': 'Email je već potvrđen.'})
-        threading.Thread(target=send_verification_email, args=(user,), daemon=True).start()
-        return Response({'detail': 'Verifikacioni email je poslat.'})
+        if user.is_email_verified or not user.is_active:
+            return Response({'detail': 'Ako nalog postoji, email je poslat.'})
+        # Stari, neiskorišćeni tokeni se poništavaju da u opticaju bude samo jedan link.
+        EmailVerificationToken.objects.filter(user=user, used=False).update(used=True)
+        run_in_background(send_verification_email, user)
+        return Response({'detail': 'Ako nalog postoji, email je poslat.'})
 
 
 class PushTokenView(APIView):
@@ -223,8 +256,7 @@ class WalkerListView(generics.ListAPIView):
     pagination_class = WalkerPagination
 
     def get_queryset(self):
-        qs = User.objects.filter(
-            role=User.WALKER,
+        qs = visible_walkers(User.objects.all()).filter(
             walker_profile__active=True
         ).select_related('walker_profile').prefetch_related('received_reviews').annotate(
             avg_rating=Avg('received_reviews__rating'),
@@ -343,7 +375,15 @@ class WalkerDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return User.objects.filter(role=User.WALKER)
+        qs = User.objects.filter(role=User.WALKER)
+        user = self.request.user
+        if user.is_authenticated and user.role == User.ADMIN:
+            return qs
+        visible = visible_walkers(qs)
+        if user.is_authenticated and user.role == User.WALKER:
+            # Šetač uvek vidi svoj profil, i pre potvrde emaila.
+            return qs.filter(Q(pk__in=visible.values('pk')) | Q(pk=user.pk))
+        return visible
 
 
 class ToggleFavoriteView(APIView):
@@ -351,7 +391,7 @@ class ToggleFavoriteView(APIView):
 
     def post(self, request, walker_id):
         try:
-            walker = User.objects.get(pk=walker_id, role=User.WALKER)
+            walker = visible_walkers(User.objects.all()).get(pk=walker_id)
         except User.DoesNotExist:
             return Response({'detail': 'Walker not found.'}, status=drf_status.HTTP_404_NOT_FOUND)
         fav, created = Favorite.objects.get_or_create(user=request.user, walker=walker)
@@ -366,7 +406,7 @@ class FavoritesListView(APIView):
 
     def get(self, request):
         fav_ids = list(
-            Favorite.objects.filter(user=request.user).values_list('walker_id', flat=True)
+            Favorite.objects.filter(user=request.user, walker__is_active=True).values_list('walker_id', flat=True)
         )
         return Response(fav_ids)
 
@@ -378,7 +418,7 @@ class ForgotPasswordView(APIView):
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email=email, is_active=True)
             PasswordResetToken.objects.filter(user=user).delete()
             token = PasswordResetToken.objects.create(user=user)
             frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
@@ -390,12 +430,7 @@ class ForgotPasswordView(APIView):
                 f"Klikni na link ispod da postaviš novu lozinku (važi 1 sat):\n{reset_url}\n\n"
                 f"Ako nisi ti tražio/la reset, ignoriši ovaj email.\n\nPaws tim 🐾"
             )
-            threading.Thread(
-                target=_safe_send_mail,
-                args=(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email]),
-                kwargs={'fail_silently': True},
-                daemon=True,
-            ).start()
+            run_in_background(_safe_send_mail, subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], **{'fail_silently': True})
             logger.info('Password reset requested for %s', email)
         except User.DoesNotExist:
             pass
@@ -426,9 +461,13 @@ class ResetPasswordView(APIView):
 
         try:
             with transaction.atomic():
-                token = PasswordResetToken.objects.select_for_update().get(token=token_str)
-                if not token.is_valid():
+                token = PasswordResetToken.objects.select_for_update().select_related('user').get(token=token_str)
+                if not token.is_valid() or not token.user.is_active:
                     return Response({'detail': 'Link je istekao. Zatraži novi reset lozinke.'}, status=400)
+                try:
+                    validate_password(password, user=token.user)
+                except DjangoValidationError as e:
+                    return Response({'detail': ' '.join(e.messages)}, status=400)
                 token.user.set_password(password)
                 token.user.save(update_fields=['password'])
                 token.used = True
@@ -441,6 +480,18 @@ class ResetPasswordView(APIView):
 
 
 # ─── Admin views ────────────────────────────────────────────────────
+
+def _parse_bool(value):
+    """JSON true/false ili string 'true'/'false' -> bool; ostalo -> None."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.lower() in ('true', 'false', '1', '0'):
+        return value.lower() in ('true', '1')
+    return None
+
+
+def is_protected_admin(user):
+    return user.email.lower() in settings.PROTECTED_ADMIN_EMAILS
 
 class AdminPagination(PageNumberPagination):
     page_size = 20
@@ -528,37 +579,59 @@ class AdminUserDetailView(APIView):
         return Response(AdminUserDetailSerializer(user).data)
 
     def patch(self, request, pk):
-        """Toggle is_active (ban/unban) and/or is_featured."""
+        """Deaktivacija/aktivacija naloga (is_active) i/ili isticanje šetača (is_featured)."""
         try:
             user = User.objects.get(pk=pk)
         except User.DoesNotExist:
             return Response({'detail': 'Korisnik nije pronađen.'}, status=404)
-        if user.role == 'admin':
-            return Response({'detail': 'Ne možeš deaktivirati admina.'}, status=400)
-        is_active = request.data.get('is_active')
+        is_active = _parse_bool(request.data.get('is_active'))
+        is_featured = _parse_bool(request.data.get('is_featured'))
         if is_active is not None:
-            user.is_active = is_active
-            user.save(update_fields=['is_active'])
-            action = AuditLog.ACTION_UNBAN if is_active else AuditLog.ACTION_BAN
-            AuditLog.objects.create(admin=request.user, target_user=user, action=action)
-        is_featured = request.data.get('is_featured')
-        if is_featured is not None and user.role == 'walker':
+            if user.role == User.ADMIN or is_protected_admin(user) or user.pk == request.user.pk:
+                return Response({'detail': 'Administratorski nalog ne može da se deaktivira.'}, status=400)
+            if user.is_active != is_active:
+                user.is_active = is_active
+                user.save(update_fields=['is_active'])
+                action = AuditLog.ACTION_UNBAN if is_active else AuditLog.ACTION_BAN
+                AuditLog.objects.create(admin=request.user, target_user=user, action=action)
+        if is_featured is not None and user.role == User.WALKER:
             from .models import WalkerProfile
             WalkerProfile.objects.filter(user=user).update(is_featured=is_featured)
             action = AuditLog.ACTION_FEATURE if is_featured else AuditLog.ACTION_UNFEATURE
             AuditLog.objects.create(admin=request.user, target_user=user, action=action)
+        user.refresh_from_db()
         return Response(AdminUserDetailSerializer(user).data)
 
     def delete(self, request, pk):
+        """Bez parametra: DEAKTIVACIJA (reverzibilno, podaci ostaju).
+        ?permanent=true + {"confirm_email": "<email korisnika>"}: TRAJNO BRISANJE
+        (samo superuser; nalog i povezani podaci se brišu i ne mogu da se vrate)."""
         try:
             user = User.objects.get(pk=pk)
         except User.DoesNotExist:
             return Response({'detail': 'Korisnik nije pronađen.'}, status=404)
-        if user.role == 'admin':
-            return Response({'detail': 'Ne možeš obrisati admina.'}, status=400)
-        user.is_active = False
-        user.save(update_fields=['is_active'])
-        AuditLog.objects.create(admin=request.user, target_user=user, action=AuditLog.ACTION_DELETE)
+        if user.role == User.ADMIN or is_protected_admin(user) or user.pk == request.user.pk:
+            return Response({'detail': 'Administratorski nalog ne može da se deaktivira ni obriše.'}, status=400)
+
+        permanent = str(request.query_params.get('permanent', '')).lower() in ('1', 'true', 'yes')
+        if not permanent:
+            if user.is_active:
+                user.is_active = False
+                user.save(update_fields=['is_active'])
+                AuditLog.objects.create(admin=request.user, target_user=user, action=AuditLog.ACTION_BAN,
+                                        note='Deaktiviran preko admin panela')
+            return Response(status=drf_status.HTTP_204_NO_CONTENT)
+
+        if not request.user.is_superuser:
+            return Response({'detail': 'Trajno brisanje može da uradi samo glavni administrator.'}, status=403)
+        confirm = str(request.data.get('confirm_email', '')).strip().lower()
+        if confirm != user.email.lower():
+            return Response({'detail': 'Za trajno brisanje upiši tačnu email adresu korisnika.', 'code': 'confirm'}, status=400)
+        email = user.email
+        AuditLog.objects.create(admin=request.user, target_user=user, action=AuditLog.ACTION_DELETE,
+                                note=f'Trajno obrisan nalog {email} (id {user.pk})')
+        user.delete()
+        logger.warning('Admin %s permanently deleted user %s', request.user.email, email)
         return Response(status=drf_status.HTTP_204_NO_CONTENT)
 
 
