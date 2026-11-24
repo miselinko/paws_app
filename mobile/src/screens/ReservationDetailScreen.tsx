@@ -16,6 +16,7 @@ import {
 import { createReview } from '../api/reviews'
 import { useAuth } from '../context/AuthContext'
 import { ReservationsStackParamList } from '../navigation/ReservationsNavigator'
+import { usePtrControl } from '../hooks/usePtrControl'
 
 type Route = RouteProp<ReservationsStackParamList, 'ReservationDetail'>
 type Nav = NativeStackNavigationProp<ReservationsStackParamList, 'ReservationDetail'>
@@ -144,6 +145,7 @@ export default function ReservationDetailScreen() {
     enabled: isInProgress && isOwner,
     refetchInterval: isInProgress && isOwner ? 5000 : false,
   })
+  const ptr = usePtrControl([['reservations']], { onFocus: false })
 
   // ── Walker: send GPS every 5s when in_progress ────────────────────────────
   const [gpsError, setGpsError] = useState(false)
@@ -278,7 +280,7 @@ export default function ReservationDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView refreshControl={ptr} style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
       {/* Status banner */}
       <View style={[styles.statusBanner, { backgroundColor: cfg.bg }]}>

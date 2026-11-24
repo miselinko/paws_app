@@ -18,6 +18,7 @@ import { WalkersStackParamList } from '../navigation/WalkersNavigator'
 import { useAuth } from '../context/AuthContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
+import { usePtrControl } from '../hooks/usePtrControl'
 
 type Nav = NativeStackNavigationProp<WalkersStackParamList, 'Walkers'>
 
@@ -198,6 +199,7 @@ export default function WalkersScreen() {
   const headerAnim = useRef(new Animated.Value(0)).current
   const listRef = useRef<FlatList>(null)
   useScrollToTop(listRef)
+  const ptr = usePtrControl([['walkers'], ['reservations']])
 
   const [service, setService] = useState('')
   const [minRating, setMinRating] = useState('')
@@ -465,6 +467,7 @@ export default function WalkersScreen() {
       ) : (
         <FlatList
           ref={listRef}
+          refreshControl={ptr}
           data={rows}
           keyExtractor={(row, i) => i.toString()}
           contentContainerStyle={[styles.gridList, { paddingBottom: tabBarHeight + 24 }]}

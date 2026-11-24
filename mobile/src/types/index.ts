@@ -19,7 +19,7 @@ export interface User {
   last_name: string
   phone: string
   profile_image: string | null
-  role: 'owner' | 'walker'
+  role: 'owner' | 'walker' | 'admin'
   address: string
   lat: number | null
   lng: number | null

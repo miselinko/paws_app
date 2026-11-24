@@ -16,6 +16,7 @@ import { getWalkerReviews } from '../api/reviews'
 import { imgUrl } from '../api/config'
 import { useAuth } from '../context/AuthContext'
 import { User, DaySchedule, Review } from '../types'
+import { usePtrControl } from '../hooks/usePtrControl'
 
 const GREEN = '#00BF8F'
 const GOLD  = '#FAAB43'
@@ -210,6 +211,7 @@ export default function ProfileScreen() {
   })
 
   const { data: profile, isLoading } = useQuery<User>({ queryKey: ['profile'], queryFn: getProfile })
+  const ptr = usePtrControl([['profile'], ['my-reviews']])
 
   const { data: myReviews = [] } = useQuery<Review[]>({
     queryKey: ['my-reviews', profile?.id],
@@ -329,7 +331,7 @@ export default function ProfileScreen() {
   const tpDay = timePicker ? walkerForm.availability[String(timePicker.dayIdx)] : null
 
   return (
-    <Animated.ScrollView style={[s.container, { opacity: fadeAnim }]} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    <Animated.ScrollView refreshControl={ptr} style={[s.container, { opacity: fadeAnim }]} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
       {/* ── Hero ── */}
       <View style={[s.hero, { paddingTop: insets.top + 16 }]}>

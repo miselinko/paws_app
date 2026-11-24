@@ -9,10 +9,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   getAdminStats, getAdminUsers, getAdminUser,
   getAdminReservations, getAdminReviews, getAdminDogs,
-  toggleUserActive, toggleWalkerFeatured, deleteUser,
+  toggleUserActive, toggleWalkerFeatured,
   AdminStats, AdminUser, AdminUserDetail, AdminReservation, AdminReview, AdminDog,
 } from '../api/admin'
 import { imgUrl } from '../api/config'
+import { usePtrControl } from '../hooks/usePtrControl'
+import { useRefreshOnFocus } from '../hooks/useRefreshOnFocus'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -88,49 +90,33 @@ function Avatar({ firstName, lastName, profileImage, id, size = 40 }: {
 
 function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => void }) {
   const qc = useQueryClient()
-  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const { data: user, isLoading } = useQuery<AdminUserDetail>({
     queryKey: ['admin-user', userId],
     queryFn: () => getAdminUser(userId),
   })
 
+  // Posle admin izmene osveži sve admin liste, statistiku i javnu listu šetača.
+  const syncAll = () => {
+    qc.invalidateQueries({ predicate: q => String(q.queryKey[0]).startsWith('admin') })
+    qc.invalidateQueries({ queryKey: ['walkers'] })
+  }
+  const onError = (e: unknown) => {
+    const err = e as { response?: { data?: { detail?: string } } }
+    Alert.alert('Greška', err.response?.data?.detail || 'Akcija nije uspela.')
+  }
+
   const toggleMut = useMutation({
     mutationFn: (active: boolean) => toggleUserActive(userId, active),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-user', userId] })
-      qc.invalidateQueries({ queryKey: ['admin-users'] })
-      qc.invalidateQueries({ queryKey: ['admin-stats'] })
-    },
+    onSuccess: syncAll,
+    onError,
   })
 
   const featuredMut = useMutation({
     mutationFn: (featured: boolean) => toggleWalkerFeatured(userId, featured),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-user', userId] })
-      qc.invalidateQueries({ queryKey: ['admin-users'] })
-    },
+    onSuccess: syncAll,
+    onError,
   })
-
-  const deleteMut = useMutation({
-    mutationFn: () => deleteUser(userId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-users'] })
-      qc.invalidateQueries({ queryKey: ['admin-stats'] })
-      onClose()
-    },
-  })
-
-  function handleDelete() {
-    Alert.alert(
-      'Obriši korisnika',
-      'Da li ste sigurni? Ova akcija je nepovratna.',
-      [
-        { text: 'Otkaži', style: 'cancel', onPress: () => setConfirmDelete(false) },
-        { text: 'Da, obriši', style: 'destructive', onPress: () => deleteMut.mutate() },
-      ]
-    )
-  }
 
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -278,7 +264,7 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
             )}
 
             {/* Actions */}
-            {user.role !== 'admin' && (
+            {user.role !== 'admin' && !user.is_protected && (
               <View style={styles.actionsBox}>
                 <TouchableOpacity
                   onPress={() => toggleMut.mutate(!user.is_active)}
@@ -306,15 +292,9 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
                   </TouchableOpacity>
                 )}
 
-                <TouchableOpacity
-                  onPress={handleDelete}
-                  disabled={deleteMut.isPending}
-                  style={[styles.actionBtn, { backgroundColor: '#fee2e2' }]}
-                >
-                  <Text style={[styles.actionBtnText, { color: '#dc2626' }]}>
-                    {deleteMut.isPending ? 'Brisanje...' : 'Obriši korisnika'}
-                  </Text>
-                </TouchableOpacity>
+                <Text style={{ fontSize: 12, color: '#6b7280', textAlign: 'center', marginTop: 4 }}>
+                  Deaktivacija blokira prijavu, a podaci ostaju. Trajno brisanje naloga je dostupno samo glavnom administratoru u admin panelu na vebu.
+                </Text>
               </View>
             )}
           </ScrollView>
@@ -327,8 +307,9 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 
 function DashboardTab({ stats, onNavigate }: { stats: AdminStats; onNavigate: (tab: Tab) => void }) {
+  const ptr = usePtrControl([['admin-stats']])
   return (
-    <ScrollView contentContainerStyle={styles.tabContent}>
+    <ScrollView refreshControl={ptr} contentContainerStyle={styles.tabContent}>
       <Text style={styles.tabSectionTitle}>Korisnici</Text>
       <View style={styles.statsGrid}>
         <StatCard label="Ukupno" value={stats.total_users} icon="people-outline" onPress={() => onNavigate('users')} />
@@ -359,6 +340,7 @@ function DashboardTab({ stats, onNavigate }: { stats: AdminStats; onNavigate: (t
 // ─── Users Tab ────────────────────────────────────────────────────────────────
 
 function UsersTab() {
+  const ptr = usePtrControl([['admin-users']])
   const [search, setSearch] = useState('')
   const [role, setRole] = useState('')
   const [page, setPage] = useState(1)
@@ -408,6 +390,7 @@ function UsersTab() {
         <View style={styles.centered}><ActivityIndicator size="large" color={GREEN} /></View>
       ) : (
         <FlatList
+          refreshControl={ptr}
           data={data?.results}
           keyExtractor={item => String(item.id)}
           contentContainerStyle={{ paddingBottom: 16 }}
@@ -461,6 +444,7 @@ function UsersTab() {
 // ─── Reservations Tab ─────────────────────────────────────────────────────────
 
 function ReservationsTab() {
+  const ptr = usePtrControl([['admin-reservations']])
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
 
@@ -494,6 +478,7 @@ function ReservationsTab() {
         <View style={styles.centered}><ActivityIndicator size="large" color={GREEN} /></View>
       ) : (
         <FlatList
+          refreshControl={ptr}
           data={data?.results}
           keyExtractor={item => String(item.id)}
           contentContainerStyle={{ paddingBottom: 16 }}
@@ -534,6 +519,7 @@ function ReservationsTab() {
 // ─── Reviews Tab ──────────────────────────────────────────────────────────────
 
 function ReviewsTab() {
+  const ptr = usePtrControl([['admin-reviews']])
   const [page, setPage] = useState(1)
 
   const { data, isLoading } = useQuery({
@@ -549,6 +535,7 @@ function ReviewsTab() {
         <View style={styles.centered}><ActivityIndicator size="large" color={GREEN} /></View>
       ) : (
         <FlatList
+          refreshControl={ptr}
           data={data?.results}
           keyExtractor={item => String(item.id)}
           contentContainerStyle={{ padding: 12, paddingBottom: 16 }}
@@ -588,6 +575,7 @@ function ReviewsTab() {
 // ─── Dogs Tab ─────────────────────────────────────────────────────────────────
 
 function DogsTab() {
+  const ptr = usePtrControl([['admin-dogs']])
   const [page, setPage] = useState(1)
 
   const { data, isLoading } = useQuery({
@@ -603,6 +591,7 @@ function DogsTab() {
         <View style={styles.centered}><ActivityIndicator size="large" color={GREEN} /></View>
       ) : (
         <FlatList
+          refreshControl={ptr}
           data={data?.results}
           keyExtractor={item => String(item.id)}
           contentContainerStyle={{ padding: 12, paddingBottom: 16 }}
@@ -655,6 +644,7 @@ export default function AdminScreen() {
   const insets = useSafeAreaInsets()
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
 
+  useRefreshOnFocus([['admin-stats'], ['admin-users'], ['admin-reservations'], ['admin-reviews'], ['admin-dogs']])
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ['admin-stats'],
     queryFn: getAdminStats,

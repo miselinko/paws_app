@@ -2,7 +2,7 @@ import axios from 'axios'
 import { API_URL } from './config'
 
 export async function login(email: string, password: string) {
-  const { data } = await axios.post(`${API_URL}/auth/login/`, { email, password })
+  const { data } = await axios.post(`${API_URL}/auth/login/`, { email, password }, { timeout: 70000 })
   return data as { access: string; refresh: string }
 }
 
@@ -17,9 +17,10 @@ export interface RegisterPayload {
   lat?: number | null
   lng?: number | null
   services?: 'walking' | 'boarding' | 'both'
+  captcha_token?: string
 }
 
 export async function register(payload: RegisterPayload) {
-  const { data } = await axios.post(`${API_URL}/users/register/`, payload)
+  const { data } = await axios.post(`${API_URL}/users/register/`, payload, { timeout: 70000 })
   return data
 }

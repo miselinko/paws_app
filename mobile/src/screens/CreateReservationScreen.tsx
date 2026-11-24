@@ -43,7 +43,7 @@ export default function CreateReservationScreen() {
   const { walkerId, walkerName } = route.params
 
   const { data: dogs = [], isLoading: dogsLoading } = useQuery({
-    queryKey: ['dogs'],
+    queryKey: ['myDogs'],
     queryFn: getDogs,
   })
 

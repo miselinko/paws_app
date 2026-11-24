@@ -12,6 +12,7 @@ import { getReservations } from '../api/reservations'
 import { useAuth } from '../context/AuthContext'
 import { Reservation } from '../types'
 import { ReservationsStackParamList } from '../navigation/ReservationsNavigator'
+import { usePtrControl } from '../hooks/usePtrControl'
 
 type Nav = NativeStackNavigationProp<ReservationsStackParamList, 'Reservations'>
 
@@ -117,6 +118,7 @@ export default function ReservationsScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current
   const listRef = useRef<FlatList>(null)
   useScrollToTop(listRef)
+  const ptr = usePtrControl([['reservations'], ['pendingCount']])
 
   const tabBarHeight = useBottomTabBarHeight()
   const { data: reservations = [], isLoading, refetch } = useQuery({
@@ -193,6 +195,7 @@ export default function ReservationsScreen() {
       {/* Lista */}
       <FlatList
         ref={listRef}
+          refreshControl={ptr}
         data={filtered}
         keyExtractor={r => r.id.toString()}
         contentContainerStyle={[styles.list, { paddingBottom: tabBarHeight + 8 }]}

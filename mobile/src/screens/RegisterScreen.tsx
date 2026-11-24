@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
 import * as Location from 'expo-location'
 import { register } from '../api/auth'
+import TurnstileWebView, { TURNSTILE_SITE_KEY } from '../components/TurnstileWebView'
 import { RootStackParamList } from '../navigation/RootNavigator'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -61,6 +62,8 @@ export default function RegisterScreen() {
 
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaReset, setCaptchaReset] = useState(0)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [isLocating, setIsLocating] = useState(false)
@@ -150,6 +153,10 @@ export default function RegisterScreen() {
 
   async function handleRegister() {
     if (!validate()) return
+    if (TURNSTILE_SITE_KEY && Platform.OS !== 'web' && !captchaToken) {
+      setApiError('Potvrdi da nisi robot.')
+      return
+    }
     setApiError('')
     setLoading(true)
     try {
@@ -163,14 +170,21 @@ export default function RegisterScreen() {
         password2,
         ...(addressCoords ? { lat: addressCoords.lat, lng: addressCoords.lng } : {}),
         ...(role === 'walker' ? { services } : {}),
+        ...(captchaToken ? { captcha_token: captchaToken } : {}),
       })
+      Alert.alert('Nalog je napravljen', 'Poslali smo ti link za potvrdu email adrese. Proveri inbox (i spam).')
       navigation.navigate('Login')
     } catch (e: unknown) {
-      const err = e as { response?: { data?: Record<string, string[]> } }
+      const err = e as { response?: { status?: number; data?: Record<string, string[] | string> } }
       const msgs = err.response?.data
-      if (msgs?.email?.[0]) setApiError(msgs.email[0])
-      else if (msgs) setApiError(Object.values(msgs).flat()[0] || 'Greška pri registraciji.')
+      const first = (v: unknown) => (Array.isArray(v) ? String(v[0]) : typeof v === 'string' ? v : '')
+      if (err.response?.status === 429) setApiError('Previše pokušaja registracije. Pokušaj ponovo kasnije.')
+      else if (msgs && first(msgs.email)) setApiError(first(msgs.email))
+      else if (msgs && first(msgs.detail)) setApiError(first(msgs.detail))
+      else if (msgs) setApiError(first(Object.values(msgs).flat()[0]) || 'Greška pri registraciji.')
       else setApiError('Greška pri registraciji. Pokušaj ponovo.')
+      setCaptchaToken('')
+      setCaptchaReset(k => k + 1)
     } finally {
       setLoading(false)
     }
@@ -367,6 +381,8 @@ export default function RegisterScreen() {
             {err('password2')}
           </View>
         </View>
+
+        <TurnstileWebView onToken={setCaptchaToken} resetKey={captchaReset} />
 
         {/* ── Submit ── */}
         <TouchableOpacity
