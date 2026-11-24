@@ -126,14 +126,23 @@ jobs:
           grep -q "versionCode='${{ steps.ver.outputs.code }}'" "$RUNNER_TEMP/badging.txt"
           unzip -p "$APK" assets/index.android.bundle | grep -c "paws-app.onrender.com/api" > /dev/null
           APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
-          "$APKSIGNER" verify --print-certs "$APK" | grep -E "SHA-256 digest" | head -1 | tee "$RUNNER_TEMP/cert.txt"
+          CERT=$("$APKSIGNER" verify --print-certs "$APK" | grep -m1 "SHA-256 digest" | sed 's/.*: //' | tr -d ' :' | tr 'a-f' 'A-F')
+          echo "$CERT" > "$RUNNER_TEMP/cert.txt"
           echo "file=$OUT" >> "$GITHUB_OUTPUT"
+          echo "cert=$CERT" >> "$GITHUB_OUTPUT"
+          # Sertifikat mora da se poklapa sa prethodnim APK-om (GitHub Variable EXPECTED_SIGNING_SHA256),
+          # inače se nova verzija ne može instalirati preko stare.
+          EXPECTED=$(echo "${{ vars.EXPECTED_SIGNING_SHA256 }}" | tr -d ' :' | tr 'a-f' 'A-F')
+          if [ -n "$EXPECTED" ] && [ "$EXPECTED" = "$CERT" ]; then MATCH=true; else MATCH=false; fi
+          echo "cert_match=$MATCH" >> "$GITHUB_OUTPUT"
           {
             echo "### APK"
             echo "- Fajl: \`$OUT\` ($(du -h "$APK" | cut -f1))"
             echo "- Paket: com.paws.mobile, versionCode ${{ steps.ver.outputs.code }}"
             echo "- Backend: https://paws-app.onrender.com/api"
-            echo "- Sertifikat: $(cat "$RUNNER_TEMP/cert.txt")"
+            echo "- Sertifikat SHA-256: $(cat "$RUNNER_TEMP/cert.txt")"
+            if [ "$MATCH" = true ]; then echo "- ✅ Sertifikat se poklapa sa prethodnim APK-om → objavljuje se u Releases"
+            else echo "- ⚠️ Sertifikat NIJE potvrđen kao isti kao kod prethodnog APK-a (EXPECTED_SIGNING_SHA256) → nema Release-a, samo Artifact"; fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
@@ -143,7 +152,7 @@ jobs:
           retention-days: 30
 
       - name: GitHub Release
-        if: github.event_name == 'push' || inputs.publish_release
+        if: steps.apk.outputs.cert_match == 'true' && (github.event_name == 'push' || inputs.publish_release)
         env:
           GH_TOKEN: ${{ github.token }}
         working-directory: .
