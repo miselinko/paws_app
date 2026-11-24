@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.throttling import AnonRateThrottle
+from config.throttling import AnonRateThrottle
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings

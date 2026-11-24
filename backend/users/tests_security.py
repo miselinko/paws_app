@@ -101,14 +101,29 @@ class RegistrationProtectionTests(TestCase):
             r = self.c.post('/api/users/register/', reg_payload(captcha_token='bad'), format='json')
         self.assertEqual(r.status_code, 400)
 
+    @override_settings(TURNSTILE_SECRET_KEY='secret', TURNSTILE_ENFORCE=True)
+    def test_captcha_fails_closed_when_cloudflare_down_and_enforced(self):
+        import urllib.error
+        with patch('users.antispam.urllib.request.urlopen', side_effect=urllib.error.URLError('down')):
+            r = self.c.post('/api/users/register/', reg_payload(captcha_token='tok'), format='json')
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(User.objects.filter(email='novi@primer.rs').exists())
+
     @override_settings(TURNSTILE_SECRET_KEY='secret', TURNSTILE_ENFORCE=False)
     def test_old_app_without_captcha_still_works_when_not_enforced(self):
         r = self.c.post('/api/users/register/', reg_payload(), format='json')
         self.assertEqual(r.status_code, 201)
 
 
-@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache', 'LOCATION': 'thr'}})
+@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.db.DatabaseCache', 'LOCATION': 'paws_cache'}})
 class RegistrationThrottleTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        from django.core.management import call_command
+        with override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.db.DatabaseCache', 'LOCATION': 'paws_cache'}}):
+            call_command('createcachetable', verbosity=0)
+
     def setUp(self):
         cache.clear()
 
@@ -121,6 +136,21 @@ class RegistrationThrottleTests(TestCase):
                  for i in range(7)]
         self.assertEqual(codes[:5], [201] * 5)
         self.assertEqual(codes[5], 429)
+
+    def test_spoofed_x_forwarded_for_does_not_bypass_throttle(self):
+        c = APIClient()
+        codes = [c.post('/api/users/register/', reg_payload(email=f's{i}@primer.rs'), format='json',
+                        HTTP_X_FORWARDED_FOR=f'10.0.0.{i}').status_code for i in range(7)]
+        self.assertEqual(codes[5], 429)
+
+    def test_cloudflare_client_ip_used(self):
+        c = APIClient()
+        for i in range(5):
+            c.post('/api/users/register/', reg_payload(email=f'a{i}@primer.rs'), format='json', HTTP_CF_CONNECTING_IP='1.1.1.1')
+        r_same = c.post('/api/users/register/', reg_payload(email='a9@primer.rs'), format='json', HTTP_CF_CONNECTING_IP='1.1.1.1')
+        r_other = c.post('/api/users/register/', reg_payload(email='b9@primer.rs'), format='json', HTTP_CF_CONNECTING_IP='2.2.2.2')
+        self.assertEqual(r_same.status_code, 429)
+        self.assertEqual(r_other.status_code, 201)
 
 
 @override_settings(WALKER_EMAIL_VERIFICATION_REQUIRED_FROM='2026-01-01')

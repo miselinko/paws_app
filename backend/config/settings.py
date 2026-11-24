@@ -114,6 +114,16 @@ if APP_ENV != 'production' and any(m in _db_host for m in PRODUCTION_DB_HOST_MAR
 
 AUTH_USER_MODEL = 'users.User'
 
+# Deljeni keš u bazi: throttle brojači važe za sve gunicorn procese i posle restarta.
+# Tabelu pravi migracija users/0011_cache_table.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'paws_cache',
+        'OPTIONS': {'MAX_ENTRIES': 20000},
+    }
+}
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -122,8 +132,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
+        'config.throttling.AnonRateThrottle',
+        'config.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '200/day',

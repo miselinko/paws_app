@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.throttling import AnonRateThrottle
+from config.throttling import AnonRateThrottle
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
