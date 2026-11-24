@@ -43,7 +43,6 @@ def _create_dog(owner, **kwargs):
         name='Buddy',
         breed='Labrador',
         age=3,
-        weight=Decimal('25.00'),
         size='large',
         gender='male',
     )

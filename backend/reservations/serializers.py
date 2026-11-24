@@ -68,6 +68,9 @@ class ReservationSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Izabrani korisnik nije šetač.')
             if hasattr(walker, 'walker_profile') and not walker.walker_profile.active:
                 raise serializers.ValidationError('Šetač trenutno nije aktivan.')
+            from users.visibility import visible_walkers
+            if not visible_walkers(type(walker).objects.filter(pk=walker.pk)).exists():
+                raise serializers.ValidationError('Šetač trenutno nije dostupan.')
 
         return data
 

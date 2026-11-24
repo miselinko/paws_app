@@ -6,7 +6,11 @@ def create_default_admin(apps, schema_editor):
     from django.contrib.auth.hashers import make_password
     User = apps.get_model('users', 'User')
     email = os.environ.get('ADMIN_EMAIL', 'admin@paws.rs')
-    password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+    # Bez podrazumevane lozinke: admin se pravi samo ako je ADMIN_PASSWORD postavljen
+    # (ranije je ovde bila slaba podrazumevana lozinka).
+    password = os.environ.get('ADMIN_PASSWORD')
+    if not password:
+        return
 
     if not User.objects.filter(role='admin').exists():
         User.objects.create(
