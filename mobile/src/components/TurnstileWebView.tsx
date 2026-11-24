@@ -3,9 +3,9 @@ import { Platform, View } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
 
 /** Javni ključ (nije tajna). Bez njega CAPTCHA se ne prikazuje. */
-export const TURNSTILE_SITE_KEY = process.env.EXPO_PUBLIC_TURNSTILE_SITE_KEY ?? ''
+export const TURNSTILE_SITE_KEY = process.env.EXPO_PUBLIC_TURNSTILE_SITE_KEY || ''
 // Turnstile proverava hostname stranice; mora biti dozvoljen u Cloudflare podešavanjima widgeta.
-const BASE_URL = process.env.EXPO_PUBLIC_TURNSTILE_BASE_URL ?? 'https://paws-app-seven.vercel.app'
+const BASE_URL = process.env.EXPO_PUBLIC_TURNSTILE_BASE_URL || 'https://paws-app-seven.vercel.app'
 
 /** Cloudflare Turnstile u WebView-u za registraciju u aplikaciji. */
 export default function TurnstileWebView({ onToken, resetKey = 0 }: { onToken: (t: string) => void; resetKey?: number }) {

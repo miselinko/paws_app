@@ -1,0 +1,156 @@
+# Pravi Android APK (Expo prebuild + Gradle) na besplatnom GitHub runneru i
+# objavljuje ga u Actions Artifacts i GitHub Releases kao Paws-v{version}.apk.
+#
+# Pokreće se:
+#  - automatski na push na main kad se menja mobilni kod (mobile/**) ili ovaj fajl
+#    (izmene samo na backendu/vebu NE pokreću build),
+#  - ručno: Actions → Build APK → Run workflow.
+#
+# Potpis (GitHub → Settings → Secrets and variables → Actions):
+#  ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#  Ako nisu postavljeni, APK se potpisuje podrazumevanim Expo keystore-om, istim kao
+#  dosadašnji lokalni build (expo prebuild + assembleRelease), pa se instalira preko stare verzije.
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Objavi APK u GitHub Releases'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: false
+
+env:
+  # APK uvek gađa produkcijski backend.
+  EXPO_PUBLIC_API_URL: https://paws-app.onrender.com/api
+  EXPO_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+  EXPO_PUBLIC_TURNSTILE_BASE_URL: ${{ vars.TURNSTILE_BASE_URL }}
+  # versionCode raste sa svakim buildom (100+ da bi bio veći od dosadašnjeg 1).
+  VERSION_CODE: ${{ github.run_number }}00
+
+jobs:
+  checks:
+    name: Provere mobilnog koda
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: mobile } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: npx tsc --noEmit
+      - name: JS bundle (Android)
+        run: npx expo export --platform android --output-dir /tmp/bundle-check
+
+  build:
+    name: Android APK
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults: { run: { working-directory: mobile } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci --legacy-peer-deps
+
+      - name: Verzija
+        id: ver
+        run: |
+          python3 scripts/ci_prepare_android.py version "$VERSION_CODE"
+          VERSION=$(node -p "require('./app.json').expo.version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Expo prebuild (android)
+        run: CI=1 npx expo prebuild --platform android --no-install --clean
+
+      - name: Potpis iz GitHub Secrets (ako postoji)
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/paws-release.keystore"
+            echo "PAWS_KEYSTORE_PATH=$RUNNER_TEMP/paws-release.keystore" >> "$GITHUB_ENV"
+          fi
+
+      - name: Gradle assembleRelease
+        env:
+          PAWS_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          PAWS_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          PAWS_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          NODE_ENV: production
+        run: |
+          python3 scripts/ci_prepare_android.py signing
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon \
+            -PreactNativeArchitectures=arm64-v8a,armeabi-v7a \
+            -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+
+      - name: Provera APK-a (paket, verzija, backend URL)
+        id: apk
+        run: |
+          set -euo pipefail
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          test -s "$APK"
+          OUT="Paws-v${{ steps.ver.outputs.version }}.apk"
+          cp "$APK" "$RUNNER_TEMP/$OUT"
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          "$AAPT" dump badging "$APK" | head -1 | tee "$RUNNER_TEMP/badging.txt"
+          grep -q "package: name='com.paws.mobile'" "$RUNNER_TEMP/badging.txt"
+          grep -q "versionCode='${{ steps.ver.outputs.code }}'" "$RUNNER_TEMP/badging.txt"
+          unzip -p "$APK" assets/index.android.bundle | grep -c "paws-app.onrender.com/api" > /dev/null
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --print-certs "$APK" | grep -E "SHA-256 digest" | head -1 | tee "$RUNNER_TEMP/cert.txt"
+          echo "file=$OUT" >> "$GITHUB_OUTPUT"
+          {
+            echo "### APK"
+            echo "- Fajl: \`$OUT\` ($(du -h "$APK" | cut -f1))"
+            echo "- Paket: com.paws.mobile, versionCode ${{ steps.ver.outputs.code }}"
+            echo "- Backend: https://paws-app.onrender.com/api"
+            echo "- Sertifikat: $(cat "$RUNNER_TEMP/cert.txt")"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.file }}
+          path: ${{ runner.temp }}/${{ steps.apk.outputs.file }}
+          retention-days: 30
+
+      - name: GitHub Release
+        if: github.event_name == 'push' || inputs.publish_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: .
+        run: |
+          TAG="apk-v${{ steps.ver.outputs.version }}-${{ steps.ver.outputs.code }}"
+          gh release create "$TAG" "$RUNNER_TEMP/${{ steps.apk.outputs.file }}" \
+            --target "$GITHUB_SHA" \
+            --title "Paws v${{ steps.ver.outputs.version }} (build ${{ steps.ver.outputs.code }})" \
+            --notes "Android APK za instalaciju na telefonu. Backend: https://paws-app.onrender.com. Commit: $GITHUB_SHA" \
+            --latest

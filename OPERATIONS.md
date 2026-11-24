@@ -56,4 +56,12 @@
   ```
   Aplikacija preuzme izmenu u pozadini i primeni je pri sledećem pokretanju.
 - Novi APK je i dalje potreban kad se doda native biblioteka ili promeni `version` u `app.json`.
-- Build APK-a (EAS): `npx eas-cli build -p android --profile preview` (ili lokalno: `build_apk.ps1`).
+- **Automatski APK:** `.github/workflows/build-apk.yml` pravi `Paws-v{version}.apk` na besplatnom GitHub runneru
+  posle svake izmene u `mobile/` na `main` grani (ili ručno: Actions → Build APK → Run workflow) i objavljuje ga
+  u GitHub Releases i Actions Artifacts. `versionCode` raste sa svakim buildom.
+- **Potpis:** bez Secrets-a APK se potpisuje podrazumevanim Expo keystore-om (isto kao dosadašnji lokalni build),
+  pa se instalira preko stare verzije. Za sopstveni keystore dodaj Secrets `ANDROID_KEYSTORE_BASE64`,
+  `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Promena keystore-a zahteva jednu
+  deinstalaciju stare aplikacije.
+- **CAPTCHA u APK-u:** GitHub → Settings → Variables: `TURNSTILE_SITE_KEY` (i po potrebi `TURNSTILE_BASE_URL`).
+- **OTA objava:** treba `EXPO_TOKEN` (expo.dev → Access tokens) za `eas update`.
