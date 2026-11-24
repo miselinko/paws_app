@@ -167,7 +167,7 @@ TURNSTILE_ENFORCE = config('TURNSTILE_ENFORCE', default=False, cast=bool)
 
 # Šetači registrovani posle ovog datuma vide se u pretrazi tek kad potvrde email.
 # Postojeći nalozi (pre datuma) ostaju vidljivi i nisu zaključani.
-WALKER_EMAIL_VERIFICATION_REQUIRED_FROM = config('WALKER_EMAIL_VERIFICATION_REQUIRED_FROM', default='2026-11-25')
+WALKER_EMAIL_VERIFICATION_REQUIRED_FROM = config('WALKER_EMAIL_VERIFICATION_REQUIRED_FROM', default='2026-11-24')
 
 # Glavni administrator — ne može se deaktivirati ni obrisati preko API-ja.
 PROTECTED_ADMIN_EMAILS = [e.strip().lower() for e in config('PROTECTED_ADMIN_EMAILS', default='admin@paws.rs').split(',') if e.strip()]

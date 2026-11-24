@@ -25,7 +25,7 @@
   3. Vercel env: `VITE_TURNSTILE_SITE_KEY=<site key>` → redeploy.
   4. Aplikacija: `EXPO_PUBLIC_TURNSTILE_SITE_KEY=<site key>` u `mobile/.env` → novi APK.
   5. Kad korisnici pređu na novi APK: Render `TURNSTILE_ENFORCE=True` (stari APK tada više ne može da registruje nalog).
-- Šetači registrovani od `WALKER_EMAIL_VERIFICATION_REQUIRED_FROM` (2026-11-25) vide se u pretrazi tek posle potvrde emaila.
+- Šetači registrovani od `WALKER_EMAIL_VERIFICATION_REQUIRED_FROM` (2026-11-24) vide se u pretrazi tek posle potvrde emaila.
   Postojeći nalozi ostaju vidljivi i niko nije zaključan.
 - **Email:** bez `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` i SMTP podataka na Render-u verifikacioni
   i reset mejlovi se samo ispisuju u log i ne stižu korisnicima.
