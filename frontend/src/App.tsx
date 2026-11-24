@@ -23,6 +23,7 @@ import KontaktPage from './pages/KontaktPage'
 import ZastoPawsPage from './pages/ZastoPawsPage'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
+import ServerWakeBanner from './components/ServerWakeBanner'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -48,6 +49,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <ServerWakeBanner />
       <Navbar />
       <div className={user ? 'pb-16 md:pb-0' : ''}>
       <Routes>

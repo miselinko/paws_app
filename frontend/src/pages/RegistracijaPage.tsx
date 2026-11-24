@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import AdresaInput from '../components/AdresaInput'
+import Turnstile from '../components/Turnstile'
+import { TURNSTILE_SITE_KEY } from '../config'
 
 const MapaPicker = lazy(() => import('../components/MapaPicker'))
 
@@ -61,6 +63,9 @@ export default function RegistracijaPage() {
   const [isLocating, setIsLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
   const [showMap, setShowMap] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [captchaReset, setCaptchaReset] = useState(0)
+  const [honeypot, setHoneypot] = useState('')
 
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<F>({
     resolver: zodResolver(schema),
@@ -136,18 +141,32 @@ export default function RegistracijaPage() {
   }
 
   const onSubmit = async (data: F) => {
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setApiError('Potvrdi da nisi robot.')
+      return
+    }
     try {
       setApiError('')
       const payload = {
         ...data,
         ...(coords.lat != null && coords.lng != null ? { lat: coords.lat, lng: coords.lng } : {}),
         ...(data.role === 'walker' ? { services } : {}),
+        captcha_token: captchaToken,
+        website: honeypot,
       }
       await api.post('/users/register/', payload)
-      navigate('/login')
+      navigate('/login?registered=1')
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { email?: string[] } } }
-      setApiError(err.response?.data?.email?.[0] || 'Greška pri registraciji.')
+      const err = e as { response?: { status?: number; data?: Record<string, unknown> } }
+      const d = err.response?.data ?? {}
+      const first = (v: unknown) => (Array.isArray(v) ? String(v[0]) : typeof v === 'string' ? v : '')
+      const msg = err.response?.status === 429
+        ? 'Previše pokušaja registracije. Pokušaj ponovo kasnije.'
+        : first(d.email) || first(d.password) || first(d.first_name) || first(d.last_name) || first(d.detail)
+      setApiError(msg || 'Greška pri registraciji.')
+      // Turnstile token važi samo jednom — posle neuspeha traži novi.
+      setCaptchaToken('')
+      setCaptchaReset(k => k + 1)
     }
   }
 
@@ -375,6 +394,13 @@ export default function RegistracijaPage() {
                 {errors.password2 && <p className="text-red-500 text-xs mt-1">{errors.password2.message}</p>}
               </div>
             </div>
+
+            {/* Honeypot: skriveno od ljudi, botovi ga popunjavaju */}
+            <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+              <label>Web sajt<input type="text" tabIndex={-1} autoComplete="off" value={honeypot} onChange={e => setHoneypot(e.target.value)} /></label>
+            </div>
+
+            <Turnstile onToken={setCaptchaToken} resetKey={captchaReset} />
 
             <button
               type="submit"

@@ -3,7 +3,7 @@ import logoImg from '../assets/logo.png'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const schema = z.object({
@@ -20,6 +20,8 @@ export default function PrijavaPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState('')
+  const [searchParams] = useSearchParams()
+  const justRegistered = searchParams.get('registered') === '1'
   const [showPw, setShowPw] = useState(false)
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<F>({ resolver: zodResolver(schema) })
 
@@ -85,6 +87,11 @@ export default function PrijavaPage() {
             <Link to="/register" className="font-semibold hover:underline" style={{ color: '#00BF8F' }}>Registruj se besplatno</Link>
           </p>
 
+          {justRegistered && !error && (
+            <div className="mb-4 rounded-xl bg-green-50 border border-green-100 px-4 py-3 text-sm text-green-800">
+              Nalog je napravljen. Poslali smo ti link za potvrdu email adrese — proveri inbox (i spam).
+            </div>
+          )}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-5">
               {error}
